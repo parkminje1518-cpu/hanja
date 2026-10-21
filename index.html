@@ -87,6 +87,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .who small{display:block;font-family:var(--f-body);font-size:12px;color:var(--muted);line-height:1.2}
 .statusRow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .statusRow span{background:var(--bg2);border:2px solid var(--line);border-radius:999px;padding:4px 14px;font-size:15px}
+.statusRow .stairTag{border-color:#c9a23a;color:#ffe9a8}
 .statusRow b{font-family:var(--f-ui);font-weight:400;color:var(--gold);font-size:18px}
 .bigBtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .bigBtn{position:relative;display:flex;align-items:center;gap:14px;text-align:left;border-radius:16px;padding:20px 18px;min-height:128px;border:3px solid;transition:transform .08s}
@@ -786,7 +787,13 @@ const UNIQUE = [...new Map(WEEKS.flat().map(c=>[c.h,c])).values()];
 const label = c=>`${c.hun} ${c.eum}`;
 
 /* ===== 규칙 (선생님이 바꾸고 싶으면 여기 숫자만) ===== */
-const DAILY_SETS = 15;    // 하루에 코인을 받을 수 있는 학습 세트 수
+const DAILY_SETS = 30;    // 하루에 코인을 받을 수 있는 학습 세트 수
+/* 공부 계단: 많이 할수록 한 세트의 코인 배율이 올라가요 (6세트마다 한 계단) */
+const STAIR = [.4,.5,.6,.7,.8], STAIR_N = 6;
+const stairOf = n => Math.min(STAIR.length-1, Math.floor(n/STAIR_N));   // n = 오늘 이미 받은 세트 수
+const stairMul = n => STAIR[stairOf(n)];
+function stairHtml(n){ if(n>=DAILY_SETS) return "오늘 공부 계단 끝까지 올랐어요!"; const k=stairOf(n), nx=(k+1)*STAIR_N;
+  return `공부 계단 <b>${k+1}단계</b> · 코인 ×${STAIR[k]}${k<STAIR.length-1?` · ${nx+1}세트부터 ×${STAIR[k+1]}`:""}` }
 const GAME_COST = 50;     // 게임 입장료
 const DAILY_PLAYS = 20;   // 하루 게임 판 수
 const HERO_EXP_RATE = 0.5; // 용사가 받는 경험치 비율 (게임 판 수를 늘린 만큼 성장은 천천히)
@@ -879,11 +886,12 @@ modal.addEventListener("click",e=>{ if(e.target===modal && modal.dataset.dismiss
 /* 높은 주차일수록 코인을 더 많이: 고른 주차 평균이 1주차면 ×1.0, 26주차면 ×2.0 */
 function weekMul(){ const sel=(P&&P.set&&P.set.sel)||[]; if(!sel.length) return 1; const avg=sel.reduce((a,b)=>a+b,0)/sel.length; return Math.round((1+(avg-1)/25)*10)/10 }
 function grantSet(amount,raw){
-  if(!raw) amount=Math.round(amount*weekMul());
+  if(!raw) amount=amount*weekMul();
   const d=day(); P.stats.sets++;
+  amount=Math.max(1,Math.round(amount*(d.sets>=DAILY_SETS?STAIR[STAIR.length-1]:stairMul(d.sets))));
   if(d.sets>=DAILY_SETS){ saveP(); return {got:0,limited:true,exp:addExp(Math.round(amount*0.75))} }
-  d.sets++; P.coins+=amount; P.earned+=amount; saveP();
-  return {got:amount,limited:false,exp:addExp(Math.round(amount*1.5))};
+  const st=stairMul(d.sets); d.sets++; P.coins+=amount; P.earned+=amount; saveP();
+  return {stair:st,got:amount,limited:false,exp:addExp(Math.round(amount*1.5))};
 }
 
 /* 소리는 sfx.js 에서 만들어요 */
@@ -1091,8 +1099,8 @@ function guide(start){
      x:`주차를 고른 다음 아래에서 하고 싶은 공부를 골라요.<br>모두 <b>코인</b>을 받을 수 있어요!`, tip:"퀴즈에는 <b>낱말 문제</b>(天地 천지처럼 한자가 들어간 낱말)도 나와요. 획순 쓰기의 <b>기억해서 쓰기</b>는 코인이 2배예요!"},
     {t:"오늘의 한자와 성적표", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:40px;color:#ffd36a;line-height:1">雨</span>첫 화면<br><b style="color:#ffd36a;font-weight:400">오늘의 한자</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✍️</span>기억해서 쓰면<br><b style="color:#ffd36a;font-weight:400">보너스 +10</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📊</span>내 기록의<br><b style="color:#ffd36a;font-weight:400">한자 성적표</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🎯</span>약한 한자가<br><b style="color:#ffd36a;font-weight:400">더 자주 나와요</b></div></div>`,
      x:`첫 화면에 날마다 <b>오늘의 한자</b>가 나와요. 기억해서 써 보면 보너스 코인을 받아요.<br><b>내 기록</b>에서 주차별 정답률과 자주 틀린 한자를 볼 수 있어요.`, tip:"퀴즈와 게임 문제는 내가 <b>자주 틀린 한자</b>, 아직 덜 익힌 한자가 더 자주 나와요. 틀려도 괜찮아요, 그만큼 다시 만나요!"},
-    {t:"코인 모으기", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px">${ico("coin")}<span>공부 1세트 끝내면<br><b style="color:#ffd36a;font-weight:400">코인 받기!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🔥</span><span>퀴즈를 연속으로<br>맞히면 <b style="color:#ffd36a;font-weight:400">더 많이!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📈</span><span>높은 주차일수록<br><b style="color:#ffd36a;font-weight:400">최대 ×2!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📅</span><span>하루에<br><b style="color:#ffd36a;font-weight:400">${DAILY_SETS}세트</b>까지</span></div></div>`,
-     x:`공부를 한 번 끝낼 때마다 코인이 생겨요. 하루에 <b>${DAILY_SETS}세트</b>까지 받아요.<br><b>높은 주차</b>를 고를수록 코인이 늘어나요. (1주차 ×1 → 26주차 <b>×2</b>)`, tip:"주차 고르는 화면에 <b>코인 ×1.6</b>처럼 지금 배율이 보여요. 어려운 주차에 도전해 봐요!"},
+    {t:"코인 모으기", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px">${ico("coin")}<span>공부 1세트 끝내면<br><b style="color:#ffd36a;font-weight:400">코인 받기!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🔥</span><span>퀴즈를 연속으로<br>맞히면 <b style="color:#ffd36a;font-weight:400">더 많이!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📈</span><span>높은 주차일수록<br><b style="color:#ffd36a;font-weight:400">최대 ×2!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📅</span><span>많이 할수록<br><b style="color:#ffd36a;font-weight:400">공부 계단 UP!</b></span></div></div>`,
+     x:`공부를 한 번 끝낼 때마다 코인이 생겨요. 하루에 <b>${DAILY_SETS}세트</b>까지 받아요.<br><b>공부 계단</b>: 6세트마다 한 계단씩 올라가서 코인이 늘어나요. (×0.4 → ×0.5 → ×0.6 → ×0.7 → <b>×0.8</b>)<br><b>높은 주차</b>를 고를수록 코인이 늘어나요. (1주차 ×1 → 26주차 <b>×2</b>)`, tip:"주차 고르는 화면에 <b>코인 ×1.6</b>처럼 지금 배율이 보여요. 어려운 주차에 도전해 봐요!"},
     {t:"나의 용사 고르기", art:`<div class="gdHeroes">${HEROES.map((h,k)=>`<div class="gdHero ${k>1?"gdlock":""}">${spr(h.id,0)}${h.cls}<small>${h.cost?h.cost+" 코인":"처음부터"}</small></div>`).join("")}</div>`,
      x:`첫 화면의 <b>용사</b>를 누르면 용사를 볼 수 있어요.<br>코인을 모아서 <b>새 용사</b>를 열어요. 비싼 용사일수록 <b>더 강해요!</b>`, tip:"용사는 <b>전사 → 궁수 → 도적 → 마법사 → 해적</b> 순서로 열 수 있어요."},
     {t:"용사 키우기와 전직", art:`<div class="gdBar"><span>게임을 하면 경험치가 쌓여 <b style="color:#ffd36a;font-weight:400">레벨 업!</b></span><div class="bar"><i></i></div></div><div class="gdTier">${[0,1,2,3,4].map(t=>`${t?'<span class="ar">➜</span>':""}<div>${spr(hid,t)}<em>${t?["","Lv 10","Lv 30","Lv 60","Lv 100"][t]:"처음"}</em>${t?t+"차":"견습"}</div>`).join("")}</div>`,
@@ -1151,11 +1159,12 @@ function home(){
   <div class="statusRow">
     ${isAdmin()?`<span class="adminTag">선생님 모드 · 코인과 판 수 제한 없음</span>`:""}
     <span>오늘의 학습 보상 <b>${d.sets}/${DAILY_SETS}</b> 세트</span>
+    <span class="stairTag">🪜 ${stairHtml(d.sets)}</span>
     <span>익힌 한자 <b>${mastered}</b>/${UNIQUE.length}</span>
     <span>오늘 남은 게임 <b>${left}</b>판</span>
   </div>
   <div class="bigBtns">
-    <button class="bigBtn gold" id="goLearn"><span class="num">1</span><span class="bi">${ico("book")}</span><span><strong>학습하기</strong><small>주차를 골라 퀴즈·카드·짝 맞추기·획순 쓰기<br>코인 받는 세트 ${d.sets}/${DAILY_SETS}</small></span></button>
+    <button class="bigBtn gold" id="goLearn"><span class="num">1</span><span class="bi">${ico("book")}</span><span><strong>학습하기</strong><small>주차를 골라 퀴즈·카드·짝 맞추기·획순 쓰기<br>코인 받는 세트 ${d.sets}/${DAILY_SETS} · 많이 할수록 코인 UP!</small></span></button>
     <button class="bigBtn red" id="goGame"><span class="num">2</span><span class="bi">${ico("sword")}</span><span><strong>게임 시작</strong><small>입장료 ${GAME_COST}코인 · 오늘 남은 판 ${left}<br>배운 한자로 몬스터를 물리쳐요</small></span></button>
   </div>
   <div class="menu4">
@@ -1364,11 +1373,11 @@ function learn(){
     <div class="weeks">${WEEKS.map((w,i)=>`<button class="wk" data-w="${i+1}" aria-pressed="${P.set.sel.includes(i+1)}"><span>${i+1}</span><small>주차</small>${P.done.includes(i+1)?'<span class="done" title="퀴즈 만점">★</span>':''}</button>`).join("")}</div>
     <div class="row"><span class="meta">${P.set.sel.length?`${P.set.sel.length}개 주차 · 한자 ${p.length}자 · <b style="color:var(--gold);font-weight:400">코인 ×${weekMul()}</b>`:"주차를 하나 이상 눌러 주세요"}</span><span class="meta">높은 주차일수록 코인을 더 많이 받아요 (26주차 ×2)</span><span class="meta">★ 표시는 퀴즈 만점을 받은 주차예요</span></div>
   </section>
-  <div class="row"><h2>무엇을 할까요?</h2><span class="meta">${full?"오늘 코인 보상 세트를 모두 받았어요. 공부는 계속할 수 있어요!":`코인 받는 세트 ${d.sets}/${DAILY_SETS}`}</span></div>
+  <div class="row"><h2>무엇을 할까요?</h2><span class="meta">${full?"오늘 코인 보상 세트를 모두 받았어요. 공부는 계속할 수 있어요!":`코인 받는 세트 ${d.sets}/${DAILY_SETS} · ${stairHtml(d.sets)}`}</span></div>
   <div class="acts">
-    <button class="act" data-a="quiz" ${p.length?"":"disabled"}><span class="ai y">${ico("quiz")}</span><span><strong>퀴즈</strong><small>${P.set.qn}문제 · 연속으로 맞히면 보상이 커져요</small><span class="rw">${ico("coin","ci")}최대 +${quizMax(P.set.qn)}</span></span></button>
-    <button class="act" data-a="cards" ${p.length?"":"disabled"}><span class="ai r">${ico("cards")}</span><span><strong>한자 카드</strong><small>카드를 모두 뒤집어 뜻과 소리 익히기</small><span class="rw">${ico("coin","ci")}+20</span></span></button>
-    <button class="act" data-a="match" ${p.length>=3?"":"disabled"}><span class="ai g">${ico("match")}</span><span><strong>짝 맞추기</strong><small>한자와 뜻 카드를 뒤집어 짝 찾기</small><span class="rw">${ico("coin","ci")}+15 ~ +30</span></span></button>
+    <button class="act" data-a="quiz" ${p.length?"":"disabled"}><span class="ai y">${ico("quiz")}</span><span><strong>퀴즈</strong><small>${P.set.qn}문제 · 연속으로 맞히면 보상이 커져요</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(quizMax(P.set.qn))}</span></span></button>
+    <button class="act" data-a="cards" ${p.length?"":"disabled"}><span class="ai r">${ico("cards")}</span><span><strong>한자 카드</strong><small>카드를 모두 뒤집어 뜻과 소리 익히기</small><span class="rw">${ico("coin","ci")}+${nowCoin(14)}</span></span></button>
+    <button class="act" data-a="match" ${p.length>=3?"":"disabled"}><span class="ai g">${ico("match")}</span><span><strong>짝 맞추기</strong><small>한자와 뜻 카드를 뒤집어 짝 찾기</small><span class="rw">${ico("coin","ci")}+${nowCoin(10)} ~ +${nowCoin(20)}</span></span></button>
     <button class="act" data-a="strokes" ${p.length?"":"disabled"}><span class="ai b">${ico("brush")}</span><span><strong>획순 쓰기</strong><small>획순을 보고 손가락으로 따라 쓰기</small><span class="rw">${ico("coin","ci")}한 글자 +${TRACE_COIN} (하루 ${TRACE_DAILY_MAX}까지)</span></span></button>
   </div>`;
   bindBack();
@@ -1379,6 +1388,8 @@ function learn(){
 }
 const comboGain = k=>Math.min(10,3*k);   // 연속 정답 보상 (5문제 만점이면 48코인)
 const quizMax = n=>{let s=0;for(let k=1;k<=n;k++)s+=comboGain(k);return s+10};
+/* 지금 받을 수 있는 코인 (주차 배율 × 공부 계단) */
+const nowCoin = a=>{ const d=day(); return Math.max(1,Math.round(a*weekMul()*(d.sets>=DAILY_SETS?STAIR[STAIR.length-1]:stairMul(d.sets)))) };
 
 /* ===== 퀴즈 ===== */
 function makeQ(c,opt){ opt=opt||{};
@@ -1459,7 +1470,7 @@ function quiz(list,{fromNotes=false}={}){
     openModal(`<div class="eyebrow">COMPLETE</div><h3>${perfect?"만점! 학습 완료!":"학습 완료!"}</h3>
       <p>맞힌 문제 <b style="font-family:var(--f-ui);font-size:24px;color:var(--gold)">${right} / ${N}</b> · 최고 ${best}연속</p>
       <div class="mc">${ico("coin","ci")}+${r.got}</div>${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
-      <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?`만점 보너스 +${Math.round(10*WM)} 포함 · `:""}${WM>1?`높은 주차 보너스 ×${WM} · `:""}오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
+      <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?`만점 보너스 +${Math.round(10*WM)} 포함 · `:""}${WM>1?`높은 주차 보너스 ×${WM} · `:""}공부 계단 ×${r.stair} · 오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
       ${um.length?`<div class="eyebrow">다시 볼 한자</div><div class="misslist">${um.map(c=>`<span><b>${esc(c.h)}</b>${esc(label(c))}</span>`).join("")}</div>`:""}
       <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
       <div class="btns" id="after" hidden><button class="btn ghost" id="again">한 번 더</button>${um.length?`<button class="btn red" id="rev">틀린 것 카드로</button>`:""}<button class="btn ghost" id="mm">메인으로</button></div>`);
@@ -1484,7 +1495,7 @@ function rewardModal(title,body,amount,again){
   modal.dataset.dismiss="no";
   openModal(`<div class="eyebrow">COMPLETE</div><h3>${title}</h3><p>${body}</p>
     <div class="mc">${ico("coin","ci")}+${r.got}</div>${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
-    <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${weekMul()>1?`높은 주차 보너스 ×${weekMul()} · `:""}오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
+    <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${weekMul()>1?`높은 주차 보너스 ×${weekMul()} · `:""}공부 계단 ×${r.stair} · 오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
     <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
     <div class="btns" id="after" hidden><button class="btn ghost" id="again">한 번 더</button><button class="btn ghost" id="mm">메인으로</button></div>`);
   document.getElementById("take").onclick=e=>{e.currentTarget.hidden=true;document.getElementById("after").hidden=false;if(r.got){sfx("coin");countUp(P.coins-r.got,P.coins)}};
