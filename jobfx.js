@@ -555,3 +555,35 @@ function jfShip(c,f,k,W,H,t,GL){
   c.save(); c.translate(pos.x,pos.y+Math.sin(t*18)*2.5); c.rotate(rot); c.scale(sc*(f.dir>0?1:-1),sc); drawNautShip(c,t,GL,pos.u>.05&&pos.u<.95); c.restore();
   c.restore();
 }
+
+/* 보스 보물상자: 나무 상자 + 금테 + 자물쇠 + 빛줄기 */
+function drawTreasure(c,x,y,t,GL){
+  const b=Math.sin(t*3)*3, open=.5+.5*Math.sin(t*2.2);
+  c.save(); c.globalCompositeOperation=GL;
+  c.save(); c.translate(x,y-6+b); c.rotate(t*.4);
+  for(let i=0;i<10;i++){ c.rotate(TAU/10); const g=c.createLinearGradient(0,0,0,-90); g.addColorStop(0,`rgba(255,230,140,${.35+.15*open})`); g.addColorStop(1,"rgba(255,230,140,0)"); c.fillStyle=g; c.beginPath(); c.moveTo(-6,0); c.lineTo(0,-90); c.lineTo(6,0); c.closePath(); c.fill() }
+  c.restore(); jGlow(c,x,y-4+b,60,"255,210,100",.55); c.restore();
+  c.fillStyle="rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(x,y+22,32,8,0,0,TAU); c.fill();
+  c.save(); c.translate(x,y+b);
+  // 몸통 (나무판)
+  const wg=c.createLinearGradient(0,-6,0,20); wg.addColorStop(0,"#a8642e"); wg.addColorStop(1,"#5a3214");
+  c.fillStyle=wg; c.fillRect(-26,-6,52,26);
+  c.strokeStyle="rgba(40,20,6,.6)"; c.lineWidth=1.5; for(let k=-1;k<=1;k++){ c.beginPath(); c.moveTo(-26,4+k*7); c.lineTo(26,4+k*7); c.stroke() }
+  // 뚜껑 (둥근 지붕)
+  const lg=c.createLinearGradient(0,-26,0,-4); lg.addColorStop(0,"#c47a3a"); lg.addColorStop(1,"#7a4418");
+  c.fillStyle=lg; c.beginPath(); c.moveTo(-27,-5); c.quadraticCurveTo(-27,-28,0,-29); c.quadraticCurveTo(27,-28,27,-5); c.closePath(); c.fill();
+  c.strokeStyle="rgba(40,20,6,.55)"; c.beginPath(); c.moveTo(-20,-18); c.quadraticCurveTo(0,-24,20,-18); c.stroke();
+  // 금테
+  const gold=c.createLinearGradient(0,-30,0,22); gold.addColorStop(0,"#fff2a8"); gold.addColorStop(.5,"#f6c544"); gold.addColorStop(1,"#a8741a");
+  c.fillStyle=gold; c.fillRect(-28,-7,56,5); c.fillRect(-28,17,56,4);
+  [-18,18].forEach(xx=>{ c.fillRect(xx-3,-27,6,48) });
+  c.fillRect(-28,-7,5,28); c.fillRect(23,-7,5,28);
+  c.fillStyle="#fff8d0"; [[-25,-5],[25,-5],[-25,19],[25,19],[-18,-25],[18,-25]].forEach(([a,bb])=>{ c.beginPath(); c.arc(a,bb,1.6,0,TAU); c.fill() });
+  // 자물쇠
+  c.fillStyle=gold; c.beginPath(); c.roundRect?c.roundRect(-7,-9,14,15,3):c.rect(-7,-9,14,15); c.fill(); c.strokeStyle="#7a5410"; c.lineWidth=1.5; c.stroke();
+  c.fillStyle="#3a2408"; c.beginPath(); c.arc(0,-3,2.5,0,TAU); c.fill(); c.fillRect(-1,-2,2,5);
+  // 틈새로 새어 나오는 빛
+  c.save(); c.globalCompositeOperation=GL; c.fillStyle=`rgba(255,240,170,${.5+.4*open})`; c.fillRect(-23,-7,46,2); c.restore();
+  c.restore();
+  for(let i=0;i<7;i++){ const ph=(t*.9+i/7)%1, a=i*2.3; c.fillStyle=`rgba(255,250,200,${1-ph})`; const z=ph<.5?3:2; c.fillRect(x+Math.cos(a)*30-z/2,y-10+b-ph*40+Math.sin(a)*8-z/2,z,z) }
+}

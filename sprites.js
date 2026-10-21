@@ -76,7 +76,40 @@ function decorate(t){
     for(let y=13;y<=24;y++){ const w=Math.max(0,4-Math.abs(y-17)/2|0); for(let i=0;i<=w;i++){ Pn(y%3===0?l:c,7-i,y); Pn(y%3===0?l:c,24+i,y) } }
     Pn("#ffffff",4,16,27,16,5,14,26,14);
     Pn(c,12,3,14,2,16,2,18,3,13,3,15,3,17,3); Pn(l,14,1,16,1); Pn("#e9475f",15,2) }
+  gearUp(t,id,T,c,d,l,Pn);
   return t.g;
+}
+/* 전직할수록 무기와 갑옷이 커지고 빛나요 */
+function gearUp(t,id,T,c,d,l,Pn){ const {R,P,L}=t, W="#ffffff";
+  const line=(x0,y0,x1,y1,col,empty)=>{ const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0)); for(let i=0;i<=n;i++){ const x=Math.round(x0+(x1-x0)*i/n), y=Math.round(y0+(y1-y0)*i/n); empty?Pn(col,x,y):P(col,x,y) } };
+  // 갑옷: 3차부터 장갑·장화 장식, 4차는 금빛 테두리
+  if(T>=3){ P(d,10,21,21,21); P(l,10,21); P(c,12,29,17,29); P(l,12,28,17,28) }
+  if(T>=4){ P("#f6c544",12,18,19,18); P("#fff4b0",15,18,16,18) }
+  if(id==="warrior"){
+    if(T>=1){ line(23,18,28,2,l,true); P(c,22,20,26,20) }
+    if(T>=2){ line(25,20,30,4,d,true); R(20,19,8,1,"#f6c544"); P("#fff4b0",20,19,27,19); P(c,23,21,24,21) }
+    if(T>=3){ line(26,20,31,4,c,true); [[22,10],[24,6],[29,9],[31,1],[27,13]].forEach(([x,y])=>Pn(l,x,y)); P(W,27,2,28,1) }
+    if(T>=4){ for(let i=0;i<14;i++){ Pn(i%2?c:l,22+Math.round(i*.42),15-i); Pn(i%2?l:c,31,14-i) } Pn(W,29,0,30,0,31,0) } }
+  else if(id==="archer"){
+    if(T>=1){ P(c,24,9,24,25); P(l,27,13,27,21) }
+    if(T>=2){ line(25,8,28,12,c,true); line(28,12,29,17,c,true); line(29,17,28,22,c,true); line(28,22,25,26,c,true); Pn(l,23,7,23,27) }
+    if(T>=3){ Pn(l,22,6,21,5,22,28,21,29); Pn(c,21,6,22,5,21,28,22,29); line(14,20,27,20,l); P(W,29,20,30,20,31,20) }
+    if(T>=4){ for(let y=7;y<=27;y+=2) Pn(y%4?l:c,30,y); Pn(W,31,19,31,21,30,19,30,21); line(12,19,14,21,c,true) } }
+  else if(id==="thief"){ const cx=24, cy=24;
+    if(T>=1){ P(c,cx-5,cy,cx+5,cy,cx,cy-5,cx,cy+5) }
+    if(T>=2){ line(cx-3,cy-3,cx+3,cy+3,d); line(cx-3,cy+3,cx+3,cy-3,d); P(l,cx-3,cy-3,cx+3,cy+3) }
+    if(T>=3){ const x2=5,y2=25; line(x2-3,y2,x2+3,y2,"#cfd6e4"); line(x2,y2-3,x2,y2+3,"#cfd6e4"); P(c,x2,y2); P(l,x2-3,y2,x2+3,y2) }
+    if(T>=4){ for(let a=0;a<12;a++){ const ang=a*Math.PI/6; Pn(a%2?l:c,Math.round(cx+Math.cos(ang)*7),Math.round(cy+Math.sin(ang)*7)) } P(W,cx,cy) } }
+  else if(id==="pirate"){
+    if(T>=1){ P(c,23,21,25,21,27,21) }
+    if(T>=2){ R(29,20,2,4,c); P(l,29,20); Pn(d,31,20,31,23); P("#f6c544",22,22,26,22) }
+    if(T>=3){ R(3,21,6,2,"#5a6075"); R(3,21,6,1,"#8b93a6"); P("#a06a35",9,22,9,23,8,23); P(c,4,22,6,22); Pn(l,2,21,2,22) }
+    if(T>=4){ Pn(W,31,21,31,22); for(let y=18;y<=25;y++) Pn(y%2?c:l,31,y); Pn(l,1,20,1,23,0,21,0,22) } }
+  else if(id==="mage"){
+    if(T>=1){ line(26,8,24,29,c); P(l,26,8) }
+    if(T>=2){ R(23,1,7,7,d); R(24,0,5,9,d); R(24,2,5,5,c); R(25,3,3,3,l); P(W,26,3,25,4); }
+    if(T>=3){ Pn(l,21,2,31,2,21,7,31,7); Pn(c,22,0,30,0,22,9,30,9); Pn(W,20,4,31,4); [[3,4],[5,2],[2,1]].forEach(([x,y])=>{ Pn(c,x,y,x+1,y,x,y+1); Pn(l,x+1,y+1) }) }
+    if(T>=4){ for(let a=0;a<16;a++){ const ang=a*Math.PI/8; Pn(a%2?l:c,Math.round(26+Math.cos(ang)*6),Math.round(4+Math.sin(ang)*6)) } } }
 }
 /* 공통 꼬마 몸 (머리 크게) */
 function chibi(t,o){
