@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>한자 탐험대 · 연결 시험</title>
+<style>
+:root{--bg:#171233;--bg2:#221b48;--panel:#2c2460;--line:#4a3f8a;--ink:#f3effd;--muted:#b8b0d8;--gold:#f6c544;--gold-d:#b8871a;--ok:#3fcf8e;--no:#ff5a6a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+h1{margin:4px 0 0;font-size:clamp(28px,6vw,40px);color:var(--gold);text-align:center}
+.sub{margin:0;text-align:center;color:var(--muted);font-size:17px}
+.card{background:var(--bg2);border:2px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+button{font:inherit;font-size:20px;border-radius:14px;padding:14px 18px;min-height:58px;border:3px solid transparent;cursor:pointer;flex:1}
+.gold{background:var(--gold);color:#2a1d00;border-color:#ffe08a;box-shadow:0 5px 0 var(--gold-d)}
+.red{background:#e9475f;color:#fff;border-color:#ff9aab;box-shadow:0 5px 0 #8a1f3a}
+.ghost{background:var(--panel);color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.45}
+input{font:inherit;font-size:30px;letter-spacing:.3em;text-align:center;width:100%;min-height:62px;border-radius:12px;border:3px solid var(--line);background:#120e28;color:var(--ink)}
+.code{font-size:clamp(54px,16vw,90px);font-weight:800;letter-spacing:.15em;text-align:center;color:var(--gold);line-height:1}
+.big{font-size:22px;text-align:center;margin:0}
+.chk{display:flex;flex-direction:column;gap:8px;font-size:18px}
+.chk div{display:flex;gap:10px;align-items:center}
+.chk b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#3a3270;flex:none;font-size:16px}
+.chk .ok b{background:var(--ok);color:#06291a}.chk .no b{background:var(--no);color:#fff}.chk .wait b{background:#6a5ab0}
+.field{position:relative;height:300px;border-radius:14px;background:linear-gradient(#2a6a4a,#1f5038);border:3px solid #0d0a1e;overflow:hidden;touch-action:none}
+.dot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;text-shadow:0 1px 2px #000;transition:left .08s linear,top .08s linear}
+.dot.me{box-shadow:0 0 0 4px #fff6,0 0 16px #fff}
+.players{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.players span{padding:6px 12px;border-radius:10px;font-size:17px;color:#fff;border:2px solid #0004}
+.msg{font-size:17px;line-height:1.5;color:#ffe9a8;background:#3a3015;border:2px dashed var(--gold);border-radius:12px;padding:10px 12px;margin:0}
+.msg.bad{color:#ffd0d6;background:#3a1520;border-color:var(--no)}
+.done{font-size:30px;font-weight:800;text-align:center;color:var(--ok);margin:0}
+[hidden]{display:none!important}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>한자 탐험대 연결 시험</h1>
+  <p class="sub">태블릿끼리 같이 놀 수 있는지 확인하는 페이지예요</p>
+
+  <section class="card" id="home">
+    <p class="big">태블릿 한 대는 <b>방 만들기</b>, 다른 태블릿은 <b>방 들어가기</b>를 눌러요.</p>
+    <div class="row"><button class="gold" id="mk">방 만들기</button></div>
+    <div class="row"><input id="codeIn" inputmode="numeric" maxlength="4" placeholder="0000" aria-label="방 코드 4자리"></div>
+    <div class="row"><button class="red" id="jn">방 들어가기</button></div>
+  </section>
+
+  <section class="card" id="room" hidden>
+    <p class="big" id="roleTxt"></p>
+    <div class="code" id="codeOut"></div>
+    <p class="done" id="doneTxt" hidden>연결됐어요!</p>
+    <div class="players" id="plist"></div>
+    <div class="field" id="field" aria-label="같이 움직여 보는 마당"></div>
+    <small>초록 마당을 손가락으로 눌러 보세요. 내 동그라미가 움직이고, 다른 태블릿에서도 똑같이 움직이면 성공이에요.</small>
+    <button class="ghost" id="leave">처음으로</button>
+  </section>
+
+  <section class="card">
+    <b style="font-size:18px">연결 점검표</b>
+    <div class="chk">
+      <div id="c1" class="wait"><b>1</b><span>연결 프로그램 준비</span></div>
+      <div id="c2" class="wait"><b>2</b><span>인터넷 연결 서비스 접속</span></div>
+      <div id="c3" class="wait"><b>3</b><span>다른 태블릿과 연결</span></div>
+      <div id="c4" class="wait"><b>4</b><span>주고받는 속도 <em id="ms" style="font-style:normal"></em></span></div>
+    </div>
+    <p class="msg" id="msg">아직 시작하지 않았어요.</p>
+  </section>
+</main>
+<script src="peerjs.min.js"></script>
+<script>
+const PREFIX="hanja-explorers-room-";
+const Q=new URLSearchParams(location.search), SRV=Q.get("srv"); /* 시험용: ?srv=host:port */
+const OPT=SRV?{host:SRV.split(":")[0],port:+SRV.split(":")[1],path:"/",secure:false,debug:0}:{debug:0};
+const COLORS=["#e9475f","#3a8ad8","#3fae6e","#c08bff"];
+const $=id=>document.getElementById(id);
+let peer=null, isHost=false, conns=[], hostConn=null, myId="", players={}, myIdx=0, pingT=0;
+function chk(n,st,txt){ const el=$("c"+n); el.className=st; el.querySelector("b").textContent=st==="ok"?"✓":st==="no"?"✕":n; if(txt) el.querySelector("span").firstChild.textContent=txt }
+function say(t,bad){ const m=$("msg"); m.textContent=t; m.classList.toggle("bad",!!bad) }
+chk(1, window.Peer?"ok":"no");
+if(!window.Peer) say("연결 프로그램 파일(peerjs.min.js)을 찾지 못했어요. index.html과 같은 곳에 올렸는지 확인해 주세요.",true);
+
+function errText(e){ const t=e&&e.type||"";
+  if(t==="peer-unavailable") return "그 코드의 방을 찾지 못했어요. 코드를 다시 확인하거나, 방을 만든 태블릿이 화면을 켜 두고 있는지 확인해 주세요.";
+  if(t==="unavailable-id") return "같은 코드의 방이 이미 있어요. 다시 눌러 주세요.";
+  if(t==="network"||t==="server-error"||t==="socket-error"||t==="socket-closed") return "인터넷 연결 서비스에 접속하지 못했어요. 학교 와이파이가 막고 있을 수 있어요. (점검표 2번에서 멈춤)";
+  if(t==="webrtc") return "태블릿끼리 직접 연결이 막혔어요. 학교 와이파이가 막고 있을 수 있어요. (점검표 3번에서 멈춤)";
+  if(t==="browser-incompatible") return "이 브라우저는 연결 기능을 쓸 수 없어요. 크롬이나 사파리 최신 버전으로 열어 주세요.";
+  return "연결 중 문제가 생겼어요: "+(t||e); }
+
+function openRoomUI(code){ $("home").hidden=true; $("room").hidden=false; $("codeOut").textContent=code;
+  $("roleTxt").textContent=isHost?"방을 만들었어요! 친구에게 이 코드를 알려 주세요":"이 방에 들어가는 중이에요"; }
+
+function makeRoom(){ if(!window.Peer) return; reset(); isHost=true;
+  const code=String(1000+Math.floor(Math.random()*9000)); say("인터넷 연결 서비스에 접속하고 있어요...");
+  peer=new Peer(PREFIX+code,OPT);
+  const to=setTimeout(()=>{ if(!peer.open){ chk(2,"no"); say(errText({type:"network"}),true) } },12000);
+  peer.on("open",id=>{ clearTimeout(to); myId=id; chk(2,"ok"); openRoomUI(code); myIdx=0; players[myId]={i:0,x:.5,y:.5}; render(); say("친구가 코드를 입력하기를 기다리고 있어요.") });
+  peer.on("connection",c=>{ if(conns.length>=3){ c.on("open",()=>{ c.send({t:"full"}); setTimeout(()=>c.close(),300) }); return }
+    c.on("open",()=>{ conns.push(c); const used=Object.values(players).map(p=>p.i); let i=1; while(used.includes(i)) i++; players[c.peer]={i,x:.2+.2*i,y:.5};
+      c.send({t:"hi",you:c.peer,i}); chk(3,"ok"); $("doneTxt").hidden=false; say(`친구 ${conns.length}명이 들어왔어요! 마당을 눌러서 같이 움직여 보세요.`); broadcast() });
+    c.on("data",d=>{ if(d.t==="ping"){ chk(4,"ok"); $("ms").textContent=": 친구와 주고받는 중" } if(d.t==="pos"&&players[c.peer]){ players[c.peer].x=d.x; players[c.peer].y=d.y; broadcast() } else if(d.t==="ping") c.send({t:"pong",ts:d.ts}) });
+    c.on("close",()=>{ conns=conns.filter(x=>x!==c); delete players[c.peer]; broadcast(); if(!conns.length){ $("doneTxt").hidden=true; say("친구가 나갔어요.") } }) });
+  peer.on("error",e=>{ clearTimeout(to); if(e.type==="unavailable-id"){ peer.destroy(); return makeRoom() } const n=(e.type==="webrtc")?3:2; chk(n,"no"); say(errText(e),true) });
+}
+function joinRoom(){ if(!window.Peer) return; const code=$("codeIn").value.replace(/\D/g,""); if(code.length!==4){ say("방 코드 4자리를 입력해 주세요.",true); return }
+  reset(); isHost=false; say("인터넷 연결 서비스에 접속하고 있어요...");
+  peer=new Peer(OPT);
+  const to=setTimeout(()=>{ if(!peer.open){ chk(2,"no"); say(errText({type:"network"}),true) } },12000);
+  peer.on("open",id=>{ clearTimeout(to); myId=id; chk(2,"ok"); openRoomUI(code); say("방을 만든 태블릿에 연결하고 있어요...");
+    const c=peer.connect(PREFIX+code,{reliable:true}); hostConn=c;
+    const t2=setTimeout(()=>{ if(!c.open){ chk(3,"no"); say(errText({type:"webrtc"}),true) } },15000);
+    c.on("open",()=>{ clearTimeout(t2); chk(3,"ok"); $("doneTxt").hidden=false; $("roleTxt").textContent="방에 들어왔어요!"; say("연결 성공! 마당을 눌러서 같이 움직여 보세요."); startPing() });
+    c.on("data",d=>{ if(d.t==="hi"){ myIdx=d.i } else if(d.t==="state"){ players=d.players; render() } else if(d.t==="pong"){ const ms=Math.round(performance.now()-d.ts); $("ms").textContent=`: ${ms}ms`; chk(4,ms<250?"ok":"wait") } else if(d.t==="full"){ say("방이 꽉 찼어요 (최대 4명).",true) } });
+    c.on("close",()=>{ $("doneTxt").hidden=true; say("방이 닫혔어요.",true) }) });
+  peer.on("error",e=>{ clearTimeout(to); const n=e.type==="peer-unavailable"||e.type==="webrtc"?3:2; chk(n,"no"); say(errText(e),true) });
+}
+function broadcast(){ const msg={t:"state",players}; conns.forEach(c=>{ try{ c.send(msg) }catch(e){} }); render() }
+function startPing(){ clearInterval(pingT); pingT=setInterval(()=>{ if(hostConn&&hostConn.open) hostConn.send({t:"ping",ts:performance.now()}) },1500) }
+function render(){ const f=$("field"); f.innerHTML=""; const pl=$("plist"); pl.innerHTML="";
+  Object.entries(players).sort((a,b)=>a[1].i-b[1].i).forEach(([id,p])=>{ const me=id===myId, col=COLORS[p.i%4];
+    const d=document.createElement("div"); d.className="dot"+(me?" me":""); d.style.background=col; d.style.left=(p.x*100)+"%"; d.style.top=(p.y*100)+"%"; d.textContent=(p.i+1)+"P"; f.appendChild(d);
+    const s=document.createElement("span"); s.style.background=col; s.textContent=`${p.i+1}번 친구${me?" (나)":""}`; pl.appendChild(s) }) }
+function move(ev){ const r=$("field").getBoundingClientRect(), x=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width)), y=Math.min(1,Math.max(0,(ev.clientY-r.top)/r.height));
+  if(isHost){ if(players[myId]){ players[myId].x=x; players[myId].y=y; broadcast() } }
+  else if(hostConn&&hostConn.open){ hostConn.send({t:"pos",x,y}); if(players[myId]){ players[myId].x=x; players[myId].y=y; render() } } }
+let down=false;
+$("field").addEventListener("pointerdown",e=>{ down=true; move(e) });
+$("field").addEventListener("pointermove",e=>{ if(down) move(e) });
+addEventListener("pointerup",()=>down=false);
+function reset(){ try{ peer&&peer.destroy() }catch(e){} peer=null; conns=[]; hostConn=null; players={}; clearInterval(pingT); [2,3,4].forEach(n=>chk(n,"wait")); $("ms").textContent=""; $("doneTxt").hidden=true }
+$("mk").onclick=makeRoom; $("jn").onclick=joinRoom;
+$("codeIn").addEventListener("keydown",e=>{ if(e.key==="Enter") joinRoom() });
+$("leave").onclick=()=>{ reset(); $("room").hidden=true; $("home").hidden=false; say("아직 시작하지 않았어요.") };
+</script>
+</body>
+</html>
