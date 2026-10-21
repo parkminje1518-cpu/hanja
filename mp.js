@@ -62,9 +62,9 @@ function mpPanelHtml(){
     <input id="mpCode" inputmode="numeric" maxlength="4" placeholder="코드 4자리" aria-label="방 코드"><button class="big alt" id="mpJn" ${NET.busy?"disabled":""}>방 들어가기</button></div>`;
   else body=`<div class="mpCodeBox"><span>방 코드</span><b>${NET.code}</b><small>${NET.role==="host"?"친구들에게 이 코드를 알려 주세요":"방장이 출발을 누르면 시작해요"}</small></div>
     <div class="mpList">${pl}${Array.from({length:Math.max(0,NET_MAX-list.length)},()=>`<div class="mpP empty"><span>빈자리</span></div>`).join("")}</div>
-    <p class="mpHint">${NET.role==="host"?`맵은 방장이 골라요. 지금 맵: <b>${mapById(P.set.map||1).name}</b> · 몬스터는 친구 수만큼 더 많이 나와요.`:`방장이 고른 맵: <b>${mapById(NET.map||1).name}</b> · 입장료는 각자 코인 ${GAME_COST}개예요.`}</p>
+    <p class="mpHint">${NET.role==="host"?`맵은 방장이 골라요. 지금 맵: <b>${mapById(P.set.map||1).name}</b> · 친구가 많을수록 몬스터·보스가 더 많고 세지니 꼭 힘을 합쳐요!`:`방장이 고른 맵: <b>${mapById(NET.map||1).name}</b> · 입장료는 각자 코인 ${GAME_COST}개예요.`}</p>
     <div class="mpRow">${NET.role==="host"?`<button class="big red" id="mpGo" ${list.length<2?"disabled":""}>${list.length<2?"친구를 기다리는 중...":`${list.length}명이 같이 출발!`}</button>`:""}<button class="big alt" id="mpOut">방 나가기</button></div>`;
-  return `<div class="mpPanel" id="mpPanel"><div class="row"><h2 style="font-size:22px">친구와 같이 하기</h2><span class="meta">최대 4명 · 각자 자기 용사로 · 경험치 구슬은 팀 모두가 받아요</span></div>${body}${NET.msg?`<p class="needmsg">${esc(NET.msg)}</p>`:""}</div>`;
+  return `<div class="mpPanel" id="mpPanel"><div class="row"><h2 style="font-size:22px">친구와 같이 하기</h2><span class="meta">최대 4명 · 친구가 많을수록 몬스터가 훨씬 많고 세져요 · 협동 보너스 코인·경험치 ×1.3</span></div>${body}${NET.msg?`<p class="needmsg">${esc(NET.msg)}</p>`:""}</div>`;
 }
 function mpBind(){
   const $=id=>document.getElementById(id);
@@ -74,3 +74,32 @@ function mpBind(){
   if($("mpGo")) $("mpGo").onclick=()=>{ sfx("tap"); netStartHost() };
   if($("mpOut")) $("mpOut").onclick=()=>{ sfx("tap"); try{ NET.hostConn&&NET.hostConn.send({t:"bye"}) }catch(e){} NET.msg=""; netLeave() };
 }
+
+/* ===== 학생 현황: 학생 앱이 켜져 있으면 선생님 현황판으로 기록을 자동으로 보내요 ===== */
+const REP = { peer:null, busy:false };
+function boardId(g,c){ return "hje-"+String(location.hostname.split(".")[0]||"x").replace(/[^a-z0-9-]/gi,"")+"-board-"+g+"-"+c }
+function myReport(){ const p=prof(), d=(P.daily&&P.daily.date===todayKey())?P.daily:{sets:0,plays:0,trace:0};
+  return {id:curId,g:p.g,c:p.c,n:p.n,name:p.name||"",coins:P.coins,earned:P.earned,hero:P.hero,lv:HS().lv,tier:HS().tier,heroes:P.heroes.length,
+    q:P.stats.q,ok:P.stats.c,games:P.stats.games,sets:P.stats.sets,mastered:UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length,
+    wrong:P.wrong.length,stamps:P.done.length,best:P.best||null,today:{sets:d.sets,plays:d.plays,trace:d.trace},at:Date.now()} }
+function reportTick(){
+  if(!netAvailable()||typeof P==="undefined"||!P||isAdmin()||document.hidden||REP.busy) return;
+  const p=prof(); if(!p||!p.g||!p.c) return;
+  if(!REP.peer||REP.peer.destroyed||REP.peer.disconnected){ try{ REP.peer&&REP.peer.destroy() }catch(e){} REP.peer=new Peer(netOpts()); REP.peer.on("error",()=>{}) }
+  const go=()=>{ REP.busy=true; try{ const c=REP.peer.connect(boardId(p.g,p.c),{reliable:true,serialization:"json"});
+      c.on("open",()=>{ try{ c.send({t:"rep",r:myReport()}) }catch(e){} setTimeout(()=>{ try{ c.close() }catch(e){} },1500) });
+      c.on("error",()=>{}); }catch(e){} setTimeout(()=>REP.busy=false,3000) };
+  if(REP.peer.open) go(); else REP.peer.once("open",go);
+}
+setInterval(reportTick,30000); setTimeout(reportTick,4000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(reportTick,1500) });
+
+/* 선생님 현황판: 받은 기록은 선생님 기기에 저장돼요 */
+const BOARD = { peer:null, key:"", live:{}, msg:"", onUpdate:null };
+function boardOpen(g,c){ boardClose(); const key=g+"-"+c; BOARD.key=key; BOARD.msg="학생 기록을 기다리고 있어요..."; if(!window.Peer){ BOARD.msg="연결 기능을 불러오지 못했어요."; return }
+  const peer=new Peer(boardId(g,c),netOpts()); BOARD.peer=peer;
+  peer.on("open",()=>{ BOARD.msg="받는 중 · 학생 앱이 켜져 있으면 30초 안에 들어와요"; BOARD.onUpdate&&BOARD.onUpdate() });
+  peer.on("connection",cn=>{ cn.on("data",d=>{ if(!d||d.t!=="rep"||!d.r||!d.r.id) return; const all=LS.get("board",{}); (all[key]=all[key]||{})[d.r.id]=d.r; LS.set("board",all); BOARD.live[d.r.id]=Date.now(); BOARD.onUpdate&&BOARD.onUpdate() }) });
+  peer.on("error",e=>{ BOARD.msg = e.type==="unavailable-id" ? "다른 기기에서 이 반 현황판이 이미 열려 있어요. 그 기기를 닫고 다시 열어 주세요." : "연결이 불안정해요. 잠시 뒤 다시 열어 주세요."; BOARD.onUpdate&&BOARD.onUpdate() });
+}
+function boardClose(){ try{ BOARD.peer&&BOARD.peer.destroy() }catch(e){} BOARD.peer=null; BOARD.onUpdate=null }

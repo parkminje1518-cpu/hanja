@@ -232,6 +232,28 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .mcard{width:min(100%,460px);max-height:100%;overflow:auto;background:var(--bg2);border:3px solid var(--gold-d);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px;text-align:center;box-shadow:0 0 0 4px rgba(246,197,68,.15),0 10px 0 rgba(0,0,0,.4)}
 .mcard.wide{width:min(100%,560px)}
+/* ===== 선생님 학생 현황판 ===== */
+.bdSel{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-family:var(--f-ui);font-size:18px}
+.bdSel select{width:auto;min-width:110px}
+.bdMsg{margin:0;font-family:var(--f-ui);font-size:17px;color:#bfe8ff;display:flex;align-items:center;gap:8px}
+.bdMsg i{width:12px;height:12px;border-radius:50%;background:#3fcf8e;box-shadow:0 0 8px #3fcf8e;animation:gdBob 1.2s infinite}
+.bdSum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.bdSum div{background:var(--bg2);border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-family:var(--f-ui)}
+.bdSum b{font-family:var(--f-title);font-weight:400;font-size:30px;color:var(--gold);line-height:1.1}
+.bdSum span{font-size:15px;color:var(--muted)}
+.bdWrap{overflow-x:auto;border:2px solid var(--line);border-radius:14px}
+.bdT{width:100%;border-collapse:collapse;font-family:var(--f-ui);font-size:16px;min-width:980px}
+.bdT th{position:sticky;top:0;background:#2c2460;color:#e0d8ff;font-weight:400;font-size:14px;padding:8px 6px;text-align:center;white-space:nowrap}
+.bdT td{padding:6px;border-top:1px solid #3a3270;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bdT tr:nth-child(even) td{background:#1d1840}
+.bdT td.nm{text-align:left}
+.bdT .on{display:inline-block;width:10px;height:10px;border-radius:50%;background:#3fcf8e;margin-right:6px;box-shadow:0 0 6px #3fcf8e}
+.bdT .off{display:inline-block;width:10px;height:10px;border-radius:50%;background:#4a4270;margin-right:6px}
+.bdT .hero{display:inline-flex;align-items:center;gap:6px}
+.bdT .low{color:#ff9aab}.bdT .hi{color:#8af0c1}
+.bdBtns{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:720px){.bdSum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 /* ===== 기록 옮기기 ===== */
 .moveBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:10px auto 0;padding:10px 14px;border-radius:14px;background:linear-gradient(90deg,#1f6e45,#2f8a5a);border:3px solid #8af0c1;color:#fff;font-family:var(--f-ui);font-size:18px;box-shadow:0 4px 0 #0e3a24}
 .moveBar b{font-family:var(--f-title);font-weight:400;font-size:22px;color:#fff4b0}
@@ -346,6 +368,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 /* 누구세요? */
 .ava.hz{font-family:var(--f-hz);font-weight:900;color:#141026}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+/* 첫 화면 안내 */
+.pkHow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pkHow div{display:flex;gap:12px;align-items:center;background:var(--bg2);border:2px solid var(--line);border-radius:16px;padding:12px 14px;font-family:var(--f-ui);font-size:18px;line-height:1.4;color:var(--ink)}
+.pkHow .n{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;font-family:var(--f-title);font-size:22px}
+.pkHow .new .n{background:var(--gold);color:#2a1d00}
+.pkHow .old .n{background:#63b0ff;color:#0b2238}
+.pkHow b{color:#ffd36a;font-weight:400}
+.pkHow small{display:block;color:var(--muted);font-size:15px}
+.pkWarn{margin:0;text-align:center;font-family:var(--f-ui);font-size:17px;color:#ffb3bf}
+.pnew.solo{min-height:220px;animation:gdPulse 1.8s ease-in-out infinite}
+@media (max-width:620px){.pkHow{grid-template-columns:1fr}}
+
 .pcard{position:relative}
 .penter,.pnew{width:100%;min-height:200px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;text-align:center}
 .penter{background:var(--panel);border:3px solid var(--line);box-shadow:0 6px 0 rgba(0,0,0,.35)}
@@ -676,7 +710,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 <script src="jobfx.js?v=3"></script>
 <script src="sfx.js?v=3"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=1"></script>
+<script src="mp.js?v=2"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -792,7 +826,10 @@ function closeModal(){ run0(); modal.hidden=true; mcard.innerHTML="" }
 modal.addEventListener("click",e=>{ if(e.target===modal && modal.dataset.dismiss!=="no") closeModal() });
 
 /* 학습 보상: 하루 DAILY_SETS 세트까지 */
-function grantSet(amount){
+/* 높은 주차일수록 코인을 더 많이: 고른 주차 평균이 1주차면 ×1.0, 26주차면 ×2.0 */
+function weekMul(){ const sel=(P&&P.set&&P.set.sel)||[]; if(!sel.length) return 1; const avg=sel.reduce((a,b)=>a+b,0)/sel.length; return Math.round((1+(avg-1)/25)*10)/10 }
+function grantSet(amount,raw){
+  if(!raw) amount=Math.round(amount*weekMul());
   const d=day(); P.stats.sets++;
   if(d.sets>=DAILY_SETS){ saveP(); return {got:0,limited:true,exp:addExp(Math.round(amount*0.75))} }
   d.sets++; P.coins+=amount; P.earned+=amount; saveP();
@@ -859,19 +896,67 @@ function importByCode(){ openModal(`<h3>예전 기록 가져오기</h3><p>예전
   document.getElementById("imX").onclick=closeModal;
   document.getElementById("imGo").onclick=()=>{ try{ askImport(unpackData(document.getElementById("imTxt").value)) }catch(e){ toast("코드가 올바르지 않아요. 다시 복사해 주세요") } } }
 
+
+/* ===== 선생님: 학생 현황판 ===== */
+function board(){
+  const sel=LS.get("boardSel",{g:4,c:1}), key=sel.g+"-"+sel.c;
+  const can=typeof netAvailable==="function"&&netAvailable();
+  if(can && (!BOARD.peer || BOARD.key!==key)) boardOpen(sel.g,sel.c);
+  const all=LS.get("board",{}), rows=Object.values(all[key]||{}).sort((a,b)=>a.n-b.n), now=Date.now(), tk=todayKey();
+  const ago=t=>{ const m=Math.round((now-t)/60000); return m<1?"방금":m<60?`${m}분 전`:m<1440?`${Math.round(m/60)}시간 전`:`${Math.round(m/1440)}일 전` };
+  const isToday=r=>{ const d=new Date(r.at); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`===tk };
+  const live=r=>BOARD.live[r.id]&&now-BOARD.live[r.id]<75000;
+  const acc=r=>r.q?Math.round(r.ok/r.q*100):0;
+  const todayN=rows.filter(r=>isToday(r)&&(r.today.sets||r.today.plays||r.today.trace)).length;
+  const avg=f=>rows.length?Math.round(rows.reduce((a,r)=>a+f(r),0)/rows.length):0;
+  $app.innerHTML = topbar("학생 현황") + `
+  <section class="panel" style="display:flex;flex-direction:column;gap:14px">
+    <div class="bdSel"><span>우리 반</span>
+      <select id="bdG">${[1,2,3,4,5,6].map(g=>`<option value="${g}" ${g===sel.g?"selected":""}>${g}학년</option>`).join("")}</select>
+      <select id="bdC">${Array.from({length:15},(_,i)=>i+1).map(c=>`<option value="${c}" ${c===sel.c?"selected":""}>${c}반</option>`).join("")}</select>
+      <span class="meta">학생들 앱이 켜져 있으면 기록이 자동으로 들어와요 (30초마다)</span></div>
+    <p class="bdMsg">${can?`<i></i>${esc(BOARD.msg||"")}`:"학생 현황은 새 주소(github.io)에서만 볼 수 있어요."}</p>
+    <div class="bdSum"><div><b>${rows.length}</b><span>기록이 들어온 학생</span></div><div><b>${todayN}</b><span>오늘 공부·게임한 학생</span></div>
+      <div><b>${avg(acc)}%</b><span>평균 퀴즈 정답률</span></div><div><b>${avg(r=>r.mastered)}</b><span>평균 익힌 한자 (/${UNIQUE.length})</span></div></div>
+    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>오답</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
+      ${rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}, a=acc(r);
+        return `<tr><td>${r.n}</td><td class="nm"><span class="${live(r)?"on":"off"}"></span>${esc(r.name||"-")}</td>
+        <td><span class="hero">${avaHtml(r.hero,28)}${esc(heroById(r.hero).cls)} Lv${r.lv}${r.tier?` · ${r.tier}차`:""}</span></td>
+        <td class="${t.sets?"hi":""}">${t.sets}세트</td><td>${t.plays}판</td><td>${t.trace}</td>
+        <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td>${r.stamps}/26</td>
+        <td>${r.sets}세트</td><td>${r.games}판</td><td>${r.best?`${fmtT(r.best.t)}${r.best.win?" 승리":""}`:"-"}</td><td>${r.coins} (${r.earned})</td><td>${ago(r.at)}</td></tr>` }).join("")}
+    </tbody></table></div>`:`<p class="muted" style="text-align:center;margin:20px 0">아직 들어온 기록이 없어요. 학생들이 새 주소에서 앱을 켜 두면 30초 안에 들어와요.</p>`}
+    <div class="bdBtns"><button class="btn ghost" id="bdCsv" ${rows.length?"":"disabled"}>엑셀용 파일(CSV) 받기</button><button class="btn ghost" id="bdClr" ${rows.length?"":"disabled"}>이 반 기록 지우기</button></div>
+  </section>`;
+  document.getElementById("back").onclick=()=>{ if(typeof boardClose==="function") boardClose(); run0(); home() };
+  const chg=()=>{ LS.set("boardSel",{g:+document.getElementById("bdG").value,c:+document.getElementById("bdC").value}); board() };
+  document.getElementById("bdG").onchange=chg; document.getElementById("bdC").onchange=chg;
+  document.getElementById("bdClr").onclick=()=>{ const a=LS.get("board",{}); delete a[key]; LS.set("board",a); toast("이 반 기록을 지웠어요"); board() };
+  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","오답","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
+    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.wrong,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
+    const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`한자탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
+  if(typeof BOARD!=="undefined") BOARD.onUpdate=()=>{ if(document.getElementById("bdG")) board() };
+}
+
 function picker(){
   run0(); modal.hidden=true; curId=null; P=null;
   const list=Object.entries(profiles).filter(([id])=>id!==ADMIN_ID).sort((a,b)=>(b[1].last||0)-(a[1].last||0));
-  $app.innerHTML = `<div class="titleBlock"><div class="subTitle">HANJA EXPLORERS</div><h1 class="bigTitle">누구세요?</h1><p class="muted" style="margin:0">내 카드를 눌러서 시작해요</p></div>
+  $app.innerHTML = `<div class="titleBlock"><div class="subTitle">HANJA EXPLORERS</div><h1 class="bigTitle">어서 와, 탐험대원!</h1><p class="muted" style="margin:0;font-size:19px">${list.length?"내 이름이 적힌 카드를 찾아서 눌러요":"이 태블릿에 처음 왔어요! 아래 노란 카드를 눌러요"}</p></div>
+  <div class="pkHow">
+    <div class="new"><span class="n">1</span><span><b>처음 왔다면</b> 노란 <b>「+ 새 친구」</b> 카드를 눌러요<small>학년 · 반 · 번호를 고르면 나만의 탐험대원 카드가 생겨요</small></span></div>
+    <div class="old"><span class="n">2</span><span><b>다시 왔다면</b> <b>내 반 · 번호</b>가 적힌 카드를 눌러요<small>코인과 용사가 그대로 이어져요</small></span></div>
+  </div>
   <div class="pgrid">
     ${list.map(([id,p])=>{const d=LS.get("p_"+id,{});return `<div class="pcard" data-id="${esc(id)}">
       <button class="penter" data-id="${esc(id)}">${avaHtml(d.hero,84)}<span class="pcn">${heroById(d.hero).name}</span><strong>${p.c}반 ${p.n}번</strong><span>${p.name?esc(p.name):`${p.g}학년 탐험대원`}</span><small>${ico("coin","ci")}${d.coins||0}</small></button>
       <button class="pdel" data-id="${esc(id)}" aria-label="${p.c}반 ${p.n}번 정보 지우기">✕</button>
       <div class="pconf" hidden><p>${p.c}반 ${p.n}번<br>기록을 지울까요?</p><div class="row" style="gap:6px;justify-content:center"><button class="btn red sm" data-yes="${esc(id)}">지우기</button><button class="btn ghost sm" data-no>취소</button></div></div>
     </div>`}).join("")}
-    <button class="pnew" id="pnew"><span class="plus">+</span><strong>새 친구</strong><small>처음이면 여기를 눌러요</small></button>
+    <button class="pnew ${list.length?"":"solo"}" id="pnew"><span class="plus">+</span><strong>새 친구</strong><small>처음 왔다면 여기를 눌러요</small></button>
   </div>
-  <p class="muted" style="text-align:center;margin:0">기록은 이 기기에 저장돼요. 다음에 들어와도 그대로 이어져요.</p>
+  ${list.length?`<p class="pkWarn">⚠ 다른 친구의 카드는 누르지 않아요. 내 카드가 없으면 「+ 새 친구」를 눌러요.</p>`:""}
+  <p class="muted" style="text-align:center;margin:0">기록은 이 태블릿에 저장돼요. 다음에 들어와도 그대로 이어져요.</p>
   <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"><button class="chip teach" id="teach">선생님</button>${ON_NEW?`<button class="chip teach" id="imp">예전 기록 가져오기</button>`:""}</div>`;
   if(document.getElementById("imp")) document.getElementById("imp").onclick=importByCode;
   $app.querySelectorAll(".penter").forEach(b=>b.onclick=()=>{ sfx("tap"); enter(b.dataset.id) });
@@ -900,7 +985,7 @@ function register(mode){
     ${edit?"":`<div class="starter">${avaHtml("warrior",64)}<div><strong>첫 용사: 전사 · 바위 전사</strong><small>처음에는 튼튼한 전사와 함께 시작해요. 궁수, 도적, 해적, 마법사도 있어요. 공부해서 코인을 모으면 새 용사를 해금할 수 있어요!</small></div></div>`}
     <p class="err" id="rerr" aria-live="polite"></p>
     <button class="btn gold big" id="rgo">반과 번호를 골라 주세요</button>
-    <button class="btn ghost" id="rcancel">${edit?"취소":"← 누구세요? 화면으로"}</button>
+    <button class="btn ghost" id="rcancel">${edit?"취소":"← 처음 화면으로"}</button>
   </section>`;
   const go=document.getElementById("rgo"), rc=document.getElementById("rc"), rn=document.getElementById("rn");
   const upd=()=>{ const ok=rc.value&&rn.value; go.disabled=!ok; go.textContent=ok?(edit?"저장하기":"모험 시작!"):"반과 번호를 골라 주세요" };
@@ -960,7 +1045,7 @@ function guide(start){
      x:`경험치가 다 차면 <b>레벨 업!</b> 기술 카드가 나와요.<br>카드마다 있는 <b>한자 문제</b>를 맞히면 그 카드를 고를 수 있어요.`, tip:"한자를 잘 알수록 좋은 기술을 고를 수 있어요. 공부가 곧 실력이에요!"},
     {t:"보스와 보물, 위험 신호", n:2, art:`<div class="gdIcons"><div><span class="em">👹</span><b>보스</b>크고 센 몬스터! 쓰러뜨리면 보물을 줘요</div><div><span class="em">💎</span><b>보석 상자</b>직업 기술이 그 판에서 더 세져요</div><div><span class="em">🧪</span><b>물약</b>먹으면 체력이 차요</div><div><span class="em">⚠️</span><b>위험 신호</b>몬스터 떼가 몰려와요. 빈틈으로 도망!</div><div><span class="em">🔴</span><b>빨간 원</b>곧 공격이 떨어지는 곳! 피해요</div><div><span class="em">💪</span><b>다시 일어나기</b>쓰러져도 한자 문제를 맞히면 부활!</div></div>`,
      x:`<b>5분</b> 동안 버티면 승리예요!<br>오래 버틸수록, 몬스터를 많이 물리칠수록 경험치를 많이 받아요.`, tip:"용암 위에 서 있으면 체력이 줄어요. 마왕성 맵에서는 바닥을 잘 봐요!"},
-    {t:"다른 메뉴도 써 봐요", art:`<div class="gdIcons"><div>${ico("dex","em")}<b>한자 도감</b>익힌 한자를 모아 봐요</div><div>${ico("note","em")}<b>오답 노트</b>틀린 한자만 다시 연습</div><div>${ico("trophy","em")}<b>내 기록</b>내 점수와 도장을 봐요</div><div>${ico("gear","em")}<b>설정</b>소리, 음악, 문제 수</div><div><span class="em">🙋</span><b>누구세요?</b>내 이름을 눌러서 들어와요</div><div><span class="em">📖</span><b>사용 설명서</b>언제든 다시 보기</div></div>`,
+    {t:"다른 메뉴도 써 봐요", art:`<div class="gdIcons"><div>${ico("dex","em")}<b>한자 도감</b>익힌 한자를 모아 봐요</div><div>${ico("note","em")}<b>오답 노트</b>틀린 한자만 다시 연습</div><div>${ico("trophy","em")}<b>내 기록</b>내 점수와 도장을 봐요</div><div>${ico("gear","em")}<b>설정</b>소리, 음악, 문제 수</div><div><span class="em">🙋</span><b>처음 화면</b>내 카드를 눌러서 들어와요</div><div><span class="em">📖</span><b>사용 설명서</b>언제든 다시 보기</div></div>`,
      x:`공부하고, 코인 모으고, 용사를 키워서<br><b>최고의 한자 탐험대원</b>이 되어 봐요!`, tip:"태블릿마다 내 기록이 저장돼요. 다른 친구의 이름으로 들어가지 않게 조심해요."},
   ];
   const draw=()=>{ const g=P_[i], last=i===P_.length-1;
@@ -1012,6 +1097,7 @@ function home(){
     <button data-go="notes">${ico("note","mic")}오답 노트<small>${P.wrong.length}자</small></button>
     <button data-go="rec">${ico("trophy","mic")}내 기록<small>도장 ${P.done.length}/26</small></button>
     <button data-go="set">${ico("gear","mic")}설정<small>학생·소리</small></button>
+    ${isAdmin()?`<button data-go="board">${ico("trophy","mic")}학생 현황<small>선생님 전용</small></button>`:""}
   </div>
   <div style="height:92px" aria-hidden="true"></div>`;
   document.getElementById("who").onclick=settings;
@@ -1022,7 +1108,7 @@ function home(){
   document.getElementById("helpFab").onclick=()=>guide(0);
   if(!P.guideSeen && !isAdmin()) setTimeout(()=>{ if(modal.hidden) guide(0) },400);
   document.getElementById("goGame").onclick=()=>{sfx("tap");gameLobby()};
-  $app.querySelectorAll(".menu4 button").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),dex,notes,rec,set:settings})[b.dataset.go]()});
+  $app.querySelectorAll(".menu4 button").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),dex,notes,rec,set:settings,board:()=>board()})[b.dataset.go]()});
 }
 
 
@@ -1208,7 +1294,7 @@ function learn(){
   <section class="panel">
     <div class="row"><h2>몇 주차를 공부할까요?</h2><div class="row" style="gap:8px"><button class="chip" id="selNone">모두 해제</button><button class="chip" id="selAll">전체 선택</button></div></div>
     <div class="weeks">${WEEKS.map((w,i)=>`<button class="wk" data-w="${i+1}" aria-pressed="${P.set.sel.includes(i+1)}"><span>${i+1}</span><small>주차</small>${P.done.includes(i+1)?'<span class="done" title="퀴즈 만점">★</span>':''}</button>`).join("")}</div>
-    <div class="row"><span class="meta">${P.set.sel.length?`${P.set.sel.length}개 주차 · 한자 ${p.length}자`:"주차를 하나 이상 눌러 주세요"}</span><span class="meta">★ 표시는 퀴즈 만점을 받은 주차예요</span></div>
+    <div class="row"><span class="meta">${P.set.sel.length?`${P.set.sel.length}개 주차 · 한자 ${p.length}자 · <b style="color:var(--gold);font-weight:400">코인 ×${weekMul()}</b>`:"주차를 하나 이상 눌러 주세요"}</span><span class="meta">높은 주차일수록 코인을 더 많이 받아요 (26주차 ×2)</span><span class="meta">★ 표시는 퀴즈 만점을 받은 주차예요</span></div>
   </section>
   <div class="row"><h2>무엇을 할까요?</h2><span class="meta">${full?"오늘 코인 보상 세트를 모두 받았어요. 공부는 계속할 수 있어요!":`코인 받는 세트 ${d.sets}/${DAILY_SETS}`}</span></div>
   <div class="acts">
@@ -1240,7 +1326,7 @@ function quiz(list,{fromNotes=false}={}){
   const N=P.set.qn;
   let src=[]; while(src.length<N) src.push(...shuffle(list)); src=src.slice(0,N);
   const qs=src.map(makeQ);
-  let i=0, right=0, combo=0, pend=0, best=0, miss=[], busy=false;
+  let i=0, right=0, combo=0, pend=0, best=0, miss=[], busy=false; const WM=weekMul();
   function draw(){
     const q=qs[i]; markSeen(q.c.h);
     $app.innerHTML = topbar(fromNotes?"오답 퀴즈":"학습 · 퀴즈") + `
@@ -1275,7 +1361,7 @@ function quiz(list,{fromNotes=false}={}){
       const ok = b && q.opts[+b.dataset.k].ok;
       P.stats.q++;
       if(ok){
-        right++; combo++; best=Math.max(best,combo); const g=comboGain(combo); pend+=g;
+        right++; combo++; best=Math.max(best,combo); const g=Math.round(comboGain(combo)*WM); pend+=g;
         b.querySelector(".gain").textContent="+"+g;
         document.getElementById("pend").textContent=pend; document.getElementById("cmb").textContent=combo>=2?`${combo}연속 정답!`:"정답!";
         const rw=document.getElementById("rw"); rw.classList.remove("pop"); void rw.offsetWidth; rw.classList.add("pop");
@@ -1291,15 +1377,15 @@ function quiz(list,{fromNotes=false}={}){
   }
   function finish(){
     const perfect = right===N;
-    if(perfect) pend+=10;
-    const r = grantSet(pend);
+    if(perfect) pend+=Math.round(10*WM);
+    const r = grantSet(pend,true);
     if(perfect && !fromNotes && P.set.sel.length){ P.set.sel.forEach(w=>{if(!P.done.includes(w))P.done.push(w)}); saveP() }
     const um=[...new Map(miss.map(c=>[c.h,c])).values()];
     modal.dataset.dismiss="no";
     openModal(`<div class="eyebrow">COMPLETE</div><h3>${perfect?"만점! 학습 완료!":"학습 완료!"}</h3>
       <p>맞힌 문제 <b style="font-family:var(--f-ui);font-size:24px;color:var(--gold)">${right} / ${N}</b> · 최고 ${best}연속</p>
       <div class="mc">${ico("coin","ci")}+${r.got}</div>${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
-      <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?"만점 보너스 +10 포함 · ":""}오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
+      <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?`만점 보너스 +${Math.round(10*WM)} 포함 · `:""}${WM>1?`높은 주차 보너스 ×${WM} · `:""}오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
       ${um.length?`<div class="eyebrow">다시 볼 한자</div><div class="misslist">${um.map(c=>`<span><b>${esc(c.h)}</b>${esc(label(c))}</span>`).join("")}</div>`:""}
       <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
       <div class="btns" id="after" hidden><button class="btn ghost" id="again">한 번 더</button>${um.length?`<button class="btn red" id="rev">틀린 것 카드로</button>`:""}<button class="btn ghost" id="mm">메인으로</button></div>`);
@@ -1324,7 +1410,7 @@ function rewardModal(title,body,amount,again){
   modal.dataset.dismiss="no";
   openModal(`<div class="eyebrow">COMPLETE</div><h3>${title}</h3><p>${body}</p>
     <div class="mc">${ico("coin","ci")}+${r.got}</div>${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
-    <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
+    <p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${weekMul()>1?`높은 주차 보너스 ×${weekMul()} · `:""}오늘 보상 ${day().sets}/${DAILY_SETS} 세트`}</p>
     <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
     <div class="btns" id="after" hidden><button class="btn ghost" id="again">한 번 더</button><button class="btn ghost" id="mm">메인으로</button></div>`);
   document.getElementById("take").onclick=e=>{e.currentTarget.hidden=true;document.getElementById("after").hidden=false;if(r.got){sfx("coin");countUp(P.coins-r.got,P.coins)}};
@@ -1445,7 +1531,7 @@ function strokePanel(host,c,{trace=false}={}){
     w.quiz({onMistake:()=>{miss++;msg.textContent=miss>=2?"빨갛게 깜빡이는 곳을 따라 그어 보세요":"다시 한번 그어 보세요"},
       onCorrectStroke:s=>{sfx("stroke");msg.textContent=s.strokesRemaining?`좋아요! ${s.strokeNum+2}획째`:""},
       onComplete:s=>{ const good=s.totalMistakes<=2; sfx("win"); stamp(good?"참<br>잘했어요":"완성!");
-        const d=day(); let add=0; if(d.trace<TRACE_DAILY_MAX){ add=Math.min(TRACE_COIN,TRACE_DAILY_MAX-d.trace); d.trace+=add; P.coins+=add; P.earned+=add; addExp(add*2); P.mastery[c.h]=(P.mastery[c.h]||0)+(good?1:0); saveP(); countUp(P.coins-add,P.coins) }
+        const d=day(); let add=0; if(d.trace<TRACE_DAILY_MAX){ add=Math.min(Math.round(TRACE_COIN*weekMul()),TRACE_DAILY_MAX-d.trace); d.trace+=add; P.coins+=add; P.earned+=add; addExp(add*2); P.mastery[c.h]=(P.mastery[c.h]||0)+(good?1:0); saveP(); countUp(P.coins-add,P.coins) }
         msg.textContent=(good?"완벽해요!":`완성! 틀린 횟수 ${s.totalMistakes}번`)+(add?`  코인 +${add}`:"  (오늘 획순 코인은 다 받았어요)") }});
   }
   host.querySelector('[data-a="all"]').onclick=playAll; stepBtn.onclick=oneStep; host.querySelector('[data-a="quiz"]').onclick=doTrace;
@@ -1530,7 +1616,7 @@ function settings(){
   <section class="panel">
     <div class="eyebrow">MY EXPLORER</div>
     <div class="setrow"><div class="lab"><strong>${pname(p)}${p.name?` · ${esc(p.name)}`:""}</strong><small>이 기기에 저장된 내 정보</small></div><button class="btn ghost" id="edit">정보 고치기</button></div>
-    <div class="setrow"><div class="lab"><strong>친구 바꾸기</strong><small>"누구세요?" 화면으로 돌아가요</small></div><button class="btn ghost" id="swap">친구 바꾸기</button></div>
+    <div class="setrow"><div class="lab"><strong>친구 바꾸기</strong><small>처음 화면(탐험대원 고르기)으로 돌아가요</small></div><button class="btn ghost" id="swap">친구 바꾸기</button></div>
     <div class="setrow"><div class="lab"><strong>내 정보 지우기</strong><small>이 기기에서 내 카드와 기록이 모두 사라져요</small></div><button class="btn ghost" id="delme">정보 지우기</button></div>
     <div id="delc" hidden class="row"><span style="color:#ff9aab;font-family:var(--f-ui);font-size:19px">정말 내 정보와 기록을 지울까요? 되돌릴 수 없어요.</span><div class="row" style="gap:8px"><button class="btn red" id="dely">지우기</button><button class="btn ghost" id="deln">취소</button></div></div>
   </section>`) + `
@@ -1573,4 +1659,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=25"></script>
+<script src="game.js?v=26"></script>

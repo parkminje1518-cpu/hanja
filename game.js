@@ -163,6 +163,7 @@ function startGame(opts){ opts=opts||{};
   g.jl={}; g.cloneMul=1;
   const PK = Object.assign({xp:1,start:0,revive:1,cards:3},HERO.perks||{});
   const QR = qrangeOf(), QPOOL = qpoolOf(QR.w);
+  if(opts.mp) M.xp *= .7;
   M.xp *= PK.xp; g.revives = PK.revive + QR.revive; g.qOk=0; g.qN=0;
   shuffle(Object.keys(SK).filter(k=>k!=="main"&&SK[k].t==="w")).slice(0,PK.start).forEach(k=>g.sk[k]=1);
   const st = ()=>({dmg:M.dmg*(1+.15*lv("str")), cd:Math.max(.4,M.cd*(1-.09*lv("qi"))), spd:165*HERO.spd*M.spd*(g.bbuff?g.bbuff.spd:1)*(1+.1*lv("spd")), maxHp:HERO.hp+bonusHp+20*lv("body"), mag:110*M.mag*(1+.4*lv("pull"))});
@@ -189,24 +190,24 @@ function startGame(opts){ opts=opts||{};
   function addMob(m,x,y,hpMul,elite){ const S=SIZE[m.size], sc=1+g.t/55+Math.pow(g.t/150,2);
     const e={mapId:MAP.id,type:m.size==="big"?"big":"mob",look:m.look,c:m.c,name:m.name,x,y,r:S.r,hp:S.hp*MAP.hp*sc*(hpMul||1),max:0,sp:S.sp*MAP.spd,dmg:S.dmg*dmgMul*(1+g.t/240),xp:S.xp,slow:0,flash:0,stoneCD:0,wob:Math.random()*6};
     if(elite){ e.elite=true; e.hp*=5; e.r*=1.45; e.dmg*=1.6; e.sp*=1.1; e.xp*=6 }
-    e.max=e.hp; e.born=g.t; e.id=nid++; e.di=MOBS[MAP.id].indexOf(m); if(NM) e.hp=e.max=e.max*(1+.3*(nPlayers()-1)); g.en.push(e); return e }
+    e.max=e.hp; e.born=g.t; e.id=nid++; e.di=MOBS[MAP.id].indexOf(m); if(NM){ e.hp=e.max=e.max*(1+CO.hp*(nPlayers()-1)); e.sp*=CO.spd; e.dmg*=CO.dmg } g.en.push(e); return e }
   function spawnMob(){ const list=MOBS[MAP.id].filter(m=>g.t>=m.from);
     const ws=list.map((m,i)=>i===0?Math.max(1.5,m.w-g.t/45):m.w*(1+(g.t-m.from)/80)); let r=Math.random()*ws.reduce((a,b)=>a+b,0), k=0; while(r>ws[k]){ r-=ws[k]; k++ }
     const [sx,sy]=edgePos(), A=NM?randPlayer():g.p; addMob(list[Math.min(k,list.length-1)],A.x+sx,A.y+sy,1,g.t>40&&Math.random()<.035+g.t/6000) }
   // 위기 이벤트: 포위 습격 · 돌진 떼
   function crisis(){
     const P=NM?randPlayer():g.p, kind=g.crisisN++%2===0?"ring":"rush", list=MOBS[MAP.id].filter(m=>g.t>=m.from);
-    if(kind==="ring"){ const n=Math.min(40,16+Math.floor(g.t/12)), R=Math.max(W,H)*.55;
+    if(kind==="ring"){ const n=Math.min(NM?56:40,(16+Math.floor(g.t/12))*(NM?1.4:1)|0), R=Math.max(W,H)*.55;
       say("⚠ 몬스터들이 사방에서 포위해 와요! 빈틈으로 빠져나가요!","alarm"); g.fx.push({k:"flash",col:"#e9475f",life:.5,max:.5});
       for(let i=0;i<n;i++){ const a=i*Math.PI*2/n; if(i%9===0) continue; addMob(list[Math.random()*Math.min(2,list.length)|0],P.x+Math.cos(a)*R,P.y+Math.sin(a)*R,.7) } }
-    else { const fast=list.find(m=>m.size==="fast"||m.size==="small")||list[0], dir=Math.random()*Math.PI*2, n=Math.min(26,12+Math.floor(g.t/18));
+    else { const fast=list.find(m=>m.size==="fast"||m.size==="small")||list[0], dir=Math.random()*Math.PI*2, n=Math.min(NM?36:26,(12+Math.floor(g.t/18))*(NM?1.4:1)|0);
       say("⚠ 몬스터 떼가 한쪽에서 돌진해 와요! 옆으로 피해요!","alarm"); g.fx.push({k:"flash",col:"#f6a623",life:.4,max:.4});
       const bx=P.x-Math.cos(dir)*W*.7, by=P.y-Math.sin(dir)*H*.7;
       for(let i=0;i<n;i++){ const off=(i-n/2)*22, e=addMob(fast,bx-Math.sin(dir)*off,by+Math.cos(dir)*off,.6); e.rush={vx:Math.cos(dir),vy:Math.sin(dir),t:4}; e.sp*=2.2 } } }
   function spawnBoss(id){ const B=BOSSES[id], [sx,sy]=edgePos(), A=NM?randPlayer():g.p;
-    const e={mapId:MAP.id,type:"boss",bid:id,look:B.look,c:B.c,crown:B.crown,name:B.name,x:A.x+sx,y:A.y+sy,r:B.r,hp:B.hp*MAP.hp*(1+g.t/200)*(NM?1+.45*(nPlayers()-1):1),id:nid++,di:-1-BKEYS.indexOf(id),max:0,sp:B.sp*MAP.spd,dmg:B.dmg*dmgMul*.88,xp:5,
+    const e={mapId:MAP.id,type:"boss",bid:id,look:B.look,c:B.c,crown:B.crown,name:B.name,x:A.x+sx,y:A.y+sy,r:B.r,hp:B.hp*MAP.hp*(1+g.t/200)*(NM?1+CO.boss*(nPlayers()-1):1),id:nid++,di:-1-BKEYS.indexOf(id),max:0,sp:B.sp*MAP.spd,dmg:B.dmg*dmgMul*.88,xp:5,
       slow:0,flash:0,stoneCD:0,wob:0,ai:B.ai,bt:2.5,bi:0,buff:B.buff,minion:B.minion,big:B.big};
-    e.max=e.hp; g.en.push(e); say(`보스 등장! ${B.name}`,"boss"); g.shake=.4; SND.setIntensity(1) }
+    if(NM){ e.dmg*=CO.dmg; e.sp*=1.08 } e.max=e.hp; g.en.push(e); say(`보스 등장! ${B.name}`,"boss"); g.shake=.4; SND.setIntensity(1) }
   function hitPlayer(d){ const P=g.p; if(P.inv>0||P.dead) return; sfx("hurt"); P.hp-=d*M.armor; g.fx.push({k:"num",x:P.x,y:P.y-40,v:-Math.round(d*M.armor),me:true,life:.8,max:.8}); P.inv=.5; g.fx.push({k:"hit",x:P.x,y:P.y,life:.25,max:.25}); g.shake=Math.max(g.shake,.15) }
   function bossAI(e,dt){
     const P=NM?nearestPlayer(e.x,e.y):g.p, TP=()=>NM?nearestPlayer(e.x,e.y):g.p;
@@ -254,6 +255,8 @@ function startGame(opts){ opts=opts||{};
 
   /* ===== 같이 하기 (여러 명): 방장이 몬스터·보스를 움직이고, 친구들은 화면을 받아요 ===== */
   const NM = (opts.mp && typeof NET!=="undefined" && NET.role) ? NET.role : null;
+  /* 같이 하기 난이도: 친구가 많을수록 몬스터가 많고 세져요. 대신 협동 보너스가 있어요 */
+  const CO = { spawn:.9, hp:.55, boss:.8, spd:1.15, dmg:1.3, xp:.7, crisis:.75, reward:1.3 };
   const RP = {}, EN = {}, GM = {}, IT = {}, BKEYS = Object.keys(BOSSES), inbox=[];
   let nid=1, netAcc=0, hostEv=[], hostTo={}, xpShare=0, wipeT=0;
   const netOut={d:{},g:[],it:[],sh:[],fx:[]};
@@ -743,15 +746,16 @@ function startGame(opts){ opts=opts||{};
     const rec = {t:Math.min(g.t,WIN_TIME),k:g.kills,win};
     const isBest = !best || rec.t>best.t || (rec.t===best.t && rec.k>best.k);
     if(isBest){ P.best=rec; saveP(); }
-    const gotExp = addExp(Math.round((g.kills*1 + rec.t/3 + (win?100:0) + g.bossKills*150)*MAP.exp*QR.exp));
+    const coop = NM?1.3:1;
+    const gotExp = addExp(Math.round((g.kills*1 + rec.t/3 + (win?100:0) + g.bossKills*150)*MAP.exp*QR.exp*coop));
     const qCoin = rec.t>=60 ? QR.coin : 0; if(qCoin){ P.coins+=qCoin; P.earned+=qCoin; saveP() }
     if(g.bossCoins){ P.coins+=g.bossCoins; P.earned+=g.bossCoins; saveP() }
-    const tCoin=gameCoins(MAP.id,rec.t,win); if(tCoin){ P.coins+=tCoin; P.earned+=tCoin; saveP() }
+    const tCoin=Math.round(gameCoins(MAP.id,rec.t,win)*coop); if(tCoin){ P.coins+=tCoin; P.earned+=tCoin; saveP() }
     if(win) stamp("승리!");
     mcard.innerHTML = `<h3>${win?`승리! ${MAP.name}을(를) 지켰어요`:"게임 끝"}</h3><p>${MAP.name} · ${MAP.diff} · 경험치 ×${MAP.exp}</p>
       <div class="gres"><div><b>${fmtT(rec.t)}</b><span>버틴 시간</span></div><div><b>${g.kills}</b><span>물리친 몬스터</span></div><div><b>${g.bossKills}</b><span>물리친 보스</span></div></div>
       <p style="font-family:var(--f-ui);font-size:18px;color:#25211b">한자 퀴즈 ${g.qOk} / ${g.qN} 정답 · ${QR.label} (경험치 ×${QR.exp})</p>
-      <div class="gcoin"><b>코인 +${tCoin+g.bossCoins+qCoin}</b><span>버틴 시간 +${Math.floor(rec.t/30)*(TIME_COIN[MAP.id]||3)}${win?` · 승리 보너스 +${WIN_COIN[MAP.id]||10}`:""}${g.bossCoins?` · 보스 +${g.bossCoins}`:""}${qCoin?` · 퀴즈 범위 +${qCoin}`:""}</span></div>
+      <div class="gcoin"><b>코인 +${tCoin+g.bossCoins+qCoin}</b><span>${NM?"협동 보너스 ×1.3 · ":""}버틴 시간 +${Math.round(Math.floor(rec.t/30)*(TIME_COIN[MAP.id]||3)*coop)}${win?` · 승리 보너스 +${Math.round((WIN_COIN[MAP.id]||10)*coop)}`:""}${g.bossCoins?` · 보스 +${g.bossCoins}`:""}${qCoin?` · 퀴즈 범위 +${qCoin}`:""}</span></div>
       ${isBest?`<p class="gbest">새 최고 기록이에요!</p>`:""}
       <p style="color:#2f6b55;font-family:var(--f-ui);font-size:20px">${HERO.name} 경험치 +${gotExp} · Lv ${HS(HERO.id).lv}</p>
       <div class="gskills">${Object.keys(g.sk).map(k=>`<span>${skImg(k,22)}${skName(k)}</span>`).join("")}</div>
@@ -791,10 +795,10 @@ function startGame(opts){ opts=opts||{};
     if(g.bbuff){ g.bbuff.t-=dt; P.hp=Math.min(s.maxHp,P.hp+(g.bbuff.regen||0)*dt); if(g.bbuff.t<=0) g.bbuff=null }
     // 생성
     if(NM!=="client"){
-    const rate = (2.4 + g.t/9)*MAP.spawn*(NM?1+.6*(nPlayers()-1):1);
-    if(g.t>=g.nextCrisis){ g.nextCrisis=g.t+42+Math.random()*10; crisis() }
+    const rate = (2.4 + g.t/9)*MAP.spawn*(NM?1.15+CO.spawn*(nPlayers()-1):1);
+    if(g.t>=g.nextCrisis){ g.nextCrisis=g.t+(42+Math.random()*10)*(NM?CO.crisis:1); crisis() }
     g.spawnAcc += rate*dt;
-    while(g.spawnAcc>=1){ g.spawnAcc--; if(g.en.length<(NM?380:320)){ const r=Math.random(); spawnMob() } }
+    while(g.spawnAcc>=1){ g.spawnAcc--; if(g.en.length<(NM?420:320)){ const r=Math.random(); spawnMob() } }
     MAP_BOSSES[MAP.id].forEach(([t,id],i)=>{ if(!g.boss[i]&&g.t>=t){ g.boss[i]=true; spawnBoss(id) } });
     }
     // 보스 탄
