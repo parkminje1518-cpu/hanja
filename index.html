@@ -585,6 +585,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .lvsub{font-family:var(--f-px);font-size:11px;letter-spacing:.3em;color:#f6c544}
 .lvbig{font-family:var(--f-title)!important;font-size:clamp(38px,7vw,64px)!important;color:#f6c544!important;line-height:1;text-shadow:0 0 18px rgba(246,197,68,.6),3px 3px 0 #8a5a10}
 .lvtip{border:2px solid #f6c544;background:#1b1530;color:#ffe48a;font-family:var(--f-ui);font-size:17px;padding:6px 16px;border-radius:4px}
+.lvtip.coopNote{margin-top:6px;border-color:#6fd3ff;color:#cdeeff;font-size:15px}
 .lvcards{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}
 .lvcards.c4{grid-template-columns:repeat(4,minmax(0,1fr))}.lvcards.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
 .lvcards.c1{grid-template-columns:minmax(0,320px);justify-content:center}.lvcards.c2{grid-template-columns:repeat(2,minmax(0,320px));justify-content:center}
@@ -798,7 +799,7 @@ const GAME_COST = 50;     // 게임 입장료
 const DAILY_PLAYS = 20;   // 하루 게임 판 수
 const HERO_EXP_RATE = 0.5; // 용사가 받는 경험치 비율 (게임 판 수를 늘린 만큼 성장은 천천히)
 const HINT_COST = 2;      // 힌트 가격
-const TRACE_COIN = 5, TRACE_DAILY_MAX = 150;
+const TRACE_COIN = 5, TRACE_DAILY_MAX = 150, TRACE_PER_HZ = 2;   // 같은 글자는 하루 2번까지 코인
 const MASTER_N = 3;       // 몇 번 맞히면 '익힌 한자'
 
 /* ===== 저장 ===== */
@@ -1098,7 +1099,7 @@ function guide(start){
     {t:"공부하는 방법 4가지", n:1, art:`<div class="gd4"><div>${ico("quiz")}<span><b>퀴즈</b>뜻과 소리를 골라요</span></div><div>${ico("cards")}<span><b>카드</b>눌러서 뒤집어 외워요</span></div><div>${ico("match")}<span><b>짝 맞추기</b>한자와 뜻을 이어요</span></div><div>${ico("brush")}<span><b>획순 쓰기</b>손가락으로 따라 써요</span></div></div>`,
      x:`주차를 고른 다음 아래에서 하고 싶은 공부를 골라요.<br>모두 <b>코인</b>을 받을 수 있어요!`, tip:"퀴즈에는 <b>낱말 문제</b>(天地 천지처럼 한자가 들어간 낱말)도 나와요. 획순 쓰기의 <b>기억해서 쓰기</b>는 코인이 2배예요!"},
     {t:"오늘의 한자와 성적표", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:40px;color:#ffd36a;line-height:1">雨</span>첫 화면<br><b style="color:#ffd36a;font-weight:400">오늘의 한자</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✍️</span>기억해서 쓰면<br><b style="color:#ffd36a;font-weight:400">보너스 +10</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📊</span>내 기록의<br><b style="color:#ffd36a;font-weight:400">한자 성적표</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🎯</span>약한 한자가<br><b style="color:#ffd36a;font-weight:400">더 자주 나와요</b></div></div>`,
-     x:`첫 화면에 날마다 <b>오늘의 한자</b>가 나와요. 기억해서 써 보면 보너스 코인을 받아요.<br><b>내 기록</b>에서 주차별 정답률과 자주 틀린 한자를 볼 수 있어요.`, tip:"퀴즈와 게임 문제는 내가 <b>자주 틀린 한자</b>, 아직 덜 익힌 한자가 더 자주 나와요. 틀려도 괜찮아요, 그만큼 다시 만나요!"},
+     x:`첫 화면에 날마다 <b>오늘의 한자</b>가 나와요. 기억해서 써 보면 보너스 코인을 받아요. (코인은 <b>하루 한 번</b>, 연습은 몇 번이든!)<br><b>내 기록</b>에서 주차별 정답률과 자주 틀린 한자를 볼 수 있어요.`, tip:"퀴즈와 게임 문제는 내가 <b>자주 틀린 한자</b>, 아직 덜 익힌 한자가 더 자주 나와요. 틀려도 괜찮아요, 그만큼 다시 만나요!"},
     {t:"코인 모으기", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px">${ico("coin")}<span>공부 1세트 끝내면<br><b style="color:#ffd36a;font-weight:400">코인 받기!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🔥</span><span>퀴즈를 연속으로<br>맞히면 <b style="color:#ffd36a;font-weight:400">더 많이!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📈</span><span>높은 주차일수록<br><b style="color:#ffd36a;font-weight:400">최대 ×2!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📅</span><span>많이 할수록<br><b style="color:#ffd36a;font-weight:400">공부 계단 UP!</b></span></div></div>`,
      x:`공부를 한 번 끝낼 때마다 코인이 생겨요. 하루에 <b>${DAILY_SETS}세트</b>까지 받아요.<br><b>공부 계단</b>: 6세트마다 한 계단씩 올라가서 코인이 늘어나요. (×0.4 → ×0.5 → ×0.6 → ×0.7 → <b>×0.8</b>)<br><b>높은 주차</b>를 고를수록 코인이 늘어나요. (1주차 ×1 → 26주차 <b>×2</b>)`, tip:"주차 고르는 화면에 <b>코인 ×1.6</b>처럼 지금 배율이 보여요. 어려운 주차에 도전해 봐요!"},
     {t:"나의 용사 고르기", art:`<div class="gdHeroes">${HEROES.map((h,k)=>`<div class="gdHero ${k>1?"gdlock":""}">${spr(h.id,0)}${h.cls}<small>${h.cost?h.cost+" 코인":"처음부터"}</small></div>`).join("")}</div>`,
@@ -1324,8 +1325,11 @@ function grow(id,back){
   const gp=document.getElementById("gpick"); if(gp) gp.onclick=()=>{ P.hero=id; saveP(); sfx("ok"); grow(id,back) };
   document.getElementById("gall").onclick=()=>heroes();
   const adv=document.getElementById("adv"); if(adv) adv.onclick=()=>jobExam(id,back);
-  if(isAdmin()){ document.getElementById("lv1").onclick=()=>{ const keep=P.hero; P.hero=id; addExp(expNeed(s.lv)-s.exp); P.hero=keep; grow(id,back) };
-    document.getElementById("lv10").onclick=()=>{ const keep=P.hero; P.hero=id; for(let i=0;i<10&&HS(id).lv<MAX_LV;i++) addExp(expNeed(HS(id).lv)-HS(id).exp); P.hero=keep; grow(id,back) }; }
+  if(isAdmin()){ /* 선생님 모드: 경험치 배율과 상관없이 레벨을 바로 올려요 */
+    const upLv=k=>{ const h=HS(id); let ups=0; for(let i=0;i<k&&h.lv<MAX_LV;i++){ h.lv++; h.pts++; ups++ } h.exp=0; saveP();
+      if(ups){ sfx("lvup"); toast(`${heroById(id).name} Lv ${h.lv} · 능력치 포인트 +${ups}${canAdvance(id)?" · 전직할 수 있어요!":""}`) } grow(id,back) };
+    document.getElementById("lv1").onclick=()=>upLv(1);
+    document.getElementById("lv10").onclick=()=>upLv(10); }
 }
 function jobExam(id,back){
   const s=HS(id), h=heroById(id), J=JOBS[id], next=s.tier+1;
@@ -1378,7 +1382,7 @@ function learn(){
     <button class="act" data-a="quiz" ${p.length?"":"disabled"}><span class="ai y">${ico("quiz")}</span><span><strong>퀴즈</strong><small>${P.set.qn}문제 · 연속으로 맞히면 보상이 커져요</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(quizMax(P.set.qn))}</span></span></button>
     <button class="act" data-a="cards" ${p.length?"":"disabled"}><span class="ai r">${ico("cards")}</span><span><strong>한자 카드</strong><small>카드를 모두 뒤집어 뜻과 소리 익히기</small><span class="rw">${ico("coin","ci")}+${nowCoin(14)}</span></span></button>
     <button class="act" data-a="match" ${p.length>=3?"":"disabled"}><span class="ai g">${ico("match")}</span><span><strong>짝 맞추기</strong><small>한자와 뜻 카드를 뒤집어 짝 찾기</small><span class="rw">${ico("coin","ci")}+${nowCoin(10)} ~ +${nowCoin(20)}</span></span></button>
-    <button class="act" data-a="strokes" ${p.length?"":"disabled"}><span class="ai b">${ico("brush")}</span><span><strong>획순 쓰기</strong><small>획순을 보고 손가락으로 따라 쓰기</small><span class="rw">${ico("coin","ci")}한 글자 +${TRACE_COIN} (하루 ${TRACE_DAILY_MAX}까지)</span></span></button>
+    <button class="act" data-a="strokes" ${p.length?"":"disabled"}><span class="ai b">${ico("brush")}</span><span><strong>획순 쓰기</strong><small>획순을 보고 손가락으로 따라 쓰기</small><span class="rw">${ico("coin","ci")}한 글자 +${TRACE_COIN} (같은 글자는 하루 ${TRACE_PER_HZ}번 · 하루 ${TRACE_DAILY_MAX}까지)</span></span></button>
   </div>`;
   bindBack();
   $app.querySelectorAll(".wk").forEach(b=>b.onclick=()=>{const w=+b.dataset.w;P.set.sel=P.set.sel.includes(w)?P.set.sel.filter(x=>x!==w):[...P.set.sel,w];saveP();sfx("tap");learn()});
@@ -1618,9 +1622,13 @@ function strokePanel(host,c,{trace=false,memo=false,today=false}={}){
     w.quiz({showHintAfterMisses:isMemo?3:2,onMistake:()=>{miss++;msg.textContent=isMemo?(miss>=3?"힌트가 깜빡여요! 따라 그어 보세요":"음, 다시 떠올려 볼까요?"):(miss>=2?"빨갛게 깜빡이는 곳을 따라 그어 보세요":"다시 한번 그어 보세요")},
       onCorrectStroke:s=>{sfx("stroke");msg.textContent=s.strokesRemaining?`좋아요! ${s.strokeNum+2}획째`:""},
       onComplete:s=>{ const good=s.totalMistakes<=2; sfx("win"); stamp(good?(isMemo?"기억<br>완벽!":"참<br>잘했어요"):"완성!"); w.showOutline({duration:300}); stage.classList.remove("memo");
-        const d=day(); let add=0; if(d.trace<TRACE_DAILY_MAX){ add=Math.min(Math.round(TRACE_COIN*weekMul()*(isMemo?2:1)),TRACE_DAILY_MAX-d.trace); d.trace+=add; P.coins+=add; P.earned+=add; addExp(add*2); P.mastery[c.h]=(P.mastery[c.h]||0)+(good?(isMemo?2:1):0); trackAns(c,good); saveP(); countUp(P.coins-add,P.coins) }
+        const d=day(); d.tc=d.tc||{}; let add=0;
+        /* 같은 글자는 하루 2번까지만 코인 · 오늘의 한자는 하루 한 번만 */
+        const capHz=(d.tc[c.h]||0)>=TRACE_PER_HZ, capToday=today && P.daily.todayHz===todayKey();
+        if(capHz||capToday){ trackAns(c,good); P.mastery[c.h]=(P.mastery[c.h]||0)+(good?(isMemo?2:1):0); saveP() }
+        else if(d.trace<TRACE_DAILY_MAX){ d.tc[c.h]=(d.tc[c.h]||0)+1; add=Math.min(Math.round(TRACE_COIN*weekMul()*(isMemo?2:1)),TRACE_DAILY_MAX-d.trace); d.trace+=add; P.coins+=add; P.earned+=add; addExp(add*2); P.mastery[c.h]=(P.mastery[c.h]||0)+(good?(isMemo?2:1):0); trackAns(c,good); saveP(); countUp(P.coins-add,P.coins) }
         let bonus=0; if(today && isMemo && P.daily.todayHz!==todayKey()){ P.daily.todayHz=todayKey(); bonus=10; P.coins+=10; P.earned+=10; saveP(); setTimeout(()=>{ sfx("coin"); toast("오늘의 한자 완료! 보너스 코인 +10") },700) }
-        msg.textContent=(good?"완벽해요!":`완성! 틀린 횟수 ${s.totalMistakes}번`)+(add?`  코인 +${add}`:"  (오늘 획순 코인은 다 받았어요)")+(bonus?`  · 오늘의 한자 +${bonus}`:"") }});
+        msg.textContent=(good?"완벽해요!":`완성! 틀린 횟수 ${s.totalMistakes}번`)+(add?`  코인 +${add}`:capToday?"  (오늘의 한자 코인은 하루 한 번! 연습은 계속 할 수 있어요)":capHz?"  (이 글자는 오늘 코인을 다 받았어요 · 다른 글자를 써 봐요)":"  (오늘 획순 코인은 다 받았어요)")+(bonus?`  · 오늘의 한자 +${bonus}`:"") }});
   }
   host.querySelector('[data-a="all"]').onclick=playAll; stepBtn.onclick=oneStep; host.querySelector('[data-a="quiz"]').onclick=()=>doTrace(false); host.querySelector('[data-a="memo"]').onclick=()=>doTrace(true);
   memo?doTrace(true):trace?doTrace(false):playAll();

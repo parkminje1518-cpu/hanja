@@ -271,8 +271,16 @@ function startGame(opts){ opts=opts||{};
   const myName=(()=>{ const p=prof(); return (p&&p.name)||(p?`${p.c}반 ${p.n}번`:"나") })();
   const SHARE={slash:1,bigslash:1,quake:1,bolt:1,boom:1,ring:1,meteor:1,label:1,warn:1,laserwarn:1,laser:1,ragewave:1,bosscast:1,scorch:1};
   function teamPlayers(){ const L=[]; if(!g.p.dead) L.push(g.p); for(const id in RP){ const r=RP[id]; if(!r.dead&&!r.gone) L.push(r) } return L }
-  function nearestPlayer(x,y){ let best=g.p, bd=1e18; for(const q of teamPlayers()){ const d=(q.x-x)**2+(q.y-y)**2; if(d<bd){bd=d;best=q} } return best }
-  function randPlayer(){ const L=teamPlayers(); return L.length?L[Math.random()*L.length|0]:g.p }
+  /* 같이 하기: 기술을 고르는 친구(최대 30초)에게는 몬스터가 가지 않고 다른 친구를 노려요 */
+  const PZ_MAX=30000;
+  function choosing(q){ const now=performance.now();
+    if(q===g.p){ if(g.paused&&!g.over){ g.pzT=g.pzT||now; return now-g.pzT<PZ_MAX } g.pzT=0; return false }
+    return !!q.pzT && now-q.pzT<PZ_MAX }
+  /* 모두가 고르고 있으면 몬스터(와 시간)도 멈춰요 */
+  function allChoosing(){ const T=teamPlayers(); return T.length>0 && T.every(choosing) }
+  function huntPlayers(){ const T=teamPlayers(), L=T.filter(q=>!choosing(q)); return L.length?L:T }
+  function nearestPlayer(x,y){ let best=g.p, bd=1e18; for(const q of huntPlayers()){ const d=(q.x-x)**2+(q.y-y)**2; if(d<bd){bd=d;best=q} } return best }
+  function randPlayer(){ const L=huntPlayers(); return L.length?L[Math.random()*L.length|0]:g.p }
   const nPlayers=()=>1+Object.values(RP).filter(r=>!r.gone).length;
   const evAll=m=>{ if(NM==="host") hostEv.push(m) };
   function say(text,snd){ showBanner(text); if(snd) sfx(snd); evAll({t:"ban",x:text,s:snd||""}) }
@@ -313,6 +321,7 @@ function startGame(opts){ opts=opts||{};
     if(m.t==="quit"){ if(RP[from]) RP[from].gone=true; NET.ing.delete(from); return }
     if(m.t!=="c") return;
     if(m.me) setRP(from,m.me);
+    if(RP[from]){ const r=RP[from]; if(m.pz){ if(!r.pzT) r.pzT=performance.now() } else r.pzT=0 }
     if(m.d&&m.d.length){ const by=new Map(g.en.map(e=>[e.id,e])); for(const [id,d] of m.d){ const e=by.get(id); if(e&&e.hp>0){ e.hp-=d; e.flash=.08; if(e.hp<=0) kill(e) } } }
     if(m.g) for(const id of m.g){ const i=g.gems.findIndex(o=>o.id===id); if(i>=0){ const v=g.gems[i].v; g.gems.splice(i,1); xpShare+=v; g.xp+=v*M.xp } }
     if(m.it) for(const id of m.it){ const i=g.items.findIndex(o=>o.id===id); if(i>=0){ const k=g.items[i].k; g.items.splice(i,1); (hostTo[from]=hostTo[from]||[]).push({t:"itok",k}) } }
@@ -361,7 +370,7 @@ function startGame(opts){ opts=opts||{};
       wipeT = alive?0:wipeT+1/15; if(wipeT>1.5){ endAll(false) }
     } else {
       const c=NET.hostConn; if(!c||!c.open) return;
-      try{ c.send({t:"c",me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[]}) }catch(e){}
+      try{ c.send({t:"c",pz:(g.paused&&!g.over)?1:0,me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[]}) }catch(e){}
       netOut.d={}; netOut.g=[]; netOut.it=[]; netOut.sh=[]; netOut.fx=[]; netOut.duel=[] } }
   function endAll(win){ if(g.over) return; if(NM==="host"){ const m={t:"s",tm:g.t,k:g.kills,en:[],gm:[],it:[],pl:{},ev:[{t:"end",win}]}; for(const id of NET.ing){ const c=NET.conns[id]; try{ c&&c.send(m) }catch(e){} } } finish(win) }
   function down(){ const q=g.p; q.dead=true; q.hp=0; g.rescue=0; modal.hidden=true; g.paused=false; showBanner("쓰러졌어요! 친구가 옆에 3초 동안 서 있으면 다시 일어나요"); }
@@ -633,7 +642,7 @@ function startGame(opts){ opts=opts||{};
     shuffle(opts);
     mcard.className="gcard lvcard"; modal.classList.add("lvmodal");
     mcard.innerHTML=`<div class="lvhead"><div class="lvsub">◆ BOSS REWARD ◆</div><h3 class="lvbig gemt">보물상자!</h3>
-      <div class="lvtip">${opts.some(o=>o.job!==undefined)?"✦ 전직 스킬 강화 카드가 나왔어요! 하나를 골라요 ✦":"✦ 보스를 물리친 상으로 기술 하나를 골라요 ✦"}</div></div>
+      <div class="lvtip">${opts.some(o=>o.job!==undefined)?"✦ 전직 스킬 강화 카드가 나왔어요! 하나를 골라요 ✦":"✦ 보스를 물리친 상으로 기술 하나를 골라요 ✦"}</div>${coopNote()}</div>
       <div class="lvcards c${opts.length}">${opts.map((o,n)=>{
         if(o.job!==undefined){ const k=SKL[o.job], L=g.jl[o.job]||0;
           return `<div class="lvk ok job" style="--tc:${TIER_COLOR[o.job+1]}"><div class="lvic jobic"><img src="${SPRITE_URLS[HERO.id]}" alt="" style="width:60px;height:60px;image-rendering:pixelated"></div>
@@ -653,6 +662,8 @@ function startGame(opts){ opts=opts||{};
     if(NM==="client"){ netOut.duel=(netOut.duel||[]); netOut.duel.push(e.id) }
     else if(e&&e.hp>0){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) }
     if(e){ g.fx.push({k:"bolt",x:e.x,y:e.y,life:.45,max:.45}); g.fx.push({k:"boom",x:e.x,y:e.y,r:e.r*1.4,col:"#ffd36a",life:.5,max:.5}); g.fx.push({k:"num",x:e.x,y:e.y-e.r,v:"한자 번개!",crit:true,life:1,max:1}) } g.shake=Math.max(g.shake,.3) }
+  /* 같이 하기: 고르는 동안 몬스터가 다른 친구에게 간다는 안내 */
+  const coopNote=()=>NM?`<div class="lvtip coopNote">🛡 고르는 동안 몬스터는 다른 친구에게 가요 · 내 용사는 <b>무적</b>! 모두 고르는 중이면 몬스터도 멈춰요 (30초 안에 골라요)</div>`:"";
   function hanjaDuel(ref){ if(g.over) return; const find=()=>NM==="client"?EN[ref.id]:ref, e0=find(); if(!e0||e0.hp<=0) return;
     g.paused=true; let i=0, hits=0; const qs=pickWeighted(QPOOL,3).map(c=>({c,q:makeQ(c,{short:true})}));
     const show=()=>{ const {c,q}=qs[i], e=find();
@@ -676,7 +687,7 @@ function startGame(opts){ opts=opts||{};
     modal.classList.add("lvmodal");
     mcard.className="gcard lvcard";
     mcard.innerHTML = `<div class="lvhead"><div class="lvsub">★ LEVEL UP ★</div><h3 class="lvbig">LV.${g.lvl} 달성!</h3>
-        <div class="lvtip">✦ 카드마다 한자 문제를 맞히면 그 기술을 고를 수 있어요 ✦</div></div>
+        <div class="lvtip">✦ 카드마다 한자 문제를 맞히면 그 기술을 고를 수 있어요 ✦</div>${coopNote()}</div>
       <div class="lvcards c${N}">${cards.map((k,i)=>{ const s=SK[k], l=lv(k)+1, Q=qs[i].q;
         return `<div class="lvk" data-i="${i}">
           <div class="lvic">${skImg(k,60)}</div>
@@ -810,7 +821,7 @@ function startGame(opts){ opts=opts||{};
     if(NM!=="client"){ const nx=g.ph===undefined?1:g.ph+1; if(nx<=2 && !g.phWarn?.[nx] && g.t>=PHASE_T[nx]-10 && g.t<PHASE_T[nx]){ (g.phWarn=g.phWarn||{})[nx]=1; say(`⚠ 10초 뒤 ${nx+1}단계! 몬스터가 ${nx===2?"훨씬 ":""}강해져요, 준비해요!`,"alarm") } }
     { const ph=phaseOf(g.t); if(g.ph===undefined) g.ph=ph; if(ph!==g.ph){ g.ph=ph; g.phT=g.t; g.shake=.6; g.fx.push({k:"flash",col:ph===2?"#9a6bff":"#ff8a2a",life:.7,max:.7}); stamp(`${ph+1}단계!`);
       if(NM!=="client"){ say(`${ph+1}단계 · ${PH_NAME[MAP.id][ph]}! 몬스터가 ${ph===2?"훨씬 ":""}강해졌어요!`,"enrage"); g.pending.push({t:2.6,run:crisis}) } } }
-    if(frozen) P.inv=Math.max(P.inv,.3);
+    if(frozen && (!NM || choosing(P))) P.inv=Math.max(P.inv,.3);
     if(P.dead){ const near=Object.values(RP).some(r=>!r.gone&&!r.dead&&(r.x-P.x)**2+(r.y-P.y)**2<85*85);
       g.rescue=Math.max(0,(g.rescue||0)+(near?dt:-dt*.5));
       if(g.rescue>=3){ P.dead=false; P.hp=s.maxHp*.5; P.inv=2; g.rescue=0; sfx("revive"); stamp("부활!"); showBanner("친구 덕분에 다시 일어났어요!"); g.fx.push({k:"ring",x:P.x,y:P.y,life:.6,max:.6}) } }
@@ -1188,7 +1199,7 @@ function startGame(opts){ opts=opts||{};
   let last=performance.now(), raf=0;
   function loop(now){
     const dt=Math.min(.05,(now-last)/1000); last=now;
-    if(!g.over && (!g.paused || NM)) update(dt);
+    if(!g.over && (!g.paused || NM) && !(NM==="host" && allChoosing())) update(dt);
     if(NM && !g.over) netTick(dt);
     draw();
     raf=requestAnimationFrame(loop);
