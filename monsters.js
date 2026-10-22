@@ -465,13 +465,24 @@ function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
 function drawRig(ctx,A,e,t,w,h){ const R=A.rig, W=A.im.width, H=A.im.height, s=w/W, st=e._rs||{mv:0,walk:0};
   ctx.save(); ctx.scale(s,s); ctx.translate(-W/2,-H);
   const wave=x=>R.move==="slither"?Math.sin(x/W*Math.PI*2.2-t*4.2)*H*(.025+.02*st.mv)*(.3+.7*Math.abs(x/W-.55)*1.6):0;
-  const part=p=>{ const M=partMotion(p,e,t,st), k=1/s; let px=p.px+M.dx*k, py=p.py+M.dy*k+wave(p.px);
-    ctx.save(); ctx.translate(px,py); ctx.rotate(M.rot); if(M.sc!==1) ctx.scale(M.sc,M.sc); ctx.drawImage(p.cv,p.x0-p.px,p.y0-p.py); ctx.restore() };
+  const SP=e._sp||(e._sp=[]), AT=st.atk;
+  // 관절 스프링: 무기·팔이 목표 각도로 "휙" 따라가며 살짝 넘쳤다가 출렁이며 제자리로 (딱딱하게 꺾이지 않아요)
+  const KZ=AT&&AT.strike?[620,.32]:AT&&AT.windup?[140,.85]:[85,.5];
+  const part=(p,i)=>{ const M=partMotion(p,e,t,st), k=1/s, S=SP[i]||(SP[i]={r:M.rot,vr:0,x:M.dx,vx:0,y:M.dy,vy:0,h:[]}), dt=st.ft||0;
+    if(dt>0){ const [K,Z]=KZ, C=2*Math.sqrt(K)*Z, n=Math.ceil(dt/.006), h=dt/n;
+      for(let j=0;j<n;j++){ S.vr+=(K*(M.rot-S.r)-C*S.vr)*h; S.r+=S.vr*h; S.vx+=(K*(M.dx-S.x)-C*S.vx)*h; S.x+=S.vx*h; S.vy+=(K*(M.dy-S.y)-C*S.vy)*h; S.y+=S.vy*h } }
+    else { S.r=M.rot; S.x=M.dx; S.y=M.dy; S.vr=0 }
+    const px=p.px+S.x*k, py=p.py+S.y*k+wave(p.px), img=p.cv, ox=p.x0-p.px, oy=p.y0-p.py;
+    // 휙 휘두를 때 잔상
+    const fast=Math.abs(S.vr)>5&&(p.t==="weapon"||p.t==="arm"||p.t==="tail"||p.t==="spear"||p.t==="wing");
+    if(fast){ ctx.save(); for(let j=0;j<S.h.length;j++){ ctx.globalAlpha=.22*(1-j/S.h.length)*Math.min(1,(Math.abs(S.vr)-5)/6); ctx.save(); ctx.translate(px,py); ctx.rotate(S.h[j]); if(M.sc!==1) ctx.scale(M.sc,M.sc); ctx.drawImage(img,ox,oy); ctx.restore() } ctx.restore() }
+    S.h.unshift(S.r); if(S.h.length>3) S.h.length=3;
+    ctx.save(); ctx.translate(px,py); ctx.rotate(S.r); if(M.sc!==1) ctx.scale(M.sc,M.sc); ctx.drawImage(img,ox,oy); ctx.restore() };
   if(RIGS[e.bid]&&RIGS[e.bid].aura) drawAura(ctx,RIGS[e.bid],e,t,st,W,H);
-  for(const p of R.parts) if(p.z===-1) part(p);
+  R.parts.forEach((p,i)=>{ if(p.z===-1) part(p,i) });
   if(R.move==="slither"){ const N=26, sw=W/N; for(let i=0;i<N;i++){ const x=i*sw; ctx.drawImage(R.base,x,0,sw+1,H,x,wave(x+sw/2),sw+1,H) } }
   else ctx.drawImage(R.base,0,0);
-  for(const p of R.parts) if(p.z!==-1) part(p);
+  R.parts.forEach((p,i)=>{ if(p.z!==-1) part(p,i) });
   ctx.restore() }
 /* ===== 보스 움직임: 보스마다 걷기·날기·말달리기·기어가기·통통 튀기 + 공격 모션(기 모으기 → 내지르기) ===== */
 const BASIC_ATK={dash:1,stomp:1,rock:1,fire3:1};   // 기본 공격 (알림 없이 바로)
@@ -499,14 +510,14 @@ function bossPose(e,t,px){
   // 공격 모션
   let atk=null; const A=e.atk; if(A){ const u=t-A.t0, Wd=A.wind;
     if(u<Wd){ const k=u/Wd, ease=k*k*(3-2*k), shake=A.sp&&k>.5?Math.sin(t*60)*R*.02*k:0;   // 기 모으기: 뒤로 젖히며 커지고 빛나요 (특수 공격은 부들부들)
-      sx*=1+.06*ease; sy*=1+.08*ease; rot+=-e.fs*.1*ease; ox+=-e.fs*R*.1*ease+shake; glow=ease; atk={wind:ease,hit:0} }
+      sx*=1+.06*ease; sy*=1+.08*ease; rot+=-e.fs*.1*ease; ox+=-e.fs*R*.1*ease+shake; glow=ease; atk={wind:ease,hit:0,windT:ease,hitT:0,windup:1} }
     else if(u<Wd+.55){ const k=(u-Wd)/.55, hit=k<.25?Math.sin(k/.25*Math.PI/2):Math.cos((k-.25)/.75*Math.PI/2), wind=Math.max(0,1-k/.2);   // 내지르기 → 천천히 원래대로
       const lunge={dash:.5,stomp:.05,laser:.15,cross:.1}[A.k]??.22; ox+=e.fs*R*lunge*hit; rot+=e.fs*.12*hit;
-      if(A.k==="stomp"){ sy*=1-.18*hit; sx*=1+.14*hit; oy+=R*.08*hit } else { sx*=1+.05*hit; sy*=1-.04*hit } glow=(1-k)*.8; atk={wind,hit} }
+      if(A.k==="stomp"){ sy*=1-.18*hit; sx*=1+.14*hit; oy+=R*.08*hit } else { sx*=1+.05*hit; sy*=1-.04*hit } glow=(1-k)*.8; atk={wind,hit,windT:0,hitT:k<.32?1:0,strike:k<.32,rec:k>=.32} }
     if(atk){ atk.any=1; atk.mel=!!MELEE[A.k]; atk.charge=!!A.sp; atk.part=RG?(A.part===undefined?(A.part=atkPartFor(RG,A.k,e.bid)):A.part):"" } }
   if(e.dash>0){ sx*=1.12; sy*=.9; rot+=e.fs*.08 }
   const ht=e.hitT!==undefined?t-e.hitT:9; if(ht<.14){ const k=1-ht/.14; ox+=-e.fs*R*.05*k; sx*=1-.03*k }
-  e._rs={mv,walk:wp,fly:mvT==="fly",gallop:mvT==="gallop",atk};
+  e._rs={mv,walk:wp,fly:mvT==="fly",gallop:mvT==="gallop",atk,ft};
   return {sx,sy,rot,ox,oy,glow,face:e.fs} }
 /* 특수 공격 알림: 「⚠ 기술 이름」 말풍선 + 남은 시간 고리 */
 function bossWarn(ctx,e,t){ const A=e.atk; if(!A||!A.sp) return; const u=t-A.t0; if(u>A.wind+.15) return;
@@ -568,7 +579,7 @@ function mobArtImg(A,hue,white){ const key=white?"w":hue||0; if(key===0) return 
   else { try{ x.filter=`hue-rotate(${hue}deg)` }catch(err){} x.drawImage(A.im,0,0) }
   return A.hv[key]=c }
 function drawMobArt(ctx,e,t,px,py){ const A=mobArtOf(e); if(!A) return false;
-  const [an,hk,fc]=MOB_STYLE_MAP[e.mapId+":"+e.look]||MOB_STYLE[e.look]||["march",3,1], r=e.r, H=r*hk, W=H*A.im.width/A.im.height, ph=t+e.wob*.7, still=e.stun>0?0:1;
+  const [an,hk,fc]=MOB_STYLE_MAP[e.mapId+":"+e.look]||MOB_STYLE[e.look]||["march",3,1], r=e.r, H=r*hk*1.15, W=H*A.im.width/A.im.height, ph=t+e.wob*.7, still=e.stun>0?0:1;
   const age=e.born!==undefined?t-e.born:9, pop=age<.3?.35+.65*(1-Math.pow(1-age/.3,3)):1;
   const ht=e.hitT!==undefined?t-e.hitT:9, rec=ht<.15?1-ht/.15:0;
   let lift=0, sx=1, sy=1, rot=0;
@@ -1275,7 +1286,7 @@ const RIGS = {
   st2_0:{move:"walk", parts:[{t:"spear",poly:R_(7.2,0,10,10),piv:[8.3,6.1]},{t:"arm",side:"L",poly:R_(0,5,4,9.6),piv:[3.4,5.6],small:1}]},
   st2_1:{move:"gallop", parts:[{t:"leg",z:-1,poly:R_(1,7.2,4.6,10),piv:[3,7.2],ph:.5},{t:"leg",poly:R_(5.6,7.4,8.4,10),piv:[6.8,7.4]},{t:"tail",poly:R_(0,2.4,2.2,6.2),piv:[2,5]},{t:"head",poly:R_(7.2,2.4,10,7.4),piv:[7.2,5.4]}]},
   st2_2:{move:"waddle", parts:[{t:"arm",side:"L",poly:R_(1.4,5.2,3.7,7.8),piv:[3.5,5.6]},{t:"arm",side:"R",poly:R_(6.3,5.2,8.7,7.8),piv:[6.5,5.6]},{t:"cap",poly:R_(0.8,0,9.2,4.7),piv:[5,4.7]}]},
-  st2_3:{move:"heavy", parts:[{t:"arm",side:"L",poly:R_(0.6,5,4,9.2),piv:[3.8,5.3]},{t:"arm",side:"R",poly:R_(7,4.6,10,9.4),piv:[7.2,5.2]},{t:"cap",poly:R_(0,0,10,4.8),piv:[5,4.8]}]},
+  st2_3:{move:"heavy",noLeg:1, parts:[{t:"arm",side:"L",poly:R_(0.6,5,4,9.2),piv:[3.8,5.3]},{t:"arm",side:"R",poly:R_(7,4.6,10,9.4),piv:[7.2,5.2]},{t:"cap",poly:R_(0,0,10,4.8),piv:[5,4.8]}]},
   st3_0:{move:"hover", parts:[]},
   st3_1:{move:"crawl", parts:[{t:"tail",poly:R_(5.2,0,8.6,4.6),piv:[6.5,4.6],strike:1},{t:"arm",side:"L",poly:R_(0,5.2,4,8.9),piv:[4,6.2]},{t:"arm",side:"L",poly:R_(3.4,7.6,7.2,10),piv:[5.6,7.4],ph:.5}]},
   st3_2:{move:"heavy", parts:[{t:"head",poly:R_(0,4.6,3.2,7.8),piv:[3,6.4]},{t:"leg",poly:R_(1.8,7.7,4.4,10),piv:[3,7.8]},{t:"leg",poly:R_(7,7.1,9.6,9.9),piv:[7.8,7.2],ph:.5}]},
@@ -1311,6 +1322,12 @@ const RIGS = {
 };
 /* 조각 만들기: 그림이 불러와지면 한 번만 (몸통에서 조각 부분을 지우고, 조각은 따로 잘라 둬요) */
 function buildRig(key,A){ const R=RIGS[key]; if(!R||A.rig) return; const im=A.im, W=im.width, H=im.height, sx=W/10, sy=H/10;
+  // 두 발로 걷는 보스인데 다리 조각이 없으면: 그림 아래쪽을 왼발·오른발로 나눠 자동으로 다리를 만들어요
+  if((R.move==="walk"||R.move==="heavy")&&!R.noLeg&&!R.parts.some(p=>p.t==="leg")&&!R._auto){ R._auto=1;
+    try{ const c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(im,0,0); const y0=Math.floor(H*.8), d=x.getImageData(0,y0,W,H-y0).data;
+      let mn=W, mx=0, sw=0, sxw=0; for(let yy=0;yy<H-y0;yy++) for(let xx=0;xx<W;xx++){ const a=d[(yy*W+xx)*4+3]; if(a>120){ if(xx<mn) mn=xx; if(xx>mx) mx=xx; sw+=a; sxw+=a*xx } }
+      if(sw>0&&mx-mn>W*.12){ const mid=sxw/sw/sx, l=Math.max(0,mn/sx-.1), r=Math.min(10,mx/sx+.1), hip=7.7;
+        R.parts.push({t:"leg",poly:R_(l,hip,mid,10),piv:[(l+mid)/2,hip],auto:1},{t:"leg",poly:R_(mid,hip,r,10),piv:[(mid+r)/2,hip],ph:1,auto:1}) } }catch(err){} }
   const path=(c,poly)=>{ c.beginPath(); poly.forEach(([x,y],i)=>i?c.lineTo(x*sx,y*sy):c.moveTo(x*sx,y*sy)); c.closePath() };
   const base=document.createElement("canvas"); base.width=W; base.height=H; const bc=base.getContext("2d"); bc.drawImage(im,0,0);
   const used=document.createElement("canvas"); used.width=W; used.height=H; const uc=used.getContext("2d");
@@ -1335,11 +1352,11 @@ function buildRig(key,A){ const R=RIGS[key]; if(!R||A.rig) return; const im=A.im
 /* 조각마다 지금 각도(도)와 이동 계산 */
 function partMotion(p,e,t,st){ const D=Math.PI/180, sd=p.side==="L"?1:-1, ph=(p.ph||0)*Math.PI, mv=st.mv, A=st.atk, am=p.amp||1;
   const on=n=>!!(A&&A.part&&A.part.indexOf(n)>=0);
-  const W=A?A.wind:0, H=A?A.hit:0, tr=A&&A.charge?Math.sin(t*50)*1.5*D*W:0;   // 특수 공격 준비 중엔 부들부들
+  const W=A?(A.windT??A.wind):0, H=A?(A.hitT??A.hit):0, tr=A&&A.charge?Math.sin(t*38)*1.2*D*W:0;   // 특수 공격 준비 중엔 부들부들
   let rot=0, dx=0, dy=0, sc=1;
   if(p.t==="wing"){ const f=st.fly?3.2:2.2, amp=((st.fly?14:6)+mv*6)*am; rot=sd*amp*Math.sin(t*f*Math.PI*2+ph)*D*(on("wing")?1-W*.7:1);
     if(on("wing")) rot+=sd*(W*32-H*40)*D+tr }
-  else if(p.t==="leg"){ const amp=(st.gallop?26:16)*Math.min(1,mv*1.2)*am; rot=amp*Math.sin(st.walk+ph)*D;
+  else if(p.t==="leg"){ const amp=(st.gallop?26:p.auto?9:16)*Math.min(1,mv*1.2)*am, sw=Math.sin(st.walk+ph); rot=amp*sw*D; dy-=Math.max(0,Math.cos(st.walk+ph))*(p.auto?7:5)*Math.min(1,mv*1.2); if(p.auto) dx+=sw*4*Math.min(1,mv);
     if(on("leg")) rot+=(-W*24+H*16)*D*am*(p.z===-1?.5:1) }
   else if(p.t==="tail"){ rot=8*Math.sin(t*2.4+ph)*D*am;
     if(on("tail")){ if(p.thrust) dy+=-W*12+H*30; else rot+=(p.strike?(-W*28+H*55):(W*22-H*38)*am)*D+tr } }
@@ -1350,8 +1367,8 @@ function partMotion(p,e,t,st){ const D=Math.PI/180, sd=p.side==="L"?1:-1, ph=(p.
     if(on("arm")){ if(p.punch||A.mel){ rot+=sd*(W*30-H*50)*D+tr; dx+=H*14*(p.side==="L"?-1:1); dy+=H*6 } else { rot+=sd*(W*42-H*12)*D+tr; dy+=-W*6 } } }
   else if(p.t==="weapon"){ rot=sd*-3*Math.sin(t*1.6)*D;
     if(on("weapon")){ if(p.cast){ rot+=sd*(W*16-H*8)*D+tr; dy+=-W*12+H*4 }
-      else if(p.hammer){ rot+=sd*(W*62-H*84)*D+tr; dy+=-W*8+H*6 }
-      else if(A.mel){ rot+=sd*(W*42-H*88)*D+tr }
+      else if(p.hammer){ rot+=sd*(W*70-H*90)*D+tr; dy+=-W*10+H*8 }
+      else if(A.mel){ rot+=sd*(W*55-H*95)*D+tr; dx+=-W*4+H*8 }
       else { rot+=sd*(W*55-H*20)*D+tr; dy+=-W*8 } } }   // 마법: 무기를 하늘로 치켜들어요
   else if(p.t==="spear"){ rot=-2*Math.sin(t*1.6)*D; if(on("weapon")){ if(A.mel){ dx+=-W*20+H*44; rot+=-W*6*D } else { rot+=-W*14*D; dy+=-W*10 } } }
   else if(p.t==="float"){ dy=Math.sin(t*2.2+ph)*6; rot=3*Math.sin(t*1.3+ph)*D; if(on("float")){ dy+=-W*12+H*4; sc=1+W*.15+H*.08; rot+=t*W*2 } }
@@ -1377,9 +1394,9 @@ function buildWing(L){ const cv=document.createElement("canvas"), ox=L*.3, oy=L*
   // 날개 뼈대 위쪽 부드러운 테두리
   c.strokeStyle="rgba(255,255,255,.9)"; c.lineWidth=L*.05; c.lineCap="round"; c.beginPath(); for(let i=0;i<=20;i++){ const [x,y]=bone(i/20); i?c.lineTo(x,y):c.moveTo(x,y) } c.stroke();
   return {cv,ox,oy} }
-function drawAura(ctx,R,e,t,st,W0,H0){ const a=R.aura, sx=W0/10, sy=H0/10, A=st.atk, on=!!(A&&A.part&&A.part.indexOf("aura")>=0), D=Math.PI/180;
+function drawAuraRaw(ctx,R,e,t,st,W0,H0,FL){ const a=R.aura, sx=W0/10, sy=H0/10, A=st.atk, on=!!(A&&A.part&&A.part.indexOf("aura")>=0), D=Math.PI/180;
   // 처음 만든 빛나는 금빛 깃털 날개 (금색 → 하늘색으로 빛나요)
-  const flap=(st.fly?16:8)*Math.sin(t*3.2*Math.PI*2*.5)+(on?A.wind*30-A.hit*42:0), L=a.len*sx;
+  const flap=FL, L=a.len*sx;
   ctx.save(); ctx.globalAlpha=.88;
   for(const side of [-1,1]){ const [rx,ry]=side<0?a.L:a.R, x0=rx*sx, y0=ry*sy;
     for(let i=0;i<8;i++){ const q=i/7, th=(18+q*92-flap*(1-q*.4))*D, len=L*(1-q*.42)*(0.92+.08*Math.sin(t*3+i)), dxv=side*Math.sin(th), dyv=-Math.cos(th);
@@ -1388,6 +1405,14 @@ function drawAura(ctx,R,e,t,st,W0,H0){ const a=R.aura, sx=W0/10, sy=H0/10, A=st.
       ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(x0+dxv*len*.55+px*wd*side,y0+dyv*len*.55+py*wd*side,tx,ty); ctx.quadraticCurveTo(x0+dxv*len*.5-px*wd*.35*side,y0+dyv*len*.5-py*wd*.35*side,x0,y0); ctx.fill(); ctx.strokeStyle="rgba(160,105,20,.85)"; ctx.lineWidth=sx*.06; ctx.stroke();
       ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.lineWidth=sx*.05; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.quadraticCurveTo(x0+dxv*len*.5+px*wd*.3*side,y0+dyv*len*.5+py*wd*.3*side,tx,ty); ctx.stroke() } }
   ctx.restore() }
+/* 렉 줄이기: 날개를 한 번만 그려 두고 펄럭임은 통째로 돌려서 표현해요 */
+function drawAura(ctx,R,e,t,st,W0,H0){ const a=R.aura, A=st.atk, on=!!(A&&A.part&&A.part.indexOf("aura")>=0), D=Math.PI/180;
+  const flap=(st.fly?16:8)*Math.sin(t*3.2*Math.PI*2*.5)+(on?A.wind*30-A.hit*42:0);
+  const key=Math.round(W0); if(!a._c||a._ck!==key){ a._ck=key; a._c={}; const sx=W0/10, sy=H0/10, L=a.len*sx;
+    for(const side of [-1,1]){ const [rx,ry]=side<0?a.L:a.R, S=Math.ceil(L*2.3), cv=document.createElement("canvas"); cv.width=cv.height=S; const c=cv.getContext("2d");
+      c.translate(S/2-rx*sx,S/2-ry*sy); const half={aura:{L:a.L,R:a.R,len:a.len}}; half.aura[side<0?"R":"L"]=[-999,-999];
+      drawAuraRaw(c,half,e,t,{atk:null},W0,H0,0); a._c[side]={cv,S,x:rx*sx,y:ry*sy} } }
+  for(const side of [-1,1]){ const w=a._c[side]; ctx.save(); ctx.translate(w.x,w.y); ctx.rotate(-side*flap*.75*D); ctx.drawImage(w.cv,-w.S/2,-w.S/2); ctx.restore() } }
 /* 공격 종류 → 어느 조각으로 공격할지 (보스마다 무기·특징에 맞게) */
 const MELEE={dash:1,stomp:1,laser:1,cross:1,fire3:1,fire5:1,rock:1};
 const ATK_PARTS={
@@ -1407,3 +1432,58 @@ function atkPartFor(rig,k,key){ const mel=!!MELEE[k];
   const has=t=>rig.parts.some(p=>p.t===t||(t==="weapon"&&p.t==="spear"));
   const order=mel?["weapon","arm","head","tail","wing","leg"]:["weapon","arm","wing","tail","head","leg"];
   for(const t of order) if(has(t)) return t; return "body" }
+
+/* ===== 용사 그림 (선생님이 보내 준 그림) · 단계(전직)마다 다른 그림 ===== */
+const HERO_ART={};   // HERO_ART[id] = true 이면 그림 용사
+(function(){ const F=typeof HERO_ART_FILES!=="undefined"?HERO_ART_FILES:{}; if(typeof SPRITE_T==="undefined") return;
+  for(const k in F){ const [id,tr]=k.split(":"); if(!SPRITE_T[id]) continue; HERO_ART[id]=true;
+    const old=SPRITE_T[id][+tr]; SPRITE_T[id][+tr]=F[k];
+    for(const u in SPRITE_URLS) if(SPRITE_URLS[u]===old) SPRITE_URLS[u]=F[k];
+    if(+tr===0&&typeof SPRITE_DARK!=="undefined"){ const im=new Image(); im.onload=()=>{ const c=document.createElement("canvas"); c.width=im.width; c.height=im.height; const x=c.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="source-in"; x.fillStyle="#2a2347"; x.fillRect(0,0,c.width,c.height); SPRITE_DARK[id]=c.toDataURL() }; im.src=F[k] } }
+  // 그림 용사는 화면에서 부드럽게 (도트는 각지게)
+  try{ const st=document.createElement("style"); st.textContent='img[src^="data:image/webp"]{image-rendering:auto!important}'; document.head.appendChild(st) }catch(e){}
+})();
+const isHeroArt=src=>typeof src==="string"&&src.startsWith("data:image/webp");
+
+/* ===== 용사 몸 움직임: 그림을 윗몸·왼다리·오른다리로 나눠 따로 움직여요 =====
+   걷기: 다리를 번갈아 내딛고 발을 들며, 윗몸은 반대로 살짝 비틀어요
+   공격: 무기마다 다르게 (대검: 젖혔다 크게 베기 · 활: 당겼다 놓기 · 표창: 몸을 비틀어 던지기 · 마법: 치켜들었다 내뻗기 · 총: 반동) */
+const HRIG={};
+function heroRigOf(img){ const key=img.src.length+":"+img.src.slice(-40); if(HRIG[key]!==undefined) return HRIG[key];
+  try{ const W=img.naturalWidth, H=img.naturalHeight, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(img,0,0);
+    const d=x.getImageData(0,0,W,H).data; let top=H, bot=0; for(let y=0;y<H;y++) for(let i=0;i<W;i+=2) if(d[(y*W+i)*4+3]>100){ if(y<top) top=y; if(y>bot) bot=y; break }
+    const hip=Math.round(top+(bot-top)*.74), y0=Math.round(top+(bot-top)*.86); let sw=0,sx=0,mn=W,mx=0; for(let y=y0;y<=bot;y++) for(let i=0;i<W;i++){ const a=d[(y*W+i)*4+3]; if(a>120){ sw+=a; sx+=a*i; if(i<mn) mn=i; if(i>mx) mx=i } }
+    const mid=sw?sx/sw:W/2, ov=Math.round((bot-top)*.03);
+    const cut=(x0,y0_,x1,y1)=>{ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const cx=cv.getContext("2d"); cx.save(); cx.beginPath(); cx.rect(x0,y0_,x1-x0,y1-y0_); cx.clip(); cx.drawImage(img,0,0); cx.restore(); return cv };
+    const R={W,H,hip,mid,bot,lp:(mn+mid)/2,rp:(mid+mx)/2,upper:cut(0,0,W,hip+ov),legL:cut(0,hip,mid,H),legR:cut(mid,hip,W,H)};
+    // 다리를 돌려도 틈이 안 보이게: 허리 아래 그림을 흐리게 깔아 둬요
+    const base=document.createElement("canvas"); base.width=W; base.height=H; const bx=base.getContext("2d"); bx.filter="blur(2px) brightness(.7)"; bx.drawImage(cut(0,hip-2,W,hip+(bot-hip)*.45),0,0); R.base=base;
+    return HRIG[key]=R }catch(e){ return HRIG[key]=null } }
+const HERO_POSE={ // [준비 시간 비율, 준비: 각도·앞뒤·위아래·가로늘림, 공격: 각도·앞뒤·위아래·가로늘림]
+  sword:[.34,-11,-5,0,.94, 15,11,0,1.12], arrow:[.55,-5,-5,0,.97, 3,2,0,1.03], star:[.3,-13,-3,-1,.95, 17,8,0,1.1], fireball:[.45,-6,-2,-7,.95, 9,8,0,1.08], gun:[0,0,0,0,1, -9,-6,-1,.96] };
+function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
+  const s=SZ/R.W, D=Math.PI/180, dt=Math.min(.05,st.dt||0);
+  const S=st.S||(st.S={a:0,va:0,x:0,vx:0,y:0,vy:0,k:1,vk:0,l:0,vl:0,r:0,vr:0,ly:0,vly:0,ry:0,vry:0,h:[]});
+  const mv=st.mv||0, ph=st.ph||0, P=HERO_POSE[st.kind], aq=st.aq;
+  // 걷기 목표: 다리를 번갈아 내딛고 발 들기
+  const tl=Math.sin(ph)*11*mv, tr=-Math.sin(ph)*11*mv, tly=-Math.max(0,-Math.cos(ph))*6*mv, try_=-Math.max(0,Math.cos(ph))*6*mv;
+  // 공격 목표: 준비(젖히기) → 공격(휙 내지르기) → 스프링으로 출렁이며 제자리
+  let ta=0, tx=0, ty=0, tk=1, K=130, Z=.55;
+  if(P&&aq>=0){ if(aq<P[0]){ ta=P[1]; tx=P[2]; ty=P[3]; tk=P[4]; K=320; Z=.8 } else { ta=P[5]; tx=P[6]; ty=P[7]; tk=P[8]; K=650; Z=.32 } }
+  if(dt>0){ const n=Math.ceil(dt/.006), h=dt/n, C=2*Math.sqrt(K)*Z, C2=2*Math.sqrt(240)*.55;
+    for(let j=0;j<n;j++){ S.va+=(K*(ta-S.a)-C*S.va)*h; S.a+=S.va*h; S.vx+=(K*(tx-S.x)-C*S.vx)*h; S.x+=S.vx*h; S.vy+=(K*(ty-S.y)-C*S.vy)*h; S.y+=S.vy*h; S.vk+=(K*(tk-S.k)-C*S.vk)*h; S.k+=S.vk*h;
+      S.vl+=(240*(tl-S.l)-C2*S.vl)*h; S.l+=S.vl*h; S.vr+=(240*(tr-S.r)-C2*S.vr)*h; S.r+=S.vr*h; S.vly+=(240*(tly-S.ly)-C2*S.vly)*h; S.ly+=S.vly*h; S.vry+=(240*(try_-S.ry)-C2*S.vry)*h; S.ry+=S.vry*h } }
+  else if(st.dt===undefined){ S.a=ta; S.x=tx; S.y=ty; S.k=tk }
+  const body=(a,x,y,k,alpha)=>{ ctx.save(); if(alpha<1) ctx.globalAlpha*=alpha; ctx.translate(x,4+y); ctx.rotate(a*D); ctx.scale(k,1-(k-1)*.5); ctx.scale(s,s); ctx.translate(-R.W/2,-R.H);
+    if(Math.abs(S.l)+Math.abs(S.ly)<.3&&Math.abs(S.r)+Math.abs(S.ry)<.3) ctx.drawImage(img,0,0);
+    else { ctx.drawImage(R.base,0,0); const leg=(cv,px,an,dy)=>{ ctx.save(); ctx.translate(px,R.hip+dy/s); ctx.rotate(an*D); ctx.drawImage(cv,-px,-R.hip); ctx.restore() };
+      leg(R.legL,R.lp,S.l,S.ly); leg(R.legR,R.rp,S.r,S.ry); ctx.drawImage(R.upper,0,0) }
+    ctx.restore() };
+  // 휙 움직일 때 잔상
+  if(Math.abs(S.va)>120) S.h.forEach((q,i)=>body(q[0],q[1],q[2],q[3],.22*(1-i/3)));
+  body(S.a,S.x,S.y,S.k,1);
+  S.h.unshift([S.a,S.x,S.y,S.k]); if(S.h.length>3) S.h.length=3 }
+
+/* ===== 기술 그림 (이프리트 · 불사조 · 문어 포탑 …) ===== */
+const SKILL_IMG={}; (function(){ const F=typeof SKILL_ART_FILES!=="undefined"?SKILL_ART_FILES:{}; for(const k in F){ const im=new Image(); im.onload=()=>{ SKILL_IMG[k]=im }; im.src=F[k] } })();
+function drawSkillImg(c,k,h,flip){ const im=SKILL_IMG[k]; if(!im) return false; const w=h*im.width/im.height; c.save(); if(flip) c.scale(-1,1); c.drawImage(im,-w/2,-h/2,w,h); c.restore(); return true }
