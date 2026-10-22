@@ -273,7 +273,7 @@ const HEROES = [
     power:{hp:9,atk:7,spd:5}, mods:{armor:0.78, boss:1.2}, perks:{xp:1.2, start:1, revive:1, cards:3},
     main:{kind:"punch", name:"로켓 주먹", d:l=>l===1?"기계 팔에서 로켓 주먹을 쏴요. 앞의 몬스터들을 꿰뚫고 뒤로 밀쳐 내요":"주먹이 더 세지고 더 많이 꿰뚫어요"},
     trait:"강철 몸", traitDesc:"받는 피해 -22% · 체력이 높아요 · 보스에게 피해 +20% · 몬스터를 밀쳐 내며 앞에서 싸워요",
-    desc:"[싸움꾼] 튼튼한 기계 갑옷으로 앞에서 버티며 미사일을 퍼부어요. 4차엔 거대 로봇을 불러요!", draw:drawWarrior },
+    desc:"[싸움꾼] 튼튼한 기계 갑옷으로 앞에서 버티며 미사일을 퍼부어요. 4차엔 거대 로봇의 전탄발사!", draw:drawWarrior },
 ];
 HEROES.forEach(h=>{ const k=h.perks; h.perkText=[k.xp>1?`경험치 +${Math.round((k.xp-1)*100)}%`:"",k.start?`기술 ${k.start}개로 시작`:"",k.revive>1?`부활 ${k.revive}번`:"",k.cards>3?`레벨업 카드 ${k.cards}장`:""].filter(Boolean).join(" · "); });
 HEROES.forEach(h=>{ const w=h.power; h.hp=60+12*w.hp; h.spd=+(0.85+0.04*w.spd).toFixed(2); h.mods=Object.assign({},h.mods,{dmg:+((0.8+0.06*w.atk)*((h.mods&&h.mods.dmg)||1)).toFixed(2)}) });

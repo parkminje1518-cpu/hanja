@@ -136,7 +136,7 @@ function mapGuideHtml(mid){ const m=mapById(mid), F=typeof FLOOR_FILES!=="undefi
   const seen=new Set(), mobs=(MOBS[mid]||[]).filter(x=>{ const k=x.look+x.name; if(seen.has(k)) return false; seen.add(k); return true });
   const mobH=mobs.map(x=>{ const src=MA[mid+":"+x.look]||mobThumb(mid,x); return `<div class="mgMob">${src?`<img src="${src}" alt="">`:`<span class="mgNo">?</span>`}<b>${x.name}</b><small>${SIZE_TXT[x.size]||""}${x.from?` · ${x.from}초부터`:" · 처음부터"}</small></div>` }).join("");
   const bossH=(STAGE[mid]||[]).map((k,i)=>{ const B=BOSSES[k]||{}, A=BA[k], S=typeof BOSS_SKILLS!=="undefined"&&BOSS_SKILLS[mid]&&BOSS_SKILLS[mid][i];
-    const sk=S?S.k.map(x=>x[1]).join(" · "):""; return `<div class="mgBoss t${i}"><div class="mgBimg">${A?`<img src="${A.src}" alt="">`:""}</div><em>${B.tn||["약한 보스","중간 보스","강한 보스","최종 보스"][i]}</em><b>${B.name||""}</b>${sk?`<small>기술: ${sk}</small>`:""}${S&&S.ult?`<small class="ult">필살기: ${S.ult[1]}</small>`:""}</div>` }).join("");
+    const sk=S?S.k.map(x=>x[1]).join(" · "):""; return `<div class="mgBoss t${i}"><div class="mgBimg">${A?`<img src="${A.src}" alt="">`:""}</div><em>${B.tn||["약한 보스","중간 보스","강한 보스","최종 보스"][i]}</em><b>${B.name||""}</b>${sk?`<small>기술: ${sk}</small>`:""}${S&&S.ult?`<small class="ult">필살기: ${S.ult[1]}</small>`:""}${S&&S.sig?`<small class="sig">${S.sig}</small>`:""}</div>` }).join("");
   return `<section class="mapGuide" style="--m1:${m.sky[0]};--m2:${m.sky[1]}">
     <div class="mgTop" ${F?`style="background-image:linear-gradient(90deg,rgba(0,0,0,.65),rgba(0,0,0,.15)),url(${F})"`:""}><span class="mgStep">📖 맵 도감 · ${m.id}단계</span><strong>${m.name}</strong><p>${m.desc}</p>${MAP_HAZ[mid]?`<p class="mgHaz">${MAP_HAZ[mid]}</p>`:`<p class="mgHaz ok">🌼 위험한 땅이 없어요. 몬스터만 조심해요!</p>`}</div>
     <h3>나오는 몬스터</h3><div class="mgMobs">${mobH}</div>
@@ -171,9 +171,9 @@ function startGame(opts){ opts=opts||{};
   if(typeof sprSetPX==="function") sprSetPX(PX);
   /* 렉 줄이기: 화면이 느리면(초당 35장 아래가 3초 계속) 도트를 한 단계 크게 해서 그릴 양을 줄여요 */
   const PERF={acc:0,n:0,slow:0};
-  function perfTick(dt){ PERF.acc+=dt; PERF.n++; if(PERF.acc<1) return; const fps=PERF.n/PERF.acc; PERF.acc=0; PERF.n=0;
+  function perfTick(dt){ if(window.__noAdapt) return; PERF.acc+=dt; PERF.n++; if(PERF.acc<1) return; const fps=PERF.n/PERF.acc; PERF.acc=0; PERF.n=0;
     PERF.slow = fps<35 ? PERF.slow+1 : 0;
-    if(PERF.slow>=3 && HDFX){ HDFX=false; PERF.slow=0; return }   // 1단계: 기술 효과를 가벼운 도트 화면으로
+    if(PERF.slow>=3 && HDFX){ HDFX=false; window.__fxLow=1; PERF.slow=0; return }   // 1단계: 기술 효과를 가벼운 도트 화면으로
     if(PERF.slow>=3 && PX<3){ PX=3; PERF.slow=0; if(typeof sprSetPX==="function") sprSetPX(PX); resize() } }
   const $ = s=>root.querySelector(s);
   const modal = $(".gmodal"), mcard = $(".gcard"), banner = $(".gbanner");
@@ -184,8 +184,8 @@ function startGame(opts){ opts=opts||{};
   const HERO = heroById(P.hero); setMainSkill();
   const MAP = mapById(opts.map||P.set.map||1);
   const GLOW = MAP.dark ? "lighter" : "source-over";
-  let HDFX=!window.__lowfx; let HERO_HD=null; const REMOTE_HD=[]; const HSZ=96;   // 그림 용사 크기
-  try{ pfxInit(); pfxInit2(); pfxInit3(); pfxInitTheme(); pfxInitWind() }catch(e){}
+  let HDFX=!window.__lowfx; window.__fxLow=window.__lowfx?1:0; let HERO_HD=null; const REMOTE_HD=[]; const HSZ=96;   // 그림 용사 크기
+  try{ pfxInit(); pfxInit2(); pfxInit3(); pfxInitTheme(); pfxInitWind(); pfxInitIce() }catch(e){}
   const heroImg = new Image(); heroImg.src = SPRITE_URLS[HERO.id] || "";
   /* 레벨이 오를수록 필요한 경험치가 크게 늘어요 (Lv5≈55 · Lv10≈150 · Lv16≈320 · Lv25≈700) */
   const needXP=L=>Math.round(8+5*L+0.9*L*L);
@@ -284,7 +284,7 @@ function startGame(opts){ opts=opts||{};
         g.pending.push({t:at,run:()=>{ sfx("boom"); aoeC(x,y,55,C[2]*(1+g.t*.72/200)*(1+ph*.15)); g.fx.push({th:C[0],k:"boom",x,y,r:55,col:C[5],life:.4,max:.4}) }}) } }
       if(!g.hzMsg){ g.hzMsg=1; say(C[4],"alarm") } return }
     if(MAP.id===8){ g.hzT=8-ph*.8+Math.random()*2; sfx("alarm"); for(const q of T0){ for(let i=0;i<3+Math.min(3,ph);i++){ const x=q.x+(Math.random()-.5)*320, y=q.y+(Math.random()-.5)*240, at=1.2+i*.2;
-        g.fx.push({k:"warn",x,y,r:55,life:at,max:at}); g.fx.push({k:"icicle",x,y,life:at,max:at}); g.pending.push({t:at,run:()=>{ sfx("boom"); aoeC(x,y,55,26*(1+g.t*.72/150)*(1+ph*.15)); g.fx.push({k:"boom",x,y,r:55,col:"#bfe8ff",life:.4,max:.4}) }}) } }
+        g.fx.push({k:"warn",x,y,r:55,life:at,max:at}); g.fx.push({th:"ice",k:"meteor",x,y,life:at,max:.45}); g.pending.push({t:at,run:()=>{ sfx("boom"); aoeC(x,y,55,26*(1+g.t*.72/150)*(1+ph*.15)); g.fx.push({th:"ice",k:"boom",x,y,r:55,col:"#bfe8ff",life:.4,max:.4}) }}) } }
       if(!g.icMsg){ g.icMsg=1; say("🧊 고드름이 떨어져요! 빨간 원을 피해요!","alarm") } return }
     if(MAP.id===9){ g.hzT=16-ph*2+Math.random()*3; const c=T0[Math.random()*T0.length|0], sx=c.x+(Math.random()-.5)*240, sy=c.y+(Math.random()-.5)*180, SR=150, at=2.6;
       g.fx.push({k:"safe",x:sx,y:sy,r:SR,life:at,max:at}); say("⚡ 신의 심판! 빛의 원 안으로 들어가요!","alarm");
@@ -326,8 +326,18 @@ function startGame(opts){ opts=opts||{};
   function bossAI(e,dt){
     const P=NM?nearestPlayer(e.x,e.y):g.p, TP=()=>NM?nearestPlayer(e.x,e.y):g.p;
     if(e.dash>0){ e.dash-=dt; e.x+=e.dvx*dt; e.y+=e.dvy*dt; if(Math.random()<.5) g.fx.push({k:"hit",x:e.x,y:e.y,life:.15,max:.15}) }
+    if(e.dizzy>0) e.dizzy-=dt;
+    if(e.jump){ const J=e.jump; J.t+=dt; const k=Math.min(1,J.t/J.dur); e.x=J.sx+(J.tx-J.sx)*k; e.y=J.sy+(J.ty-J.sy)*k; e.airH=Math.sin(k*Math.PI)*J.h; e.air=k<.92;
+      if(k>=1){ e.jump=null; e.air=false; e.airH=0; aoeC(e.x,e.y,J.r,J.dmg); sfx("quake"); g.shake=Math.max(g.shake,.35); g.fx.push({th:e.th,k:"quake",x:e.x,y:e.y,r:J.r*1.2,life:.5,max:.5}); g.fx.push({k:"slimepud",x:e.x,y:e.y,r:J.r,col:J.col,life:2.5,max:2.5}) } }
+    if(e.burrow){ const B=e.burrow; B.t+=dt; const q=TP(); if(B.t<B.move){ const dx=q.x-e.x, dy=q.y-e.y, d=Math.hypot(dx,dy)||1; const v=Math.min(d,e.sp*1.25*dt); e.x+=dx/d*v; e.y+=dy/d*v; if(Math.random()<.4) g.fx.push({k:"dust",x:e.x,y:e.y+e.r*.6,life:.4,max:.4}) }
+      else if(!B.warned){ B.warned=1; g.fx.push({k:"warn",x:e.x,y:e.y,r:B.r,life:B.fuse,max:B.fuse}) }
+      if(B.t>=B.move+B.fuse){ e.burrow=null; e.hidden=false; aoeC(e.x,e.y,B.r,B.dmg); sfx("quake"); g.shake=.45; g.fx.push({k:"rockup",x:e.x,y:e.y,r:B.r,life:.9,max:.9}); g.fx.push({k:"boom",th:"rock",x:e.x,y:e.y,r:B.r,life:.4,max:.4}); e.stun=Math.max(e.stun||0,1.3); e.dizzy=1.3 } return }
+    if(e.spinT>0){ e.spinT-=dt; const q=TP(), dx=q.x-e.x, dy=q.y-e.y, d=Math.hypot(dx,dy)||1, v=e.sp*1.5; e.x+=dx/d*Math.min(d,v*dt); e.y+=dy/d*Math.min(d,v*dt);
+      e.spinShot=(e.spinShot||0)-dt; if(e.spinShot<=0){ e.spinShot=.95; const o=Math.random()*6.28; for(let i=0;i<6;i++){ const a=o+i*Math.PI/3; g.eshots.push({th:"rock",x:e.x,y:e.y,vx:Math.cos(a)*170,vy:Math.sin(a)*170,r:11,dmg:e.dmg*.4,life:2.2,col:"#a08a6a",kind:"rock"}) } }
+      if(e.spinT<=0){ e.spin=false; e.stun=Math.max(e.stun||0,1); e.dizzy=1 } return }
     if(e.stun>0) return;
     e.bt-=dt; if(e.bt>0) return;
+    if(!e.enraged && e.hp<e.max*.5 && SIGSPLIT(e)){ const m=(MOBS[MAP.id]||[]).find(x=>x.look===e.look)||MOBS[MAP.id][0]; for(const s of [-1,1]){ addMob(m,e.x+s*e.r*1.6,e.y,5,true) } say(`${e.name}이(가) 작은 슬라임 둘로 갈라졌어요!`,"alarm"); g.fx.push({k:"ring",x:e.x,y:e.y,life:.6,max:.6}) }
     if(!e.enraged && e.hp<e.max*.5){ e.enraged=true; e.sp*=1.3; say(`${e.name}이(가) 분노했어요! 스킬을 더 자주 써요!`,"enrage"); g.shake=.5; g.fx.push({k:"flash",col:"#e9475f",life:.5,max:.5}) }
     const SKT=(typeof BOSS_SKILLS!=="undefined"&&BOSSES[e.bid]&&BOSSES[e.bid].tier!==undefined)?BOSS_SKILLS[MAP.id]&&BOSS_SKILLS[MAP.id][BOSSES[e.bid].tier]:null;
     const PW=typeof bossPow==="function"?bossPow(MAP.id,(BOSSES[e.bid]||{}).tier||0):{n:1,cd:1,sp:1};
@@ -359,14 +369,123 @@ function startGame(opts){ opts=opts||{};
   const TH_KEYS=[["void",["블랙홀","종언","소멸","공허","우주","어둠","저주"]],["planet",["행성","중력"]],["star",["별","성좌","은하","성운","유성"]],
     ["bolt",["번개","뇌","천둥","낙뢰","북"]],["ice",["얼음","빙","냉기","서리","눈보라","고드름","오로라","냉광"]],["light",["빛","성스러운","수호","황금","심판","천상","광선"]],
     ["fire",["불","화염","지옥","진홍","운석","마왕","화"]],["wind",["바람","회오리","폭풍","돌풍","깃털","천풍"]],["flower",["꽃"]],["leaf",["잎","숲","뿌리","덩굴","씨앗","도토리"]],
-    ["poison",["독","포자","버섯"]],["crystal",["수정","여의주","초음파"]],["rock",["모래","유적","낙석","돌","바위","석상","성벽","눈덩이","대지","땅"]]];
+    ["poison",["독","포자","버섯"]],["crystal",["수정","여의주","초음파"]],["snow",["눈덩이","눈뭉치"]],["rock",["모래","유적","낙석","돌","바위","석상","성벽","대지","땅"]]];
   const MAP_TH={1:"flower",2:"leaf",3:"rock",4:"crystal",5:"fire",6:"wind",7:"light",8:"ice",9:"bolt",10:"star"};
   function themeOf(name){ name=name||""; for(const [k,ws] of TH_KEYS) for(const w of ws) if(name.indexOf(w)>=0) return k; return MAP_TH[MAP.id]||"fire" }
+  function SIGSPLIT(e){ const B=BOSSES[e.bid]; if(!B||B.tier===undefined) return false; const S=BOSS_SKILLS[MAP.id]&&BOSS_SKILLS[MAP.id][B.tier]; return !!(S&&S.split) }
+  /* ===== 보스 고유 패턴 (맵 1~3) · 4학년 기준: 경고 1초 이상 · 피할 곳 넓게 · 피해는 기존과 비슷 ===== */
+  const SIG={
+    shellroll(e,P,TP){ e.spin=true; e.bt=4; for(let i=0;i<3;i++){ g.pending.push({t:i*1.05,run:()=>{ if(e.hp<=0) return; const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.rollA=a; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:520,life:.75,max:.75}) }});
+      g.pending.push({t:i*1.05+.75,run:()=>{ if(e.hp<=0) return; const a=e.rollA; e.dash=.42; e.dvx=Math.cos(a)*900; e.dvy=Math.sin(a)*900; sfx("multislash1"); for(let k=0;k<4;k++) g.pending.push({t:k*.1,run:()=>g.fx.push({k:"slimepud",x:e.x,y:e.y+e.r*.5,r:e.r*.7,col:"120,200,90",life:2.2,max:2.2})}) }}) }
+      g.pending.push({t:3.3,run:()=>{ e.spin=false }}) },
+    beeswarm(e,P){ for(let i=0;i<6;i++){ const a=i*Math.PI/3; g.eshots.push({kind:"bee",x:e.x+Math.cos(a)*e.r*1.3,y:e.y+Math.sin(a)*e.r*1.3,vx:Math.cos(a)*120,vy:Math.sin(a)*120,r:15,dmg:e.dmg*.45,life:4.2,home:.6,hsp:140}) } sfx("phoenix") },
+    bigjump(e,P,TP,n){ const R=e.r*1.6; e.bt=1.8*n+.6; for(let i=0;i<n;i++) g.pending.push({t:i*1.7,run:()=>{ if(e.hp<=0) return; const q=TP();
+        g.fx.push({k:"warn",x:q.x,y:q.y,r:R,life:1.35,max:1.35}); g.pending.push({t:.35,run:()=>{ if(e.hp>0) e.jump={sx:e.x,sy:e.y,tx:q.x,ty:q.y,t:0,dur:1.0,h:180,r:R,dmg:e.dmg*.9,col:"120,200,90"} }}) }}) },
+    acornroll(e,P,TP){ const q=TP(), dir=Math.random()<.5?1:-1, gap=Math.floor(Math.random()*5); e.bt=3; sfx("alarm");
+      for(let l=0;l<5;l++){ if(l===gap) continue; const y=q.y+(l-2)*78, x0=q.x-dir*560; g.fx.push({k:"laserwarn",x:x0,y,a:dir>0?0:Math.PI,len:1120,life:1.1,max:1.1});
+        g.pending.push({t:1.1+Math.random()*.2,run:()=>{ g.eshots.push({kind:"acorn",x:x0,y,vx:dir*430,vy:0,r:24,dmg:e.dmg*.9,life:3,pierce:1}) }}) } },
+    boarcharge(e,P,TP){ e.bt=5; for(let i=0;i<3;i++){ g.pending.push({t:i*1.1,run:()=>{ if(e.hp<=0) return; const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.rollA=a; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:620,life:.8,max:.8}) }});
+        g.pending.push({t:i*1.1+.8,run:()=>{ if(e.hp<=0) return; const a=e.rollA; e.dash=.5; e.dvx=Math.cos(a)*1000; e.dvy=Math.sin(a)*1000; sfx("ox"); g.shake=Math.max(g.shake,.2) }}) }
+      g.pending.push({t:3.5,run:()=>{ if(e.hp<=0) return; e.stun=Math.max(e.stun||0,2.6); e.dizzy=2.6; say(`${e.name}이(가) 어지러워해요! 지금 공격해요!`,"ok"); g.fx.push({k:"label",x:e.x,y:e.y-e.r*2,text:"기절! 지금이 기회!",life:1.6,max:1.6}) }}) },
+    mushfield(e,P,TP){ const q=TP(), n=8, R=165, off=Math.random(); e.bt=3; for(let i=0;i<n;i++){ const a=off+i/n*6.283, x=q.x+Math.cos(a)*R, y=q.y+Math.sin(a)*R*.85;
+        g.fx.push({k:"warn",x,y,r:58,life:1.4,max:1.4}); g.fx.push({k:"mushsprout",x,y,life:1.4,max:1.4});
+        g.pending.push({t:1.4,run:()=>{ aoeC(x,y,58,e.dmg); g.fx.push({th:"poison",k:"boom",x,y,r:58,life:.45,max:.45}) }}) } sfx("alarm") },
+    rootcross(e,P,TP){ const q=TP(), a0=Math.atan2(q.y-e.y,q.x-e.x), n=6; e.bt=3.2; for(let i=0;i<n;i++){ const a=a0+i*Math.PI*2/n;
+        g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:640,life:1.2,max:1.2}); g.pending.push({t:1.2,run:()=>{ if(e.hp<=0) return; aoeL(e.x,e.y,a,640,e.dmg*1.1); g.fx.push({k:"roots",x:e.x,y:e.y,a,len:640,life:.9,max:.9}) }}) } g.pending.push({t:1.2,run:()=>{ sfx("quake"); g.shake=Math.max(g.shake,.3) }}) },
+    jarbomb(e,P,TP){ const q=TP(); e.bt=3; for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.random()*.8, d=55+Math.random()*95, x=q.x+Math.cos(a)*d, y=q.y+Math.sin(a)*d, at=.35+i*.18;
+        g.pending.push({t:i*.18,run:()=>{ g.fx.push({k:"jarfly",x0:e.x,y0:e.y-e.r,x,y,life:.8,max:.8}); g.fx.push({k:"warn",x,y,r:72,life:1.7,max:1.7}) }});
+        g.pending.push({t:i*.18+1.7,run:()=>{ aoeC(x,y,72,e.dmg); sfx("boom"); g.fx.push({th:"void",k:"boom",x,y,r:72,life:.45,max:.45}) }}) } },
+    burrow(e){ e.bt=4.4; sfx("quake"); g.fx.push({k:"rockup",x:e.x,y:e.y,r:e.r*1.4,life:.6,max:.6}); g.pending.push({t:.35,run:()=>{ if(e.hp<=0) return; e.hidden=true; e.burrow={t:0,move:1.8,fuse:1.0,r:e.r*2.1,dmg:e.dmg*1.2} }}) },
+    shellspin(e){ e.bt=4.6; e.spin=true; e.spinT=3.2; sfx("multislash") },
+    crystalbeam(e,P,TP){ const q=TP(); e.bt=3.4; for(let i=0;i<3;i++){ const a=Math.random()*6.28, px=q.x+Math.cos(a)*240, py=q.y+Math.sin(a)*200; g.pending.push({t:i*.35,run:()=>{ if(e.hp<=0) return; const q2=TP(), b=Math.atan2(q2.y-py,q2.x-px);
+        g.fx.push({k:"crystalpillar",x:px,y:py,life:2.2,max:2.2}); g.fx.push({k:"laserwarn",x:px,y:py,a:b,len:760,life:1.2,max:1.2});
+        g.pending.push({t:1.2,run:()=>{ aoeL(px,py,b,760,e.dmg*.8); g.fx.push({k:"pbeam",x:px,y:py,a:b,len:760,col:"138,216,255",life:.45,max:.45}); sfx("multislash1") }}) }}) } },
+    webtrap(e,P,TP){ const q=TP(); e.bt=3; for(let i=0;i<3;i++){ const a=i*2.09+Math.random(), d=i?110:0, x=q.x+Math.cos(a)*d, y=q.y+Math.sin(a)*d;
+        g.fx.push({k:"jarfly",x0:e.x,y0:e.y-e.r,x,y,life:.7,max:.7,web:1}); g.fx.push({k:"warn",x,y,r:70,life:1.1,max:1.1});
+        g.pending.push({t:1.1,run:()=>{ aoeC(x,y,70,e.dmg*.6); g.eshots.push({kind:"web",x,y,vx:0,vy:0,r:78,dmg:0,life:5}) }}) } sfx("alarm") },
+    batring(e,P,TP){ const q=TP(), n=16, gap=Math.floor(Math.random()*n); e.bt=3.8; const grp={gid:(Math.random()*1e9)|0,ga:(gap+1)/n*6.283}; for(let i=0;i<n;i++){ if(i===gap||i===(gap+1)%n||i===(gap+2)%n) continue; const a0=i/n*6.283;
+        g.eshots.push({kind:"bat",lead:i===(gap+3)%n?1:0,orbit:1,cx:q.x,cy:q.y,a0,w:.9,R0:300,dR:-118,ot:0,x:q.x+Math.cos(a0)*300,y:q.y+Math.sin(a0)*300,vx:0,vy:0,r:16,dmg:e.dmg*.9,life:3.1,pierce:1,gid:grp.gid,ga:grp.ga}) }
+      g.fx.push({k:"label",x:q.x,y:q.y-120,text:"박쥐 고리의 빈틈으로 빠져나가요!",life:1.6,max:1.6}); sfx("alarm") },
+    pearlbounce(e,P,TP){ const q=TP(), a=Math.random()*6.28; e.bt=5.5; g.fx.push({k:"warn",x:e.x,y:e.y,r:46,life:.9,max:.9}); g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return;
+        g.eshots.push({kind:"pearl",bounce:1,cx:q.x,cy:q.y,hw:W*.48,hh:H*.46,x:e.x,y:e.y,vx:Math.cos(a)*300,vy:Math.sin(a)*300,r:38,dmg:e.dmg*.75,life:5,pierce:1,hitCD:0}); sfx("ifrit") }}) },
+    ghosthounds(e,P,TP){ const q=TP(); e.bt=3.4; for(let i=0;i<3;i++){ const a=i*2.09+Math.random()*.6, sx=q.x+Math.cos(a)*420, sy=q.y+Math.sin(a)*320, b=Math.atan2(q.y-sy,q.x-sx);
+        g.fx.push({k:"laserwarn",x:sx,y:sy,a:b,len:840,life:1.15,max:1.15}); g.pending.push({t:1.15,run:()=>{ g.eshots.push({kind:"ghound",x:sx,y:sy,vx:Math.cos(b)*720,vy:Math.sin(b)*720,a:b,r:26,dmg:e.dmg*.5,life:1.3,pierce:1}) }}) } sfx("alarm") },
+    triplecleave(e,P,TP){ e.bt=3.6; const base=Math.atan2(TP().y-e.y,TP().x-e.x), R=e.r*5.2, half=.55; [-.75,.75,0].forEach((o,i)=>{ const a=base+o;
+        g.pending.push({t:i*.55,run:()=>{ if(e.hp<=0) return; g.fx.push({k:"conewarn",x:e.x,y:e.y,a,half,r:R,life:1.0,max:1.0}) }});
+        g.pending.push({t:i*.55+1.0,run:()=>{ if(e.hp<=0) return; coneHit(e.x,e.y,a,half,R,e.dmg*.9); g.fx.push({k:"cleave",x:e.x,y:e.y,a,half,r:R,life:.4,max:.4}); sfx("multislash1"); g.shake=Math.max(g.shake,.2) }}) }) },
+    firetiles(e,P,TP){ const q=TP(), S=92, ox=q.x-S*2.5, oy=q.y-S*2; e.bt=4.2; for(let w=0;w<2;w++) for(let i=0;i<5;i++) for(let j=0;j<4;j++){ if((i+j)%2!==w) continue; const x=ox+i*S+S/2, y=oy+j*S+S/2;
+        g.pending.push({t:w*1.5,run:()=>{ g.fx.push({k:"tilewarn",x,y,s:S,life:1.2,max:1.2}) }}); g.pending.push({t:w*1.5+1.2,run:()=>{ aoeC(x,y,S*.5,e.dmg*.55); g.fx.push({k:"firepillar",x,y,r:S*.5,life:.5,max:.5}) }}) }
+      g.pending.push({t:1.2,run:()=>sfx("bigboom")}); g.pending.push({t:2.7,run:()=>sfx("bigboom")}) },
+    safezone(e,P,TP){ const q=TP(), a=Math.random()*6.28, sx=q.x+Math.cos(a)*190, sy=q.y+Math.sin(a)*150, SR=150, at=2.8; e.bt=4.8;
+      g.fx.push({k:"safe",x:sx,y:sy,r:SR,life:at,max:at}); say("☄ 빛나는 원 안으로 들어가요!","alarm");
+      for(let i=0;i<10;i++){ const b=Math.random()*6.28, d=SR+60+Math.random()*260; g.pending.push({t:at-.5+i*.05,run:()=>g.fx.push({th:"fire",k:"meteor",x:sx+Math.cos(b)*d,y:sy+Math.sin(b)*d,life:.5,max:.45})}) }
+      g.pending.push({t:at,run:()=>{ g.fx.push({k:"flash",col:"#ff7a3a",life:.4,max:.4}); g.shake=.5; sfx("bigboom"); if(!g.p.dead&&(g.p.x-sx)**2+(g.p.y-sy)**2>SR*SR) hitPlayer(e.dmg*.75); evAll({t:"judg",x:Math.round(sx),y:Math.round(sy),r:SR,d:Math.round(e.dmg*.75)}) }}) },
+    vortex(e,P,TP){ const q=TP(), a=Math.random()*6.28, x=q.x+Math.cos(a)*170, y=q.y+Math.sin(a)*130; e.bt=4.4; g.fx.push({k:"warn",x,y,r:60,life:.8,max:.8});
+      g.pending.push({t:.8,run:()=>{ g.eshots.push({kind:"vortex",x,y,vx:0,vy:0,r:44,pr:300,pull:105,dmg:e.dmg*.6,life:3.2,hitCD:0}); say("🌪 회오리에 빨려 들어가지 않게 반대쪽으로 걸어요!","alarm") }}) },
+    stormcloud(e,P,TP){ e.bt=5; for(let i=0;i<3;i++) g.pending.push({t:i*1.2,run:()=>{ if(e.hp<=0) return; const q=TP(), x=q.x+(Math.random()-.5)*30, y=q.y+(Math.random()-.5)*30;
+        g.fx.push({k:"cloudwarn",x,y,r:78,life:1.0,max:1.0}); g.pending.push({t:1.0,run:()=>{ aoeC(x,y,78,e.dmg*.6); g.fx.push({k:"bolt",x,y,life:.3,max:.3}); g.fx.push({th:"bolt",k:"boom",x,y,r:78,life:.35,max:.35}); sfx("thunder") }}) }}) },
+    spinbeam(e,P,TP){ const a0=Math.atan2(TP().y-e.y,TP().x-e.x), dir=Math.random()<.5?1:-1; e.bt=6; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a:a0,len:700,life:1,max:1});
+      g.pending.push({t:1,run:()=>{ if(e.hp<=0) return; g.eshots.push({kind:"beam",x:e.x,y:e.y,vx:0,vy:0,a0,w:dir*1.05,ot:0,len:700,r:22,dmg:e.dmg*.7,life:4.2,hitCD:0}); say("⚡ 번개 빛줄기가 돌아요! 같은 방향으로 따라 돌거나 멀리 떨어져요!","alarm") }}) },
+    quadstrike(e,P,TP){ e.bt=5.4; for(let w=0;w<2;w++){ g.pending.push({t:w*2.1,run:()=>{ if(e.hp<=0) return; const safe=Math.floor(Math.random()*4), a0=Math.floor(Math.random()*4)*Math.PI/2+Math.PI/4;
+        for(let s=0;s<4;s++) g.fx.push({k:"conewarn",x:e.x,y:e.y,a:a0+s*Math.PI/2,half:Math.PI/4,r:900,life:1.5,max:1.5,safe:s===safe?1:0});
+        g.pending.push({t:1.5,run:()=>{ if(e.hp<=0) return; const sa=a0+safe*Math.PI/2; sectHit(e.x,e.y,sa,Math.PI/4,e.dmg*.8); for(let s=0;s<4;s++){ if(s===safe) continue; for(let k=0;k<4;k++){ const b=a0+s*Math.PI/2+(Math.random()-.5)*1.3, d=120+Math.random()*420; g.fx.push({k:"bolt",x:e.x+Math.cos(b)*d,y:e.y+Math.sin(b)*d,life:.3,max:.3}) } } g.shake=.45; sfx("thunder") }}) }}) } say("⚡ 초록색 안전한 쪽으로 가요!","alarm") },
+    /* ===== 맵 7~10 고유 패턴 ===== */
+    lionroar(e,P,TP){ e.bt=3.8; const R=e.r*5.4, half=.5; for(let i=0;i<3;i++){ g.pending.push({t:i*.75,run:()=>{ if(e.hp<=0) return; const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.roarA=a; g.fx.push({k:"conewarn",x:e.x,y:e.y,a,half,r:R,life:.95,max:.95}) }});
+        g.pending.push({t:i*.75+.95,run:()=>{ if(e.hp<=0) return; const a=e.roarA; coneHit(e.x,e.y,a,half,R,(e.dmg*0.9)*.6); g.fx.push({k:"roar",x:e.x+Math.cos(a)*R*.4,y:e.y+Math.sin(a)*R*.4,r:R*.6,life:.45,max:.45}); g.fx.push({k:"cleave",x:e.x,y:e.y,a,half,r:R,life:.35,max:.35}); sfx("roar"); g.shake=Math.max(g.shake,.25) }}) } },
+    lightmirror(e,P,TP){ const q=TP(); e.bt=3.6; for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.PI/4+Math.random()*.3, px=q.x+Math.cos(a)*250, py=q.y+Math.sin(a)*190; g.pending.push({t:i*.4,run:()=>{ if(e.hp<=0) return; const q2=TP(), b=Math.atan2(q2.y-py,q2.x-px);
+        g.fx.push({k:"crystalpillar",gold:1,x:px,y:py,life:2.2,max:2.2}); g.fx.push({k:"laserwarn",x:px,y:py,a:b,len:760,life:1.2,max:1.2});
+        g.pending.push({t:1.2,run:()=>{ aoeL(px,py,b,760,e.dmg*.6); g.fx.push({k:"pbeam",x:px,y:py,a:b,len:760,col:"255,220,120",life:.45,max:.45}); sfx("multislash1") }}) }}) } },
+    skydive(e,P,TP){ const R=e.r*1.9; e.bt=4.2; e.air=true; e.airH=60; sfx("phoenix"); say("🪽 하늘로 날아올랐어요! 그림자가 멈추면 바로 비켜요!","alarm"); let lx=0, ly=0;
+      for(let i=0;i<14;i++) g.pending.push({t:i*.1,run:()=>{ const q=TP(); lx=q.x; ly=q.y; g.fx.push({k:"warn",x:lx,y:ly,r:R,life:.12,max:.12}) }});
+      g.pending.push({t:1.45,run:()=>{ if(e.hp<=0) return; g.fx.push({k:"warn",x:lx,y:ly,r:R,life:1,max:1}); g.pending.push({t:.1,run:()=>{ if(e.hp>0) e.jump={sx:e.x,sy:e.y,tx:lx,ty:ly,t:0,dur:.9,h:300,r:R,dmg:(e.dmg*0.85)*.95,col:"255,230,160"} }}) }}) },
+    pillarline(e,P,TP){ e.bt=3.6; const q=TP(), a0=Math.atan2(q.y-e.y,q.x-e.x); for(const o of [-.32,.32]){ const a=a0+o; for(let i=0;i<9;i++){ const d=e.r+50+i*72, x=e.x+Math.cos(a)*d, y=e.y+Math.sin(a)*d, t=i*.11;
+        g.pending.push({t,run:()=>g.fx.push({k:"warn",x,y,r:46,life:1.05,max:1.05})}); g.pending.push({t:t+1.05,run:()=>{ if(e.hp<=0) return; aoeC(x,y,46,(e.dmg*0.73)*.85); g.fx.push({k:"rockup",x,y,r:46,life:.6,max:.6}); g.fx.push({th:"rock",k:"boom",x,y,r:46,life:.35,max:.35}); if(i%3===0) sfx("quake") }}) } } },
+    holyswords(e,P,TP){ e.bt=5; const a0=Math.atan2(TP().y-e.y,TP().x-e.x); for(let w=0;w<2;w++){ g.pending.push({t:w*1.5,run:()=>{ if(e.hp<=0) return; for(let i=0;i<4;i++){ const a=a0+w*Math.PI/4+i*Math.PI/2;
+        g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:700,life:1.1,max:1.1}); g.pending.push({t:1.1,run:()=>{ if(e.hp<=0) return; aoeL(e.x,e.y,a,700,(e.dmg*0.66)*.8); g.fx.push({k:"pbeam",x:e.x,y:e.y+40,a,len:700,col:"255,230,140",life:.5,max:.5}) }}) } g.pending.push({t:1.1,run:()=>{ sfx("multislash"); g.shake=Math.max(g.shake,.3) }}) }}) }
+      say("⚔ 빛의 검이 십자 모양으로 꽂혀요! 줄 사이 빈 곳으로!","alarm") },
+    wolflanes(e,P,TP){ const q=TP(), dir=Math.random()<.5?1:-1, gap=1+Math.floor(Math.random()*3); e.bt=3.2; sfx("roar");
+      for(let l=0;l<5;l++){ if(l===gap) continue; const y=q.y+(l-2)*80, x0=q.x-dir*600; g.fx.push({k:"laserwarn",x:x0,y,a:dir>0?0:Math.PI,len:1200,life:1.15,max:1.15});
+        g.pending.push({t:1.15+l*.06,run:()=>{ g.eshots.push({kind:"ghound",x:x0,y,vx:dir*760,vy:0,a:dir>0?0:Math.PI,r:26,dmg:(e.dmg*0.83)*.9,life:1.7,pierce:1}) }}) } },
+    snowroll(e,P,TP){ const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.bt=5.5; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:500,life:.9,max:.9}); g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return;
+        g.eshots.push({kind:"snowball",bounce:1,grow:1,cx:q.x,cy:q.y,hw:W*.46,hh:H*.44,x:e.x,y:e.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330,r:30,dmg:e.dmg*.75,life:4.6,pierce:1,hitCD:0}); sfx("quake") }}) },
+    frostmine(e,P,TP){ const q=TP(); e.bt=3.6; const pts=[[0,0]]; for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.random()*.5; pts.push([Math.cos(a)*150,Math.sin(a)*120]) }
+      pts.forEach(([dx,dy],i)=>{ const x=q.x+dx, y=q.y+dy; g.pending.push({t:i*.12,run:()=>{ g.fx.push({k:"crystalpillar",ice:1,x,y,life:1.6,max:1.6}); g.fx.push({k:"warn",x,y,r:52,life:1.4,max:1.4}); for(let d=0;d<4;d++) g.fx.push({k:"laserwarn",x,y,a:d*Math.PI/2,len:210,life:1.4,max:1.4}) }});
+        g.pending.push({t:i*.12+1.4,run:()=>{ aoeC(x,y,52,(e.dmg*0.84)*.55); for(let d=0;d<4;d++){ aoeL(x,y,d*Math.PI/2,210,(e.dmg*0.84)*.45); g.fx.push({k:"pbeam",x,y:y+40,a:d*Math.PI/2,len:210,col:"170,225,255",life:.4,max:.4}) } g.fx.push({th:"ice",k:"boom",x,y,r:52,life:.4,max:.4}); if(i===0) sfx("bigboom") }}) }) },
+    breathsweep(e,P,TP){ const q=TP(), aim=Math.atan2(q.y-e.y,q.x-e.x), dir=Math.random()<.5?1:-1, half=1.25, a0=aim-dir*half; e.bt=5;
+      g.fx.push({k:"conewarn",x:e.x,y:e.y,a:aim,half,r:560,life:1.2,max:1.2}); say("❄ 얼음 숨결이 부채처럼 휩쓸어요! 보스 뒤로 돌아가거나 멀리 피해요!","alarm");
+      g.pending.push({t:1.2,run:()=>{ if(e.hp<=0) return; sfx("hurricane"); g.eshots.push({kind:"beam",style:"breath",x:e.x,y:e.y,vx:0,vy:0,a0,a:a0,w:dir*1.0,ot:0,len:560,r:44,dmg:(e.dmg*0.69)*.7,life:2.5,hitCD:0}) }}) },
+    thunderdash(e,P,TP){ e.bt=5.2; for(let i=0;i<3;i++){ g.pending.push({t:i*1.15,run:()=>{ if(e.hp<=0) return; const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.rollA=a; e.dsx=e.x; e.dsy=e.y; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:620,life:.8,max:.8}) }});
+        g.pending.push({t:i*1.15+.8,run:()=>{ if(e.hp<=0) return; const a=e.rollA, sx=e.dsx, sy=e.dsy; e.dash=.5; e.dvx=Math.cos(a)*1000; e.dvy=Math.sin(a)*1000; sfx("thunder"); g.shake=Math.max(g.shake,.2);
+          g.pending.push({t:.5,run:()=>{ const L=Math.hypot(e.x-sx,e.y-sy); g.fx.push({k:"laserwarn",x:sx,y:sy,a,len:L,life:.75,max:.75}); g.pending.push({t:.75,run:()=>{ aoeL(sx,sy,a,L,e.dmg*.5); g.fx.push({k:"pbeam",x:sx,y:sy+40,a,len:L,col:"255,240,120",life:.4,max:.4}); for(let k=0;k<3;k++) g.fx.push({k:"bolt",x:sx+Math.cos(a)*L*(k+.5)/3,y:sy+Math.sin(a)*L*(k+.5)/3,life:.3,max:.3}); sfx("thunder") }}) }}) }}) }
+      g.pending.push({t:3.9,run:()=>{ if(e.hp<=0) return; e.stun=Math.max(e.stun||0,2.4); e.dizzy=2.4; g.fx.push({k:"label",x:e.x,y:e.y-e.r*2,text:"기절! 지금이 기회!",life:1.6,max:1.6}) }}) },
+    drumtiles(e,P,TP){ const q=TP(), S=92, ox=q.x-S*2.5, oy=q.y-S*2; e.bt=5; for(let w=0;w<3;w++) for(let i=0;i<5;i++) for(let j=0;j<4;j++){ const on=w===0?(i%2===0):w===1?(j%2===0):((i+j)%2===0); if(!on) continue; const x=ox+i*S+S/2, y=oy+j*S+S/2;
+        g.pending.push({t:w*1.4,run:()=>{ g.fx.push({k:"tilewarn",x,y,s:S,life:1.15,max:1.15}) }}); g.pending.push({t:w*1.4+1.15,run:()=>{ aoeC(x,y,S*.5,(e.dmg*0.86)*.4); g.fx.push({k:"bolt",x,y,life:.3,max:.3}) }}) }
+      for(let w=0;w<3;w++) g.pending.push({t:w*1.4+1.15,run:()=>sfx("thunder")}); say("🥁 북소리에 맞춰 번개가 칸마다 떨어져요! 빈 칸으로!","alarm") },
+    tribeam(e,P,TP){ const a0=Math.atan2(TP().y-e.y,TP().x-e.x), dir=Math.random()<.5?1:-1; e.bt=5.2; for(let k=0;k<3;k++) g.fx.push({k:"laserwarn",x:e.x,y:e.y,a:a0+k*2.094,len:700,life:1.1,max:1.1});
+      g.pending.push({t:1.1,run:()=>{ if(e.hp<=0) return; for(let k=0;k<3;k++) g.eshots.push({kind:"beam",x:e.x,y:e.y,vx:0,vy:0,a0:a0+k*2.094,w:dir*.8,ot:0,len:700,r:22,dmg:(e.dmg*0.5)*.4,life:3.4,hitCD:0}); say("⚡ 번개 빛줄기 세 개가 돌아요! 빈 곳을 따라 함께 돌아요!","alarm") }}) },
+    voidclaw(e,P,TP){ const q=TP(), a0=Math.random()*3.14; e.bt=3.4; for(let i=0;i<3;i++){ const a=a0+i*Math.PI/3, sx=q.x-Math.cos(a)*450, sy=q.y-Math.sin(a)*450;
+        g.pending.push({t:i*.3,run:()=>g.fx.push({k:"laserwarn",x:sx,y:sy,a,len:900,life:1.15,max:1.15})}); g.pending.push({t:i*.3+1.15,run:()=>{ if(e.hp<=0) return; aoeL(sx,sy,a,900,(e.dmg*0.87)*.45); g.fx.push({k:"pbeam",x:sx,y:sy+40,a,len:900,col:"200,140,255",life:.45,max:.45}); sfx("multislash1") }}) } },
+    axethrow(e,P,TP){ const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x), D=Math.min(620,Math.hypot(q.x-e.x,q.y-e.y)+160); e.bt=4.4; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:D,life:.9,max:.9});
+      g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return; sfx("multislash"); g.eshots.push({kind:"axe",x:e.x,y:e.y,vx:0,vy:0,sx:e.x,sy:e.y,tx:e.x+Math.cos(a)*D,ty:e.y+Math.sin(a)*D,T:.85,tt:0,r:40,dmg:(e.dmg*0.71)*.8,life:1.8,hitCD:0,eid:e.id}) }}) },
+    planetring(e,P,TP){ const n=14, gap=Math.floor(Math.random()*n), gid=(Math.random()*1e9)|0, ga=(gap+1)/n*6.283; e.bt=4.6; sfx("alarm"); say("🪐 행성 고리가 퍼져 나가요! 빈틈을 지나가요!","alarm");
+      for(let i=0;i<n;i++){ if(i===gap||i===(gap+1)%n||i===(gap+2)%n) continue; const a0=i/n*6.283; g.eshots.push({kind:"planet",lead:i===(gap+3)%n?1:0,orbit:1,cx:e.x,cy:e.y,a0,w:.45,R0:e.r*.8,dR:120,ot:0,x:e.x,y:e.y,vx:0,vy:0,r:20,dmg:(e.dmg*0.47)*.9,life:5,pierce:1,gid,ga,pc:i%3}) } },
+    eventhorizon(e,P,TP){ e.bt=5.4; g.eshots.push({kind:"vortex",x:e.x,y:e.y,vx:0,vy:0,r:e.r*.9,pr:400,pull:58,minR:e.r*1.5,dmg:(e.dmg*0.78)*.5,life:4,hitCD:0}); say("🌀 사건의 지평선! 끌려가지 않게 바깥으로 걸으며 고리를 피해요!","alarm");
+      for(let i=0;i<2;i++) g.pending.push({t:1.2+i*1.3,run:()=>{ if(e.hp<=0) return; sfx("quake"); g.eshots.push({th:e.th,kind:"shock",x:e.x,y:e.y,vx:0,vy:0,rad:e.r,v:260,maxR:760,band:24,r:0,dmg:(e.dmg*0.78)*.6,life:2.6,map:MAP.id}) }}) },
+    maneflame(e){ const R=e.r*3.1, R2=e.r*6.5; e.bt=5.5;
+      say("🔥 멀리 떨어져요!","alarm"); g.fx.push({k:"label",x:e.x,y:e.y-e.r*2.2,text:"멀리!",life:1.6,max:1.6}); g.fx.push({k:"warn",x:e.x,y:e.y,r:R,life:1.6,max:1.6});
+      g.pending.push({t:1.6,run:()=>{ if(e.hp<=0) return; aoeC(e.x,e.y,R,e.dmg*.9); g.fx.push({th:"fire",k:"boom",x:e.x,y:e.y,r:R,life:.5,max:.5}); sfx("bigboom") }});
+      g.pending.push({t:1.9,run:()=>{ if(e.hp<=0) return; say("🔥 이번엔 가까이 와요!","alarm"); g.fx.push({k:"label",x:e.x,y:e.y-e.r*2.2,text:"가까이!",life:1.6,max:1.6}); g.fx.push({k:"donutwarn",x:e.x,y:e.y,r1:R,r2:R2,life:1.6,max:1.6}) }});
+      g.pending.push({t:3.5,run:()=>{ if(e.hp<=0) return; const hitD=q=>{ const d=Math.hypot(q.x-e.x,q.y-e.y); return d>R&&d<R2 }; if(!g.p.dead&&hitD(g.p)) hitPlayer(e.dmg*.7); g.fx.push({k:"firering",x:e.x,y:e.y,r1:R,r2:R2,life:.6,max:.6}); sfx("bigboom"); g.shake=.4; evAll({t:"donut",x:Math.round(e.x),y:Math.round(e.y),r1:Math.round(R),r2:Math.round(R2),d:Math.round(e.dmg*.7)}) }}) },
+  };
+  // 부채꼴 · 구역 판정 (같이하기: 친구들에게도 보내요)
+  function coneHit(x,y,a,half,r,d){ const q=g.p; if(!q.dead){ const dx=q.x-x, dy=q.y-y, dd=Math.hypot(dx,dy); let da=Math.atan2(dy,dx)-a; da=Math.atan2(Math.sin(da),Math.cos(da)); if(dd<r&&Math.abs(da)<half) hitPlayer(d) } evAll({t:"cone",x:Math.round(x),y:Math.round(y),a:+a.toFixed(3),h:+half.toFixed(3),r:Math.round(r),d:Math.round(d)}) }
+  function sectHit(x,y,safeA,half,d){ const q=g.p; if(!q.dead){ let da=Math.atan2(q.y-y,q.x-x)-safeA; da=Math.atan2(Math.sin(da),Math.cos(da)); if(Math.abs(da)>half) hitPlayer(d) } evAll({t:"sect",x:Math.round(x),y:Math.round(y),a:+safeA.toFixed(3),h:+half.toFixed(3),d:Math.round(d)}) }
   function bossAct(e,act,P,N,PW,BX){ const TP=()=>NM?nearestPlayer(e.x,e.y):g.p; const SPD=PW.sp;
     const aim=Math.atan2(P.y-e.y,P.x-e.x);
     g.curTh=e.th;
+    if(act==="bigjump3"){ SIG.bigjump(e,P,TP,3); return } if(SIG[act]){ SIG[act](e,P,TP,1); return }
     if(act==="stomp"){ const R=e.r*2.8; g.fx.push({k:"warn",x:e.x,y:e.y,r:R,life:.85,max:.85});
-      g.pending.push({t:.85,run:()=>{ aoeC(e.x,e.y,R*.55,e.dmg*1.3); g.fx.push({k:"quake",x:e.x,y:e.y,r:R,life:.5,max:.5}); g.shake=.35;
+      g.pending.push({t:.85,run:()=>{ aoeC(e.x,e.y,R*.55,e.dmg*1.3); g.fx.push({th:e.th,k:"quake",x:e.x,y:e.y,r:R,life:.5,max:.5}); g.shake=.35;
         g.eshots.push({th:e.th,kind:"shock",x:e.x,y:e.y,vx:0,vy:0,rad:R*.4,v:330,maxR:R*2.1,band:22,r:0,dmg:e.dmg*.8,life:(R*2.1-R*.4)/330,map:MAP.id}) }}) }
     else if(act==="summon"){ const m=MOBS[MAP.id][e.minion||0]||MOBS[MAP.id][0]; for(let i=0;i<4;i++){ const a=i*1.57+Math.random(); addMob(m,e.x+Math.cos(a)*e.r*1.6,e.y+Math.sin(a)*e.r*1.6,.8) } g.fx.push({k:"ring",x:e.x,y:e.y,life:.5,max:.5}) }
     else if(act==="spore"){ for(let i=0;i<10;i++){ const a=i*Math.PI/5; g.eshots.push({th:e.th,x:e.x,y:e.y,vx:Math.cos(a)*200,vy:Math.sin(a)*200,r:9,dmg:e.dmg*.6,life:3,col:"#b8e06a",kind:"spore"}) } }
@@ -403,7 +522,7 @@ function startGame(opts){ opts=opts||{};
     else if(act==="pull"){ const R=520, dur=2.4; g.fx.push({k:"blackhole",x:e.x,y:e.y,r:R,life:dur,max:dur}); say("🌀 블랙홀이 끌어당겨요! 반대로 움직여요!","alarm");
       g.bh={x:e.x,y:e.y,r:R,t:dur,pow:220*SPD}; g.pending.push({t:dur,run:()=>{ aoeC(e.x,e.y,e.r*2.2,e.dmg*1.6); g.fx.push({th:e.th,k:"boom",x:e.x,y:e.y,r:e.r*2.2,col:"#9a5aff",life:.5,max:.5}); g.shake=.5 }}) }
   }
-  function hurt(e,d,dot){ if(e.hp<=0) return; let m=st().dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1); if(!dot && M.crit && Math.random()<M.crit){ m*=2; sfx("crit"); g.fx.push({k:"crit",x:e.x,y:e.y-e.r,life:.35,max:.35}) } if(F.poison && !dot){ e.burn=3; e.burnD=Math.max(e.burnD||0,d*.12) } if(e.type==="boss"&&M.boss) m*=M.boss; if(M.inkb&&e.slow>0) m*=M.inkb; m*=auraMul(); const dealt=d*m; if(NM==="client"){ netOut.d[e.id]=(netOut.d[e.id]||0)+dealt; e.hitT2=g.t } else e.hp-=dealt; if(!dot) sfx("hit"); e.flash=.08; if(!dot||Math.random()<.5){ e.dmgAcc=(e.dmgAcc||0)+dealt; if(!e.dmgT||g.t-e.dmgT>.12||e.hp<=0){ g.fx.push({k:"num",x:e.x+(Math.random()-.5)*e.r,y:e.y-e.r,v:Math.round(e.dmgAcc),crit:m>st().dmg*1.9,dot,life:.7,max:.7}); e.dmgAcc=0; e.dmgT=g.t } } if(!dot){ e.hitT=g.t; const a=Math.atan2(e.y-g.p.y,e.x-g.p.x); e.hx=Math.cos(a); e.hy=Math.sin(a); if(Math.random()<.35) g.fx.push({k:"spark",x:e.x,y:e.y-e.r*.3,life:.22,max:.22,a:Math.random()*6}) } if(e.hp<=0) kill(e) }
+  function hurt(e,d,dot){ if(e.hp<=0||e.hidden) return; let m=st().dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1); if(!dot && M.crit && Math.random()<M.crit){ m*=2; sfx("crit"); g.fx.push({k:"crit",x:e.x,y:e.y-e.r,life:.35,max:.35}) } if(F.poison && !dot){ e.burn=3; e.burnD=Math.max(e.burnD||0,d*.12) } if(e.type==="boss"&&M.boss) m*=M.boss; if(M.inkb&&e.slow>0) m*=M.inkb; m*=auraMul(); const dealt=d*m; if(NM==="client"){ netOut.d[e.id]=(netOut.d[e.id]||0)+dealt; e.hitT2=g.t } else e.hp-=dealt; if(!dot){ sfx("hit"); if(HDFX&&g.t!==g._spkF){ g._spkF=g.t; g._spkN=0 } if(HDFX&&g._spkN<1&&g.t-(g._spkL||0)>.045&&Math.abs(e.x-g.p.x)<W*.6&&Math.abs(e.y-g.p.y)<H*.6){ g._spkN++; g._spkL=g.t; g.fx.push({k:"hitspk",x:e.x+(Math.random()-.5)*e.r*.8,y:e.y-e.r*(.2+Math.random()*.5),a:Math.random()*6.28,s:Math.min(1.6,.7+e.r/40),life:.22,max:.22}) } } e.flash=.08; if(!dot||Math.random()<.5){ e.dmgAcc=(e.dmgAcc||0)+dealt; if(!e.dmgT||g.t-e.dmgT>.12||e.hp<=0){ g.fx.push({k:"num",x:e.x+(Math.random()-.5)*e.r,y:e.y-e.r,v:Math.round(e.dmgAcc),crit:m>st().dmg*1.9,dot,life:.7,max:.7}); e.dmgAcc=0; e.dmgT=g.t } } if(!dot){ e.hitT=g.t; const a=Math.atan2(e.y-g.p.y,e.x-g.p.x); e.hx=Math.cos(a); e.hy=Math.sin(a); if(Math.random()<.35) g.fx.push({k:"spark",x:e.x,y:e.y-e.r*.3,life:.22,max:.22,a:Math.random()*6}) } if(e.hp<=0) kill(e) }
   function kill(e){ sfx("kill"); if(NM==="host") hostEv.push({t:"kd",id:e.id,x:Math.round(e.x),y:Math.round(e.y),r:e.r});
     g.kills++;
     if(onScreen(e)) g.fx.push({k:"poof",x:e.x,y:e.y,r:e.r,c:e.c||"#ffffff",life:.45,max:.45,seed:Math.random()*6});
@@ -415,7 +534,7 @@ function startGame(opts){ opts=opts||{};
       showBanner(`${e.name} 처치! ★ 별 ${Math.min(4,g.bossKills)}개 · ${B.name}: 30초 동안 공격력 ×${B.dmg} · 이동 ×${B.spd}`); }
     else if(Math.random()<.012*(MAP.realm==="sky"?.55:1)) g.items.push({x:e.x,y:e.y,k:"heal"});
   }
-  const near = (x,y,n)=>g.en.filter(e=>e.hp>0).map(e=>[e,(e.x-x)**2+(e.y-y)**2]).sort((a,b)=>a[1]-b[1]).slice(0,n).map(a=>a[0]);
+  const near = (x,y,n)=>g.en.filter(e=>e.hp>0&&!e.hidden).map(e=>[e,(e.x-x)**2+(e.y-y)**2]).sort((a,b)=>a[1]-b[1]).slice(0,n).map(a=>a[0]);
   const onScreen = e=>Math.abs(e.x-g.p.x)<W/2+20 && Math.abs(e.y-g.p.y)<H/2+20;
 
   /* ===== 같이 하기 (여러 명): 방장이 몬스터·보스를 움직이고, 친구들은 화면을 받아요 ===== */
@@ -431,7 +550,7 @@ function startGame(opts){ opts=opts||{};
   function ccL(e,v){ e.slow=Math.max(e.slow||0,v); ccAdd(e,0,v,0,0) }
   function ccP(e,x,y){ e.x+=x; e.y+=y; ccAdd(e,0,0,x,y) }
   const myName=(()=>{ const p=prof(); return (p&&p.name)||(p?`${p.c}반 ${p.n}번`:"나") })();
-  const SHARE={healp:1,mzone:1,glyph:1,inkdragon:1,robot:1,fullmoon:1,crossfx:1,none:1,safe:1,icicle:1,blackhole:1,slash:1,bigslash:1,quake:1,bolt:1,boom:1,ring:1,meteor:1,label:1,warn:1,laserwarn:1,laser:1,ragewave:1,bosscast:1,scorch:1};
+  const SHARE={roar:1,rockup:1,crystalpillar:1,pbeam:1,conewarn:1,cleave:1,tilewarn:1,firepillar:1,cloudwarn:1,mushsprout:1,roots:1,jarfly:1,slimepud:1,donutwarn:1,firering:1,robobeam:1,healp:1,mzone:1,glyph:1,inkdragon:1,robot:1,fullmoon:1,crossfx:1,none:1,safe:1,icicle:1,blackhole:1,slash:1,bigslash:1,quake:1,bolt:1,boom:1,ring:1,meteor:1,label:1,warn:1,laserwarn:1,laser:1,ragewave:1,bosscast:1,scorch:1};
   function teamPlayers(){ const L=[]; if(!g.p.dead) L.push(g.p); for(const id in RP){ const r=RP[id]; if(!r.dead&&!r.gone) L.push(r) } return L }
   /* 같이 하기: 기술을 고르는 친구(최대 30초)에게는 몬스터가 가지 않고 다른 친구를 노려요 */
   const PZ_MAX=30000;
@@ -480,7 +599,7 @@ function startGame(opts){ opts=opts||{};
     stamp("보스<br>처치!"); sfx("win"); g.shake=.5; g.fx.push({k:"flash",col:"#f6c544",life:.5,max:.5}); showBanner(`${name} 처치! ★ 별 ${Math.min(4,g.bossKills)}개 · ${B.buff.name}: 30초 동안 공격력 ×${B.buff.dmg} · 이동 ×${B.buff.spd}`) }
   function snap(){ const T=teamPlayers(); T.push(g.p); for(const id in RP) if(!RP[id].gone) T.push(RP[id]);
     const nearAny=(o,R)=>{ for(const q of T) if(Math.abs(o.x-q.x)<R&&Math.abs(o.y-q.y)<R) return true; return false };
-    const en=[]; for(const e of g.en){ if(e.hp<=0||!nearAny(e,1000)) continue; en.push([e.id,Math.round(e.x),Math.round(e.y),Math.max(1,Math.ceil(e.hp/e.max*100)),e.di,(e.elite?1:0)|(e.stun>0?2:0)|(e.slow>0?4:0)|(e.rage>0?8:0)|(e.enraged?16:0),Math.round(e.dmg*(e.rage>0?1.5:1))]) }
+    const en=[]; for(const e of g.en){ if(e.hp<=0||!nearAny(e,1000)) continue; en.push([e.id,Math.round(e.x),Math.round(e.y),Math.max(1,Math.ceil(e.hp/e.max*100)),e.di,(e.elite?1:0)|(e.stun>0?2:0)|(e.slow>0?4:0)|(e.rage>0?8:0)|(e.enraged?16:0)|(e.hidden?32:0)|(e.dizzy>0?64:0)|(e.spin?128:0)|(e.air?256:0),Math.round(e.dmg*(e.rage>0?1.5:1))]) }
     const gm=[]; for(const o of g.gems){ if(!o.id) o.id=nid++; if(gm.length<150&&nearAny(o,800)) gm.push([o.id,Math.round(o.x),Math.round(o.y),o.v]) }
     const it=g.items.filter(o=>!o.local).map(o=>{ if(!o.id) o.id=nid++; return [o.id,Math.round(o.x),Math.round(o.y),o.k] });
     const pl={}; pl[NET.myId]=meState(); for(const id in RP) if(!RP[id].gone) pl[id]=RP[id].st;
@@ -493,7 +612,7 @@ function startGame(opts){ opts=opts||{};
     if(RP[from]){ const r=RP[from]; if(m.pz){ if(!r.pzT) r.pzT=performance.now() } else r.pzT=0 }
     if(m.cc&&m.cc.length){ const by=new Map(g.en.map(e=>[e.id,e])), cl=v=>Math.max(-260,Math.min(260,v||0));
       for(const [id,st,sl,px,py] of m.cc){ const e=by.get(id); if(!e||e.hp<=0) continue; if(st>0) e.stun=Math.max(e.stun||0,Math.min(3,st)); if(sl>0) e.slow=Math.max(e.slow||0,Math.min(4,sl)); if(px||py){ e.x+=cl(px); e.y+=cl(py) } } }
-    if(m.d&&m.d.length){ const by=new Map(g.en.map(e=>[e.id,e])); for(const [id,d] of m.d){ const e=by.get(id); if(e&&e.hp>0){ e.hp-=d; e.flash=.08; if(e.hp<=0) kill(e) } } }
+    if(m.d&&m.d.length){ const by=new Map(g.en.map(e=>[e.id,e])); for(const [id,d] of m.d){ const e=by.get(id); if(e&&e.hp>0&&!e.hidden){ e.hp-=d; e.flash=.08; if(e.hp<=0) kill(e) } } }
     if(m.g) for(const id of m.g){ const i=g.gems.findIndex(o=>o.id===id); if(i>=0){ const v=g.gems[i].v; g.gems.splice(i,1); xpShare+=v; g.xp+=v*M.xp } }
     if(m.it) for(const id of m.it){ const i=g.items.findIndex(o=>o.id===id); if(i>=0){ const k=g.items[i].k; g.items.splice(i,1); (hostTo[from]=hostTo[from]||[]).push({t:"itok",k}) } }
     if(m.sh) for(const c of m.sh){ addRemoteShot(c); hostEv.push({t:"sh",s:c,from}) }
@@ -505,7 +624,7 @@ function startGame(opts){ opts=opts||{};
     const seen=new Set();
     for(const a of m.en){ const [id,x,y,hp,di,fl,dmg]=a; seen.add(id); let e=EN[id];
       if(!e){ e=EN[id]=mkEnt(id,di,fl,x,y); g.en.push(e) }
-      e.tx=x; e.ty=y; e.hp=hp; e.dmg=dmg; e.stun=fl&2?.15:0; e.rage=fl&8?.2:0; e.enraged=!!(fl&16); if(fl&4) e.slow=Math.max(e.slow,.15) }
+      e.tx=x; e.ty=y; e.hp=hp; e.dmg=dmg; e.stun=fl&2?.15:0; e.rage=fl&8?.2:0; e.enraged=!!(fl&16); e.hidden=!!(fl&32); e.dizzyF=!!(fl&64); e.spin=!!(fl&128); e.air=!!(fl&256); if(fl&4) e.slow=Math.max(e.slow,.15) }
     for(const id in EN) if(!seen.has(+id)){ EN[id].hp=0; delete EN[id] }
     const gs=new Set(); for(const [id,x,y,v] of m.gm){ gs.add(id); let o=GM[id]; if(!o){ o=GM[id]={id,x,y,v}; g.gems.push(o) } else if(!o.fly){ o.x=x; o.y=y } }
     for(const id in GM) if(!gs.has(+id)){ GM[id].got=true; delete GM[id] }
@@ -526,6 +645,9 @@ function startGame(opts){ opts=opts||{};
       else if(ev.t==="itok") itemFx(ev.k);
       else if(ev.t==="duel") g.duelQ={id:ev.id};
       else if(ev.t==="gust") startGust(ev.a);
+      else if(ev.t==="cone"){ const dx=g.p.x-ev.x, dy=g.p.y-ev.y; let da=Math.atan2(dy,dx)-ev.a; da=Math.atan2(Math.sin(da),Math.cos(da)); if(Math.hypot(dx,dy)<ev.r&&Math.abs(da)<ev.h) hitPlayer(ev.d) }
+      else if(ev.t==="sect"){ let da=Math.atan2(g.p.y-ev.y,g.p.x-ev.x)-ev.a; da=Math.atan2(Math.sin(da),Math.cos(da)); if(Math.abs(da)>ev.h) hitPlayer(ev.d) }
+      else if(ev.t==="donut"){ const d=Math.hypot(g.p.x-ev.x,g.p.y-ev.y); if(d>ev.r1&&d<ev.r2) hitPlayer(ev.d) }
       else if(ev.t==="judg"){ if((g.p.x-ev.x)**2+(g.p.y-ev.y)**2>ev.r*ev.r) hitPlayer(ev.d) }
       else if(ev.t==="oq"){ if(!g.p.dead) queueOrigin(ev.id) }
       else if(ev.t==="ofx"){ g.oriQ=null; originClose(); castOrigin() }
@@ -575,7 +697,7 @@ function startGame(opts){ opts=opts||{};
     });
   }
   /* 똑똑한 조준: 둘러싸여 위험하면 내 주변부터, 여유로우면 몬스터가 가장 많이 모인 곳부터 때려요 */
-  function surrounded(){ const P=g.p, s=st(); let n=0; for(const e of g.en){ if(e.hp>0&&(e.x-P.x)**2+(e.y-P.y)**2<175*175) n++ } return n>=8 || (P.hp/s.maxHp<.45 && n>=4) }
+  function surrounded(){ const P=g.p, s=st(), hp=P.hp/s.maxHp; let n=0; for(const e of g.en){ if(e.hp>0&&(e.x-P.x)**2+(e.y-P.y)**2<190*190) n++ } return n>=7 || (hp<.5 && n>=3) || (hp<.3 && n>=1) }   // 위급: 둘러싸였거나 체력이 낮을 때 → 내 주변부터
   function smartTargets(R,n){ const P=g.p, risky=surrounded();
     let pool=onScreenEnemies().filter(e=>e.hp>0);
     if(risky){ const close=pool.filter(e=>(e.x-P.x)**2+(e.y-P.y)**2<240*240); if(close.length) pool=close }
@@ -597,7 +719,7 @@ function startGame(opts){ opts=opts||{};
     }
     else if(k.type==="quake"){
       g.en.forEach(e=>{ if(inR(P.x,P.y,k.r,e)){ hurt(e,dmg); ccS(e,k.stun); const dx=e.x-P.x, dy=e.y-P.y, d=Math.hypot(dx,dy)||1; if(e.type!=="boss"){ccP(e,dx/d*60,dy/d*60)} } });
-      g.fx.push({k:"quake",x:P.x,y:P.y,r:k.r,life:.6,max:.6}); g.shake=.4;
+      g.fx.push({k:"quake",x:P.x,y:P.y,r:k.r,life:.85,max:.85}); g.shake=.45;
     }
     else if(k.type==="awaken"){
       g.buff={t:k.dur,max:k.dur,mul:k.mul}; P.inv=Math.max(P.inv,k.dur);
@@ -631,7 +753,7 @@ function startGame(opts){ opts=opts||{};
       for(let i=0;i<k.n;i++){ const t=TG[i]; const x=t?t.x+(Math.random()-.5)*36:P.x+(Math.random()-.5)*W*.7, y=t?t.y+(Math.random()-.5)*36:P.y+(Math.random()-.5)*H*.7, at=.55+i*.1;
         g.fx.push({k:"warn",own:1,x,y,r:k.r,life:at,max:at}); g.pending.push({t:at,run:()=>{ boomAt(x,y,k.r,dmg,"#cfe0ff"); g.fx.push({k:"moonbeam",x,y,r:k.r,life:.5,max:.5}); g.shake=Math.max(g.shake,.15) }}) } }
     else if(k.type==="glyph"){   // 한자를 써서 마법을 불러요
-      sfx("glyph"); g.fx.push({k:"label",x:P.x,y:P.y-74,text:`${k.ch} ${k.hun}!`,life:1.4,max:1.4});
+      sfx("glyph"); g.fx.push({k:"label",x:P.x,y:P.y-74,text:`${k.ch} ${k.hun}!`+(surrounded()?" · 주변 정리!":""),life:1.4,max:1.4});
       if(k.ch==="山"){ const t=smartTargets(k.r,1).pts[0]||{x:P.x,y:P.y};
         g.fx.push({k:"glyph",ch:k.ch,x:t.x,y:t.y,r:k.r,life:1.1,max:1.1});
         g.pending.push({t:.45,run:()=>{ sfx("quake"); g.shake=Math.max(g.shake,.3); g.fx.push({k:"rockup",x:t.x,y:t.y,r:k.r,life:.9,max:.9});
@@ -641,20 +763,39 @@ function startGame(opts){ opts=opts||{};
           g.pending.push({t:at,run:()=>{ sfx("thunder"); g.fx.push({k:"bolt",x:t.x,y:t.y,life:.3,max:.3}); g.fx.push({k:"boom",x:t.x,y:t.y,r:k.r,col:"#ffe066",life:.3,max:.3});
             g.en.forEach(e=>{ if(inR(t.x,t.y,k.r,e)){ hurt(e,dmg); ccS(e,k.stun) } }) }}) } } }
     else if(k.type==="inkdragon"){   // 묵룡 승천: 먹물 용이 화면을 가로질러요
-      sfx("inkdragon"); const t=smartTargets(200,1).pts[0]||{x:P.x+1,y:P.y}, a=Math.atan2(t.y-P.y,t.x-P.x)+(Math.random()-.5)*.3, L=Math.hypot(W,H)*.6, sx=t.x-Math.cos(a)*L, sy=t.y-Math.sin(a)*L, dur=1.3;
-      g.fx.push({k:"inkdragon",x:sx,y:sy,a,len:L*2,life:dur,max:dur});
-      onS.forEach(e=>{ const px=e.x-sx, py=e.y-sy, al=px*Math.cos(a)+py*Math.sin(a), ac=Math.abs(-px*Math.sin(a)+py*Math.cos(a)); if(ac<k.w+e.r&&al>0&&al<L*2) g.pending.push({t:al/(L*2)*dur,run:()=>{ if(e.hp>0){ hurt(e,dmg); ccS(e,k.stun); ccL(e,k.stun+1) } }}) }) }
+      sfx("inkdragon"); const t=smartTargets(200,1).pts[0]||{x:P.x+1,y:P.y}, a=Math.atan2(t.y-P.y,t.x-P.x)+(Math.random()-.5)*.3, L=Math.hypot(W,H)*.6, sx=t.x-Math.cos(a)*L, sy=t.y-Math.sin(a)*L, dur=1.7, D0=.35;
+      g.fx.push({k:"glyph",ch:"龍",x:P.x,y:P.y-130,r:90,life:1.1,max:1.1,sky:1});
+      g.fx.push({k:"inkdragon",x:sx,y:sy,a,len:L*2,life:dur,max:dur,d0:D0});
+      const pos=u=>{ const e=u<.5?2*u*u:1-2*(1-u)*(1-u); return e };   // 천천히 나타나 쭉 가속했다가 빠져나가요
+      onS.forEach(e=>{ const px=e.x-sx, py=e.y-sy, al=px*Math.cos(a)+py*Math.sin(a), ac=Math.abs(-px*Math.sin(a)+py*Math.cos(a)); if(ac<k.w+e.r&&al>0&&al<L*2){ const tgt=al/(L*2); let u=tgt; for(let i=0;i<6;i++){ u-=(pos(u)-tgt)/Math.max(.3,u<.5?4*u:4*(1-u)); u=Math.max(0,Math.min(1,u)) }
+        g.pending.push({t:D0+u*(dur-D0),run:()=>{ if(e.hp>0){ hurt(e,dmg); ccS(e,k.stun); ccL(e,k.stun+1); if(Math.random()<.5) g.fx.push({k:"inksplash",x:e.x,y:e.y,r:42,life:.4,max:.4}) } }}) } }); g.pending.push({t:D0+.2,run:()=>{ g.shake=Math.max(g.shake,.35) }}) }
     else if(k.type==="dragonsum"){ sfx("dragon"); g.sum.push({kind:"qdragon",x:P.x,y:P.y-200,t:k.dur,max:k.dur,acc:.4,rate:k.rate,dmg:dmg*(M.sum||1),a:0}) }
     else if(k.type==="missiles"){ sfx("missiles"); const TG=smartTargets(k.r,k.n).pts;
       for(let i=0;i<k.n;i++){ const t=TG[i%Math.max(1,TG.length)]; g.pending.push({t:i*.05,run:()=>{ const P=g.p, b=-Math.PI/2+(Math.random()-.5)*1.6; const T=t&&near(t.x,t.y,1)[0];
         g.shots.push({k:"missile",x:P.x+(i%2?14:-14),y:P.y-30,vx:Math.cos(b)*380,vy:Math.sin(b)*380,dmg,pierce:0,boom:k.r,boomMul:1,life:2,hit:new Set(),seek:T||undefined,sd:.25}) }}) } }
-    else if(k.type==="robot"){   // 거대 로봇: 쿵 떨어져 → 주먹 세 번
-      const t=smartTargets(k.r,1).pts[0]||{x:P.x+60,y:P.y}, dir=t.x>=P.x?1:-1; sfx("robot");
-      g.fx.push({k:"robot",x:t.x,y:t.y,dir,life:2.6,max:2.6}); g.fx.push({k:"warn",own:1,x:t.x,y:t.y,r:k.r,life:.6,max:.6});
-      g.pending.push({t:.6,run:()=>{ boomAt(t.x,t.y,k.r,dmg,"#ffd36a"); g.shake=.6; g.en.forEach(e=>{ if(inR(t.x,t.y,k.r,e)) ccS(e,k.stun) }) }});
-      for(let i=0;i<3;i++) g.pending.push({t:1.1+i*.35,run:()=>{ sfx("punch"); g.shake=Math.max(g.shake,.25); const x0=t.x+dir*40, a=dir>0?0:Math.PI;
-        g.en.forEach(e=>{ const px=e.x-x0, py=e.y-t.y, al=px*Math.cos(a)+py*Math.sin(a), ac=Math.abs(py); if(al>-20&&al<320&&ac<90+e.r){ hurt(e,dmg*.55); if(e.type!=="boss") ccP(e,dir*50,0) } });
-        g.fx.push({k:"boom",x:x0+dir*160,y:t.y,r:90,col:"#9ad8ff",life:.3,max:.3}) }}) }
+    else if(k.type==="robot"){   // 메탈아머 전탄발사: 강하 → 착지 → 무장 전개 → 미사일·개틀링·손바닥 플라즈마·가슴 빔 동시 발사 → 마무리 폭발 → 퇴장
+      const t=smartTargets(k.r,1).pts[0]||{x:P.x+60,y:P.y}, dir=t.x>=P.x?1:-1, H=230, RL=4.6; sfx("robot");
+      const PT=(nx,ny)=>({x:t.x-dir*nx*H, y:t.y+ny*H}), GAT=PT(-.49,-.09), PALM=PT(.38,-.166), CH=PT(.002,-.154), PODS=[PT(-.172,-.303),PT(.247,-.309)];
+      const rb={k:"robot",fb:1,x:t.x,y:t.y,dir,life:RL,max:RL}; g.fx.push(rb); g.fx.push({k:"warn",own:1,x:t.x,y:t.y,r:k.r,life:.75,max:.75});
+      g.pending.push({t:.75,run:()=>{ boomAt(t.x,t.y,k.r,dmg,"#ffd36a"); g.shake=.7; g.fx.push({k:"quake",x:t.x,y:t.y,r:k.r,life:.55,max:.55,th:"metal"}); g.en.forEach(e=>{ if(inR(t.x,t.y,k.r,e)) ccS(e,k.stun) }) }});
+      g.pending.push({t:1.0,run:()=>{ sfx("robot"); g.fx.push({k:"flash",col:"#bfe6ff",life:.25,max:.25}); g.fx.push({k:"label",x:t.x,y:t.y-H*.75,text:"전탄 발사!",life:1.2,max:1.2}) }});
+      // 어깨 미사일 24발: 두 발사구에서 번갈아 솟아올라 몬스터 무리에 쏟아져요
+      const TG=smartTargets(70,12).pts;
+      for(let i=0;i<24;i++) g.pending.push({t:1.25+i*.08,run:()=>{ const pd=PODS[i%2], b=-Math.PI/2+(i%2?1:-1)*dir*(.2+Math.random()*.55), tg=TG[i%Math.max(1,TG.length)], T0=tg&&near(tg.x,tg.y,1)[0];
+        if(i%4===0) sfx("missiles"); g.shots.push({k:"missile",x:pd.x,y:pd.y,vx:Math.cos(b)*480,vy:Math.sin(b)*480,dmg:dmg*.1,pierce:0,boom:70,boomMul:1,life:2.2,hit:new Set(),seek:T0||undefined,sd:.3});
+        g.fx.push({k:"muzzle",x:pd.x,y:pd.y,life:.08,max:.08}) }});
+      // 개틀링 연사 36발
+      for(let i=0;i<36;i++) g.pending.push({t:1.3+i*.053,run:()=>{ const a=(dir>0?0:Math.PI)+(Math.random()-.5)*.3, sp=1150; if(i%3===0) sfx("gun");
+        g.shots.push({k:"tracer",x:GAT.x,y:GAT.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,dmg:dmg*.03,pierce:2,life:.6,hit:new Set(),rad:14}); g.shake=Math.max(g.shake,.12) }});
+      // 손바닥 플라즈마 3발: 뒤쪽 무리로
+      const TB=smartTargets(90,3).pts;
+      for(let i=0;i<3;i++) g.pending.push({t:1.55+i*.5,run:()=>{ const tg=TB[i%Math.max(1,TB.length)]||{x:PALM.x-dir*300,y:PALM.y}, a=Math.atan2(tg.y-PALM.y,tg.x-PALM.x); sfx("fireball");
+        g.shots.push({k:"plasma",x:PALM.x,y:PALM.y,vx:Math.cos(a)*620,vy:Math.sin(a)*620,dmg:dmg*.12,pierce:0,boom:90,boomMul:1,life:1.2,hit:new Set(),rad:20}); g.fx.push({k:"muzzle",x:PALM.x,y:PALM.y,life:.1,max:.1}) }});
+      // 가슴 수정 빔
+      g.pending.push({t:2.75,run:()=>{ sfx("robot"); g.shake=Math.max(g.shake,.45); g.fx.push({k:"robobeam",x:CH.x,y:CH.y,dir,len:760,life:.7,max:.7});
+        g.en.forEach(e=>{ const al=(e.x-CH.x)*dir, ac=Math.abs(e.y-CH.y); if(al>0&&al<760&&ac<64+e.r){ hurt(e,dmg*.6); if(e.type!=="boss") ccP(e,dir*40,0) } }) }});
+      // 마무리: 모든 포문 과열 폭발
+      g.pending.push({t:3.55,run:()=>{ boomAt(t.x,t.y,k.r*1.3,dmg*.25,"#9fd8ff"); g.shake=.6; g.fx.push({k:"ring",x:t.x,y:t.y,life:.5,max:.5}); g.fx.push({k:"quake",x:t.x,y:t.y,r:k.r*1.3,life:.5,max:.5,th:"metal"}) }}) }
     else if(k.type==="battleship"){
       const dir=Math.random()<.5?1:-1, life=3.2, sc=Math.min(1.4,Math.max(.9,W/800));
       g.fx.push({k:"ship",dir,life,max:life}); g.fx.push({k:"flash",col:"#6ad0ff",life:.3,max:.3});
@@ -778,8 +919,9 @@ function startGame(opts){ opts=opts||{};
           if(age<.55&&age>.25){ const p=(age-.25)/.3; ctx.strokeStyle=`rgba(200,240,255,${1-p})`; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(0,14,20+p*50,(20+p*50)*.4,0,0,7); ctx.stroke() }
           const sq=1+Math.sin(g.t*4)*.03+rec*.08; ctx.translate((right?-1:1)*rec*5,-22-drop*160); ctx.scale(1/sq,sq); drawSkillImg(ctx,"octo",74,right); ctx.restore() } else jfOcto(ctx,m,g.t,GLOW) }
       else if(m.kind==="ifrit"){
-        if(m.breath>0&&HDFX&&PFX.fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); for(let i=0;i<14;i++){ const ph=((g.t*3.2+i/14)%1), sp=(jr(i,3)-.5)*.8*ph, d=20+ph*165; pfxDraw(ctx,"fire"+((i+Math.floor(g.t*14))&3),Math.cos(sp)*d,Math.sin(sp)*d,sp,.45+ph*.9,(1-ph)*.95) }
-          ctx.globalCompositeOperation=GLOW; jGlow(ctx,24,0,40,"255,160,60",.6); ctx.restore() }
+        if(m.breath>0&&HDFX&&PFX.boom_fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); ctx.globalCompositeOperation="lighter";
+          for(let i=0;i<10;i++){ const ph=((g.t*2.6+i/10)%1), sp=(jr(i,3)-.5)*.62*ph, d=18+ph*150, fi=Math.min(5,Math.floor(ph*5.5)); pfxDraw(ctx,"boom_fire"+fi,Math.cos(sp)*d,Math.sin(sp)*d,i*1.3+g.t*2,.28+ph*.75,(1-ph*ph)*.75) }
+          jGlow(ctx,20,0,46,"255,190,90",.7); ctx.restore() }
         else if(m.breath>0){ ctx.save(); ctx.globalCompositeOperation=GLOW; ctx.translate(m.x,m.y); ctx.rotate(m.face); const k=m.breath/.25;
           const gr=ctx.createRadialGradient(0,0,10,0,0,175); gr.addColorStop(0,`rgba(255,250,200,${.85*k})`); gr.addColorStop(.35,`rgba(255,170,60,${.7*k})`); gr.addColorStop(.75,`rgba(230,70,40,${.45*k})`); gr.addColorStop(1,"rgba(150,20,20,0)");
           ctx.fillStyle=gr; ctx.beginPath(); ctx.moveTo(0,0); for(let i=0;i<=12;i++){ const b=-.45+i*.075, rr=150+Math.sin(g.t*30+i*2)*18; ctx.lineTo(Math.cos(b)*rr,Math.sin(b)*rr) } ctx.closePath(); ctx.fill();
@@ -803,14 +945,15 @@ function startGame(opts){ opts=opts||{};
   }
   function drawSkillFx(f,k){
     if(drawNewFx(ctx,f,k,g.t,GLOW,g.p)) return true;
+    if(f.k==="hitspk"){ drawHitSpark(ctx,f,k,HERO.id); return true }
     if(f.k==="bigslash"){ jfBigSlash(ctx,f,k,GLOW); return true }
     if(f.k==="quake"){ jfQuake(ctx,f,k,GLOW,g.t); return true }
-    if(f.k==="meteor"){ if(!(f.th&&HDFX&&drawThemeFall(ctx,f,k,g.t))) jfMeteor(ctx,f,k,GLOW,g.t); return true }
+    if(f.k==="meteor"){ if(!(f.th&&drawThemeFall(ctx,f,k,g.t))) jfMeteor(ctx,f,k,GLOW,g.t); return true }
     if(f.k==="none") return true;
     if(f.k==="crossfx"){ drawCrossFx(ctx,f,k,g.t); return true }
     if(f.k==="scorch") return true;
     if(f.k==="shell"){ jfShell(ctx,f,k,GLOW,g.t); return true }
-    if(f.k==="boom"){ if(f.th&&HDFX&&drawThemeBoom(ctx,f,k,g.t)) return true; if(!(HDFX&&PFX._ok3&&pfxBoom(ctx,f,k))) jfBoom(ctx,f,k,GLOW); return true }
+    if(f.k==="boom"){ if(f.th&&drawThemeBoom(ctx,f,k,g.t)) return true; if(!(HDFX&&PFX._ok3&&pfxBoom(ctx,f,k))) jfBoom(ctx,f,k,GLOW); return true }
     if(f.k==="warn"){ jfWarn(ctx,f,k,g.t); return true }
     if(f.k==="safe"){ const p=1-k; ctx.save(); ctx.globalCompositeOperation=GLOW; const gg=ctx.createRadialGradient(f.x,f.y,f.r*.2,f.x,f.y,f.r); gg.addColorStop(0,"rgba(255,245,200,.35)"); gg.addColorStop(1,"rgba(255,230,150,.1)"); ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.fill();
       ctx.strokeStyle=`rgba(255,240,170,${.6+.4*Math.sin(g.t*12)})`; ctx.lineWidth=5; ctx.beginPath(); ctx.arc(f.x,f.y,f.r,0,7); ctx.stroke(); ctx.lineWidth=2; ctx.beginPath(); ctx.arc(f.x,f.y,f.r*(1-p*.15),0,Math.PI*2*k); ctx.stroke(); ctx.restore();
@@ -896,7 +1039,7 @@ function startGame(opts){ opts=opts||{};
     return false }
   function drawAtkOver(x,y,q,a,K){
     if(HDFX&&PFX._ok&&isHeroArt(heroImg.src)){   // 그림 용사: 무기는 그림 속에 있으니 휘두르는 빛만 그려요
-      if(K==="sword"){ const dir=g.atk.flip?-1:1; pfxDraw(ctx,"slash",x+Math.cos(a)*22,y+Math.sin(a)*22+8,a+dir*(q-.5)*1.4,.9+q*.35,Math.min(1,(1-q)*1.8)); }
+      if(K==="sword"){ const dir=g.atk.flip?-1:1; if(!heroArc(ctx,x,y+8,a+dir*(q-.5)*1.3,62+q*14,Math.min(1,(1-q)*2.2),"hw",window.__fxLow?0:dir*.6)) pfxDraw(ctx,"slash",x+Math.cos(a)*22,y+Math.sin(a)*22+8,a+dir*(q-.5)*1.4,.9+q*.35,Math.min(1,(1-q)*1.8)); }
       else if(K==="gun"&&q<.4){ const f=1-q/.4; ctx.save(); ctx.globalCompositeOperation=GLOW; jGlow(ctx,x+Math.cos(a)*34,y+8+Math.sin(a)*34,18*f+6,"255,230,140",.9*f); ctx.restore() }
       else if(K==="fireball"&&q<.5){ ctx.save(); ctx.globalCompositeOperation=GLOW; jGlow(ctx,x+Math.cos(a)*26,y+Math.sin(a)*26,22*(1-q)+8,"255,150,50",.7); ctx.restore() }
       else if(K==="moon"&&q<.6){ ctx.save(); ctx.globalCompositeOperation=GLOW; jGlow(ctx,x-Math.sign(Math.cos(a)||1)*14,y-34,24*(1-q)+10,"200,215,255",.8); ctx.restore() }
@@ -1235,7 +1378,7 @@ function startGame(opts){ opts=opts||{};
     const ml=Math.hypot(mx,my); if(ml>1){mx/=ml;my/=ml}
     P.vx=mx*s.spd; P.vy=my*s.spd; P.mv=Math.hypot(mx,my); if(mx>.15) P.face=1; else if(mx<-.15) P.face=-1;
     if(P.mv>.1){ const prev=g.walk||0; g.walk=prev+dt*14*Math.min(1.4,s.spd/165); if(Math.floor(prev/Math.PI)!==Math.floor(g.walk/Math.PI)) g.fx.push({k:"dust",x:P.x-mx*10,y:P.y+20,life:.4,max:.4}) } else g.walk=0;
-    P.x+=mx*s.spd*dt; P.y+=my*s.spd*dt; pushOut(MAP,P,P.r);
+    const slowK=(g.pslow>0)?.5:1; if(g.pslow>0) g.pslow-=dt; P.x+=mx*s.spd*slowK*dt; P.y+=my*s.spd*slowK*dt; pushOut(MAP,P,P.r);
     const HZ=!out&&MAP.id===6?hazardAt(MAP,P.x,P.y,g.t):null;
     if(HZ&&HZ.kind==="tornado"){ const dx=P.x-HZ.x, dy=P.y-HZ.y, d=HZ.d||1; P.x+=dx/d*360*dt; P.y+=dy/d*360*dt; if(!g.god){ P.hp-=30*dt; g.lavaT=(g.lavaT||0)-dt }
       if(g.lavaT<=0){ g.lavaT=.35; sfx("hurt"); g.fx.push({k:"num",x:P.x,y:P.y-40,v:-10,me:true,life:.6,max:.6}); g.shake=Math.max(g.shake,.12) }
@@ -1261,7 +1404,13 @@ function startGame(opts){ opts=opts||{};
     stageTick();
     }
     // 보스 탄
-    for(const b of g.eshots){ if(b.home!==undefined){ b.home-=dt; if(b.home<=0&&b.home>-2.5){ const a=Math.atan2(P.y-b.y,P.x-b.x), sp=210; b.vx+=(Math.cos(a)*sp-b.vx)*Math.min(1,dt*2.2); b.vy+=(Math.sin(a)*sp-b.vy)*Math.min(1,dt*2.2) } }
+    for(const b of g.eshots){ if(b.home!==undefined){ b.home-=dt; if(b.home<=0&&b.home>-2.5){ const a=Math.atan2(P.y-b.y,P.x-b.x), sp=b.hsp||210; b.vx+=(Math.cos(a)*sp-b.vx)*Math.min(1,dt*2.2); b.vy+=(Math.sin(a)*sp-b.vy)*Math.min(1,dt*2.2) } }
+      if(b.orbit){ b.ot+=dt; const R=Math.max(0,b.R0+b.dR*b.ot), an=b.a0+b.w*b.ot; b.R=R; b.x=b.cx+Math.cos(an)*R; b.y=b.cy+Math.sin(an)*R*.85; b.life-=dt; const GH=g._gh||(g._gh={}), gk=b.gid; if(!P.dead&&!b.hitMe&&!(gk&&GH[gk])&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ hitPlayer(b.dmg); b.hitMe=1; if(gk) GH[gk]=1 } continue }
+      if(b.kind==="web"){ b.life-=dt; if(!P.dead&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r*.5)**2) g.pslow=Math.max(g.pslow||0,.25); continue }
+      if(b.kind==="axe"){ b.tt+=dt; b.life-=dt; b.hitCD-=dt; const u=b.tt/b.T; let px,py; if(u<1){ const k=1-(1-u)*(1-u); px=b.sx+(b.tx-b.sx)*k; py=b.sy+(b.ty-b.sy)*k } else { const own=g.en.find(o=>o.id===b.eid), hx=own?own.x:b.sx, hy=own?own.y:b.sy, k=Math.min(1,(u-1)*(u-1)); px=b.tx+(hx-b.tx)*k; py=b.ty+(hy-b.ty)*k } b.vx=(px-b.x)/Math.max(dt,1e-3); b.vy=(py-b.y)/Math.max(dt,1e-3); b.x=px; b.y=py; if(!P.dead&&b.hitCD<=0&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ b.hitCD=.7; hitPlayer(b.dmg) } continue }
+      if(b.kind==="vortex"){ b.life-=dt; b.hitCD-=dt; const dx=b.x-P.x, dy=b.y-P.y, d=Math.hypot(dx,dy)||1; if(!P.dead&&d<b.pr&&d>(b.minR||0)){ const k=b.pull*(1-d/b.pr*.5); P.x+=dx/d*Math.min(d,k*dt); P.y+=dy/d*Math.min(d,k*dt) } if(!P.dead&&d<b.r+P.r&&b.hitCD<=0){ b.hitCD=.8; hitPlayer(b.dmg) } continue }
+      if(b.kind==="beam"){ b.life-=dt; b.ot+=dt; b.hitCD-=dt; b.a=b.a0+b.w*b.ot; const px=P.x-b.x, py=P.y-b.y, al=px*Math.cos(b.a)+py*Math.sin(b.a), ac=Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a)); if(!P.dead&&b.hitCD<=0&&al>0&&al<b.len&&ac<b.r+P.r){ b.hitCD=.9; hitPlayer(b.dmg) } continue }
+      if(b.bounce){ if(b.grow) b.r=Math.min(64,b.r+dt*8); b.hitCD=(b.hitCD||0)-dt; b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; if(b.x<b.cx-b.hw||b.x>b.cx+b.hw) b.vx*=-1; if(b.y<b.cy-b.hh||b.y>b.cy+b.hh) b.vy*=-1; b.x=Math.max(b.cx-b.hw,Math.min(b.cx+b.hw,b.x)); b.y=Math.max(b.cy-b.hh,Math.min(b.cy+b.hh,b.y)); if(!P.dead&&b.hitCD<=0&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ b.hitCD=1; hitPlayer(b.dmg) } continue }
       if(b.kind==="shock"){ b.rad+=b.v*dt; b.life-=dt; const d=Math.hypot(P.x-b.x,(P.y-b.y)/.75); if(!P.dead&&!b.hitMe&&Math.abs(d-b.rad)<b.band+P.r*.5){ b.hitMe=1; hitPlayer(b.dmg) } continue }
       b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; if(!P.dead && !b.hitMe && (b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ hitPlayer(b.dmg); if(b.pierce) b.hitMe=1; else b.life=0 } }
     g.eshots=g.eshots.filter(b=>b.life>0);
@@ -1274,12 +1423,13 @@ function startGame(opts){ opts=opts||{};
       const T=NM?nearestPlayer(e.x,e.y):P, dx=T.x-e.x, dy=T.y-e.y, d=Math.hypot(dx,dy)||1, dP=NM?Math.hypot(P.x-e.x,P.y-e.y):d;
       const sp=e.stun>0?0:e.sp*(e.slow>0?.45:1)*(e.rage>0?1.5:1); if(e.stun>0) e.stun-=dt; if(e.rage>0) e.rage-=dt;
       if(e.rush&&e.rush.t>0&&!(e.stun>0)){ e.rush.t-=dt; e.x+=e.rush.vx*sp*dt; e.y+=e.rush.vy*sp*dt; if(!FLYERS[e.look]) pushOut(MAP,e,e.r*.85); if(dP<e.r+P.r && P.inv<=0) hitPlayer(e.dmg); continue }
-      if(e.type==="boss"){ const cast=e.atk&&g.t-e.atk.t0<e.atk.wind+.35, tv=cast?.15:1, tx=dx/d*sp*tv, ty=dy/d*sp*tv, k=Math.min(1,dt*3.2);
+      if(e.type==="boss"&&(e.jump||e.burrow||e.spinT>0)){ e.mvx=0; e.mvy=0 }   // 점프·잠행·팽이 중엔 걷지 않아요
+      else if(e.type==="boss"){ const cast=e.atk&&g.t-e.atk.t0<e.atk.wind+.35, tv=cast?.15:1, tx=dx/d*sp*tv, ty=dy/d*sp*tv, k=Math.min(1,dt*3.2);
         e.mvx=(e.mvx||0)+(tx-(e.mvx||0))*k; e.mvy=(e.mvy||0)+(ty-(e.mvy||0))*k; e.x+=e.mvx*dt; e.y+=e.mvy*dt; e.spd=Math.hypot(e.mvx,e.mvy)/Math.max(1,e.sp) }
       else { e.x+=dx/d*sp*dt; e.y+=dy/d*sp*dt; if(!FLYERS[e.look]) pushOut(MAP,e,e.r*.85) }
       e.slow=Math.max(0,e.slow-dt); e.flash=Math.max(0,e.flash-dt); e.stoneCD=Math.max(0,e.stoneCD-dt); if(e.type==="boss") bossAI(e,dt);
       if(d>Math.hypot(W,H)) { const a=Math.random()*Math.PI*2, R=Math.hypot(W,H)/2+40; e.x=T.x+Math.cos(a)*R; e.y=T.y+Math.sin(a)*R }
-      if(dP<e.r+P.r && P.inv<=0 && !P.dead && !g.god){ const cd=absorb(e.dmg*M.armor*(e.rage>0?1.5:1)); P.hp-=cd; g.dmgIn=(g.dmgIn||0)+cd; if(F.thorn){ hurt(e,30); g.fx.push({k:"hit",x:e.x,y:e.y,life:.2,max:.2}) } g.fx.push({k:"num",x:P.x,y:P.y-40,v:-Math.round(cd),me:true,life:.8,max:.8}); g.shake=Math.max(g.shake,.1); P.inv=.45; g.fx.push({k:"hit",x:P.x,y:P.y,life:.2,max:.2}) }
+      if(dP<e.r+P.r && P.inv<=0 && !P.dead && !g.god && !e.hidden && !e.air){ const cd=absorb(e.dmg*M.armor*(e.rage>0?1.5:1)); P.hp-=cd; g.dmgIn=(g.dmgIn||0)+cd; if(F.thorn){ hurt(e,30); g.fx.push({k:"hit",x:e.x,y:e.y,life:.2,max:.2}) } g.fx.push({k:"num",x:P.x,y:P.y-40,v:-Math.round(cd),me:true,life:.8,max:.8}); g.shake=Math.max(g.shake,.1); P.inv=.45; g.fx.push({k:"hit",x:P.x,y:P.y,life:.2,max:.2}) }
     }
     // 겹침 밀어내기
     const en=g.en;
@@ -1488,9 +1638,9 @@ function startGame(opts){ opts=opts||{};
       if(e.type==="boss") HDL.push(e); else if(ART&&HDOK&&mobArtOf(e)) HDM.push(e); else drawMonster(ctx,e,g.t,P.x,P.y);   // 보스는 모두 선명하게
       if(e.elite){ const w=e.r*2; ctx.fillStyle="rgba(0,0,0,.45)"; ctx.fillRect(e.x-w/2,e.y-e.r*1.35,w,4); ctx.fillStyle="#f6c544"; ctx.fillRect(e.x-w/2,e.y-e.r*1.35,w*Math.max(0,e.hp/e.max),4) } }
     const actionLayer=()=>{
-    for(const b of g.eshots){ if(b.kind==="shock"){ drawShock(ctx,b,g.t); continue } if(!vis(b)) continue;
+    for(const b of g.eshots){ if(b.kind==="shock"){ drawShock(ctx,b,g.t); continue } if(b.kind==="beam"){ drawSigShot(ctx,b,g.t); continue } if(!vis(b)) continue; if(drawSigShot(ctx,b,g.t)) continue;
       if(b.kind==="wave"){ drawWave(ctx,b,g.t); continue }
-      if(b.th&&HDFX&&drawThemeShot(ctx,b,g.t)) continue;
+      if(b.th&&drawThemeShot(ctx,b,g.t)) continue;
       if(b.kind==="rock"){ ctx.save(); ctx.translate(b.x,b.y); ctx.rotate(g.t*8); ctx.fillStyle="#8d86a0"; ctx.beginPath(); ctx.moveTo(-14,-4); ctx.lineTo(-5,-14); ctx.lineTo(10,-11); ctx.lineTo(14,3); ctx.lineTo(4,13); ctx.lineTo(-11,9); ctx.closePath(); ctx.fill(); ctx.strokeStyle="#4d4760"; ctx.lineWidth=2; ctx.stroke(); ctx.restore() }
       else if(b.kind==="orb"){ ctx.globalAlpha=.3; ctx.fillStyle=b.col||"#c08bff"; ctx.beginPath(); ctx.arc(b.x,b.y,b.r+8+Math.sin(g.t*10)*2,0,7); ctx.fill(); ctx.globalAlpha=1; ctx.fillStyle=b.col||"#9a6bff"; ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill(); ctx.fillStyle="#f3e8ff"; ctx.beginPath(); ctx.arc(b.x-3,b.y-3,b.r*.4,0,7); ctx.fill() }
       else { ctx.fillStyle=b.kind==="fire"?"rgba(233,71,95,.35)":"rgba(140,200,80,.35)"; ctx.beginPath(); ctx.arc(b.x,b.y,b.r+5,0,7); ctx.fill(); ctx.fillStyle=b.col; ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill(); ctx.fillStyle="#fff4b0"; ctx.beginPath(); ctx.arc(b.x-2,b.y-2,b.r*.4,0,7); ctx.fill() } }

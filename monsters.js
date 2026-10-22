@@ -487,7 +487,7 @@ function drawRig(ctx,A,e,t,w,h){ const R=A.rig, W=A.im.width, H=A.im.height, s=w
 /* ===== 보스 움직임: 보스마다 걷기·날기·말달리기·기어가기·통통 튀기 + 공격 모션(기 모으기 → 내지르기) ===== */
 const BASIC_ATK={dash:1,stomp:1,rock:1,fire3:1};   // 기본 공격 (알림 없이 바로)
 function bossPose(e,t,px){
-  const want=px<e.x?-1:1; e.fs=e.fs===undefined?want:e.fs+(want-e.fs)*.12;   // 방향을 휙 바꾸지 않고 스르르
+  const want=Math.abs(px-e.x)<e.r*.4?(e.fsw||1):(px<e.x?-1:1); e.fsw=want; e.fs=e.fs===undefined?want:e.fs+(want-e.fs)*.12;   // 보스 바로 위에 있으면 방향을 바꾸지 않아요 (납작해지는 문제)   // 방향을 휙 바꾸지 않고 스르르
   // 실제로 움직인 거리로 속도 계산 (같이하기 친구 화면에서도 똑같이 움직여요)
   const ft=e._lt===undefined?0:Math.min(.1,Math.max(0,t-e._lt)); if(ft>0){ const v=Math.hypot(e.x-e._lx,e.y-e._ly)/ft; e._v=(e._v||0)+(Math.min(400,v)-(e._v||0))*Math.min(1,ft*6) } e._lt=t; e._lx=e.x; e._ly=e.y;
   const RG=RIGS[e.bid], mvT=RG?RG.move:(FLYERS[e.look]?"fly":"walk");
@@ -519,6 +519,26 @@ function bossPose(e,t,px){
   const ht=e.hitT!==undefined?t-e.hitT:9; if(ht<.14){ const k=1-ht/.14; ox+=-e.fs*R*.05*k; sx*=1-.03*k }
   e._rs={mv,walk:wp,fly:mvT==="fly",gallop:mvT==="gallop",atk,ft};
   return {sx,sy,rot,ox,oy,glow,face:e.fs} }
+/* 보스 기 모으기 · 내지르기 효과: 빛 알갱이가 빨려 들고 바닥 문양이 돌다가, 내지르는 순간 충격 고리와 먼지가 퍼져요 */
+function bossChargeFx(ctx,e,t){ const A=e.atk; if(!A) return; const u=t-A.t0, W=A.wind, r=e.r, fy=e.y+r*.95, [cl]=BOSS_COL[e.mapId]||BOSS_COL[5];
+  if(u<0||u>W+.4) return; ctx.save();
+  if(u<W){ const k=u/W, sp=A.sp?1:.5;
+    // 바닥 문양 (특수 공격만)
+    if(A.sp){ ctx.globalAlpha=Math.min(1,k*2)*(.55+.2*Math.sin(t*12)); ctx.strokeStyle=`rgba(${cl},1)`; ctx.lineWidth=3; const R=r*(1.25+.25*k), sk=.38;
+      ctx.beginPath(); ctx.ellipse(e.x,fy,R,R*sk,0,0,7); ctx.stroke(); ctx.lineWidth=1.6; ctx.setLineDash([R*.18,R*.1]); ctx.lineDashOffset=-t*R*.6; ctx.beginPath(); ctx.ellipse(e.x,fy,R*.8,R*.8*sk,0,0,7); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); for(let i=0;i<6;i++){ const a=t*1.2+i*2.0944, b=a+2.0944; ctx.moveTo(e.x+Math.cos(a)*R*.8,fy+Math.sin(a)*R*.8*sk); ctx.lineTo(e.x+Math.cos(b)*R*.8,fy+Math.sin(b)*R*.8*sk) } ctx.stroke() }
+    // 빨려 드는 빛 줄기
+    ctx.globalAlpha=1; ctx.globalCompositeOperation="lighter"; const n=A.sp?12:6; ctx.lineCap="round";
+    for(let i=0;i<n;i++){ const ph=(u*(1.6+sp)+i/n)%1, a=i*2.39996+e.wob, d=r*(2.7-2.1*ph), L=r*.32*(.5+ph);
+      const cx=e.x, cy=e.y-r*.2, x1=cx+Math.cos(a)*d, y1=cy+Math.sin(a)*d*.75, x2=cx+Math.cos(a)*(d-L), y2=cy+Math.sin(a)*(d-L)*.75;
+      ctx.strokeStyle=`rgba(${cl},${.75*ph*Math.min(1,k*3)})`; ctx.lineWidth=3.2*ph+.6; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+      ctx.fillStyle=`rgba(255,255,255,${.8*ph*Math.min(1,k*3)})`; ctx.beginPath(); ctx.arc(x2,y2,1.4+ph*1.6,0,7); ctx.fill() } }
+  else { const q=(u-W)/.4, R=r*(1.1+q*2.3), sk=.38;
+    ctx.globalCompositeOperation="lighter"; ctx.strokeStyle=`rgba(${cl},${.8*(1-q)})`; ctx.lineWidth=10*(1-q)+1; ctx.beginPath(); ctx.ellipse(e.x,fy,R,R*sk,0,0,7); ctx.stroke();
+    ctx.strokeStyle=`rgba(255,255,255,${.7*(1-q)})`; ctx.lineWidth=3*(1-q); ctx.beginPath(); ctx.ellipse(e.x,fy,R*.85,R*.85*sk,0,0,7); ctx.stroke();
+    ctx.globalCompositeOperation="source-over";
+    for(let i=0;i<8;i++){ const a=i*.785+.3, d=r*(.9+q*1.4); ctx.fillStyle=`rgba(190,180,165,${.38*(1-q)})`; ctx.beginPath(); ctx.arc(e.x+Math.cos(a)*d,fy+Math.sin(a)*d*sk-q*r*.25,r*(.12+q*.22),0,7); ctx.fill() } }
+  ctx.restore() }
 /* 특수 공격 알림: 「⚠ 기술 이름」 말풍선 + 남은 시간 고리 */
 function bossWarn(ctx,e,t){ const A=e.atk; if(!A||!A.sp) return; const u=t-A.t0; if(u>A.wind+.15) return;
   const k=Math.min(1,u/A.wind), a=u<.12?u/.12:u>A.wind?1-(u-A.wind)/.15:1, y=Math.min(e.y-e.r*1.4,(e._artTop!==undefined?e._artTop:e.y-e.r*2.6))-24, ult=A.ult;
@@ -538,11 +558,14 @@ function bossWarn(ctx,e,t){ const A=e.atk; if(!A||!A.sp) return; const u=t-A.t0;
   ctx.save(); ctx.globalAlpha=.35+.3*Math.sin(t*16); ctx.strokeStyle=ult?"#ffd36a":"#ff4a4a"; ctx.lineWidth=3; ctx.setLineDash([10,8]); ctx.lineDashOffset=-t*40;
   ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*(1.6+k*.6),e.r*(.5+k*.2),0,0,7); ctx.stroke(); ctx.restore() }
 function drawMonster(ctx,e,t,px,py){
-  if(e.type==="boss"){ const Q=bossPose(e,t,px); bossUnder(ctx,e,t);
-    if(Q.glow>0){ const [cl]=BOSS_COL[e.mapId]||BOSS_COL[5]; ctx.save(); ctx.globalCompositeOperation="lighter"; const g=ctx.createRadialGradient(e.x,e.y,e.r*.2,e.x,e.y,e.r*2.2); g.addColorStop(0,`rgba(${cl},${.45*Q.glow})`); g.addColorStop(1,`rgba(${cl},0)`); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(e.x,e.y,e.r*2.2,0,7); ctx.fill();
-      ctx.strokeStyle=`rgba(255,255,255,${.6*Q.glow})`; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(e.x,e.y,e.r*(1.8-Q.glow*.7),0,7); ctx.stroke(); ctx.restore() }
+  if(e.type==="boss"&&e.hidden){ drawBossMound(ctx,e,t); return }
+  if(e.type==="boss"&&(e.air||e.airH>0)){ const h=e.airH!==undefined&&e.airH>0?e.airH:70; ctx.save(); ctx.fillStyle="rgba(0,0,0,.28)"; ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*(1.1-h/400),e.r*.35*(1.1-h/400),0,0,7); ctx.fill(); ctx.restore(); ctx.save(); ctx.translate(0,-h); }
+  if(e.type==="boss"){ const Q=bossPose(e,t,px); if(e.spin){ const cs=Math.cos(t*15); Q.sx*=Math.sign(cs||1)*Math.max(.25,Math.abs(cs)); Q.oy=(Q.oy||0)-Math.abs(Math.sin(t*15))*e.r*.12 } bossUnder(ctx,e,t);
+    if(Q.glow>0){ const [cl]=BOSS_COL[e.mapId]||BOSS_COL[5]; ctx.save(); ctx.globalCompositeOperation="lighter"; const g=ctx.createRadialGradient(e.x,e.y,e.r*.2,e.x,e.y,e.r*2.2); g.addColorStop(0,`rgba(${cl},${.4*Q.glow})`); g.addColorStop(1,`rgba(${cl},0)`); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(e.x,e.y,e.r*2.2,0,7); ctx.fill(); ctx.restore() }
+    bossChargeFx(ctx,e,t);
     const fy=e.y+e.r*.95; ctx.save(); ctx.translate(e.x+Q.ox,fy+Q.oy); ctx.rotate(Q.rot); ctx.scale(Q.sx,Q.sy); ctx.translate(-e.x,-fy);
-    e._pose=Q; drawMonsterRaw(ctx,e,t,px,py,true); ctx.restore(); bossOver(ctx,e,t,!!artOf(e)); bossWarn(ctx,e,t); return }
+    e._pose=Q; drawMonsterRaw(ctx,e,t,px,py,true); ctx.restore(); bossOver(ctx,e,t,!!artOf(e)); bossWarn(ctx,e,t);
+    if(e.dizzy>0||e.dizzyF) drawDizzy(ctx,e,t); if(e.air||e.airH>0) ctx.restore(); return }
   drawMonsterRaw(ctx,e,t,px,py,false) }
 /* ===== 일반 몬스터 그림 (선생님이 보내 준 그림) · 몬스터마다 움직임이 달라요 =====
    hop: 통통 뛰기 · fly: 날갯짓하며 둥실 · sway: 줄기째 흔들흔들 · scuttle: 다다닥 · trot: 네 발로 총총 · march: 씩씩하게 걷기 */
@@ -1231,46 +1254,46 @@ Object.assign(FLYERS,{icesprite:1,drumling:1,nebula:1,comet:1});
 /* ===== 보스 스킬표: 맵이 높을수록 · 센 보스일수록 스킬이 많고 강해요 =====
    [기술 종류, 이름] · 최종 보스는 체력 50% 아래에서 「필살기(ult)」를 한 번 써요 */
 const BOSS_SKILLS = {
-  1:[ {k:[["stomp","껍데기 굴리기"],["summon","새끼 달팽이 부르기"]]},
-      {k:[["dash","독침 돌진"],["orbs","꽃가루 구슬"],["summon","벌떼 부르기"]]},
-      {k:[["spore","독 포자"],["stomp","가시덩굴 내려찍기"],["ring","독액 분출"],["summon","슬라임 분열"]]},
-      {k:[["ring","꽃잎 폭풍"],["stomp","왕의 짓누르기"],["spore","꽃가루 독"],["orbs","꽃의 구슬"],["summon","왕실 슬라임"]], ult:["nova","꽃왕관의 대축제"]} ],
-  2:[ {k:[["dash","도토리 창 돌격"],["summon","도토리 병사 부르기"]]},
-      {k:[["dash","멧돼지 돌진"],["stomp","땅 박치기"],["rock","돌 차올리기"]]},
-      {k:[["spore","포자 구름"],["orbs","빛나는 포자"],["meteor","버섯 떨구기"],["summon","버섯 부르기"]]},
-      {k:[["meteor","뿌리 솟구치기"],["ring","잎사귀 폭풍"],["orbs","씨앗 폭탄"],["laser","덩굴 채찍"],["summon","숲의 부름"]], ult:["spiral","천년 숲의 분노"]} ],
-  3:[ {k:[["orbs","저주 연기"],["summon","깨진 항아리 부르기"]]},
-      {k:[["dash","모래 돌진"],["fire3","독침 연사"],["stomp","모래 폭풍"]]},
-      {k:[["rock","유적 돌 던지기"],["stomp","대지 울림"],["meteor","유적 낙석"],["ring","보랏빛 균열"]]},
-      {k:[["fire5","불꽃 갈기"],["dash","신수 돌진"],["meteor","하늘불 낙하"],["laser","해태의 눈빛"],["ring","수호의 포효"]], ult:["nova","해태의 심판"]} ],
-  4:[ {k:[["orbs","수정 조각"],["ring","수정 파편"],["summon","수정 요정 부르기"]]},
-      {k:[["dash","거미 도약"],["spore","독거미줄"],["orbs","독 알"],["summon","새끼 거미"]]},
-      {k:[["dash","어둠 활강"],["laser","초음파"],["orbs","박쥐 떼 구슬"],["ring","어둠의 날갯짓"],["summon","박쥐 떼"]]},
-      {k:[["laser","여의주 광선"],["ring","똬리 휘감기"],["meteor","수정 가시"],["dash","꼬리 휘두르기"],["spiral","수정 소용돌이"],["orbs","수정 구슬"]], ult:["cross","여의주 대폭발"]} ],
-  5:[ {k:[["dash","불꽃 돌진"],["fire3","불꽃 숨결"],["summon","사냥개 부르기"]]},
-      {k:[["dash","흑검 돌격"],["laser","흑검 베기"],["stomp","대검 내려찍기"],["ring","검기 폭풍"]]},
-      {k:[["fire5","화염 폭풍"],["meteor","화염 낙하"],["orbs","도깨비 불꽃"],["spiral","불꽃 회오리"],["summon","임프 부르기"]]},
-      {k:[["fire5","지옥불"],["laser","파멸의 광선"],["meteor","운석 비"],["spiral","불꽃 날개"],["ring","마왕의 포효"],["orbs","지옥 구슬"],["summon","마왕군 소환"]], ult:["nova","진홍의 종말"]} ],
-  6:[ {k:[["orbs","바람 구슬"],["ring","회오리 깃털"],["dash","돌풍 비행"]]},
-      {k:[["dash","폭풍 돌진"],["stomp","천둥 짓밟기"],["meteor","낙뢰"],["ring","먹구름 폭발"]]},
-      {k:[["laser","폭풍의 눈빛"],["spiral","눈의 소용돌이"],["meteor","번개 비"],["orbs","폭풍 구슬"],["ring","회오리 깃털"]]},
-      {k:[["dash","천풍 강하"],["laser","뇌광 깃털"],["spiral","대회오리"],["meteor","천둥 낙뢰"],["cross","번개 십자"],["orbs","폭풍 구슬"],["ring","폭풍의 날개"]], ult:["storm","천풍 대폭풍"]} ],
-  7:[ {k:[["laser","가면의 눈빛"],["orbs","빛의 머리칼"],["ring","빛 흩날리기"]]},
-      {k:[["dash","빛날개 강하"],["fire5","빛의 발톱"],["laser","날개 광선"],["meteor","빛 낙하"]]},
-      {k:[["stomp","석상 내려찍기"],["ring","빛의 충격파"],["meteor","성벽 붕괴"],["spiral","황금 소용돌이"],["dash","거인 돌진"]]},
-      {k:[["laser","빛의 검"],["cross","성스러운 십자"],["fire5","빛의 창"],["meteor","천상 포격"],["spiral","수호 결계"],["dash","수문장 돌격"],["ring","빛의 머리칼"]], ult:["nova","수문장의 심판"]} ],
-  8:[ {k:[["dash","얼음 송곳니"],["ring","서리 포효"],["summon","늑대 부르기"]]},
-      {k:[["stomp","얼음 주먹"],["rock","눈덩이 던지기"],["meteor","고드름 낙하"],["dash","설인 돌진"]]},
-      {k:[["spiral","얼음 결정 소용돌이"],["meteor","빙결 낙하"],["laser","빙결 광선"],["orbs","얼음 구슬"],["ring","눈보라"]]},
-      {k:[["laser","냉기 브레스"],["cross","여의주 냉광"],["spiral","오로라 소용돌이"],["meteor","고드름 폭우"],["dash","승천의 돌진"],["orbs","얼음 여의주"],["ring","눈보라 날개"]], ult:["storm","천공 대빙결"]} ],
-  9:[ {k:[["stomp","석사자 포효"],["ring","금빛 갈기"],["rock","석상 조각"],["summon","새끼 사자 부르기"]]},
-      {k:[["orbs","번개 북 구슬"],["meteor","북소리 낙뢰"],["spiral","북 고리 회전"],["dash","구름 타기"]]},
-      {k:[["dash","천둥 질주"],["laser","기린의 뿔빛"],["meteor","번개 발굽"],["spiral","번개 갈기"],["ring","천둥 울림"]]},
-      {k:[["meteor","번개 망치"],["cross","뇌신의 십자 번개"],["laser","천둥 광선"],["spiral","북 고리 폭풍"],["stomp","망치 내려치기"],["ring","천둥 북"],["orbs","뇌전 구슬"]], ult:["storm","신의 심판"]} ],
-  10:[ {k:[["dash","공허 할퀴기"],["fire5","별불꽃 날개"],["ring","공허 포효"],["summon","별 부스러기"]]},
-      {k:[["dash","성운 돌진"],["spiral","별 도끼 휘두르기"],["orbs","별 구슬"],["meteor","성운 낙하"],["laser","도끼 광선"]]},
-      {k:[["spiral","행성 공전"],["meteor","별똥별 낙하"],["orbs","중력 구슬"],["laser","천체 광선"],["cross","별자리 십자"],["ring","성좌 폭발"]]},
-      {k:[["pull","블랙홀"],["laser","종언의 낫"],["cross","종언의 십자"],["spiral","은하 소용돌이"],["meteor","별 비"],["nova","별의 소멸"],["orbs","공허 구슬"],["summon","지난 보스 불러내기"]], ult:["storm","우주의 종언"]} ],
+  1:[ {k:[["shellroll","껍데기 굴리기"],["summon","새끼 달팽이 부르기"]], sig:"🐌 껍데기 속에 숨어 데굴데굴 세 번 굴러와요. 굴러올 길이 빨간 띠로 보이니 옆으로 비켜요!"},
+      {k:[["dash","독침 돌진"],["beeswarm","벌떼 추격"],["summon","벌떼 부르기"]], sig:"🐝 벌 여섯 마리가 나를 쫓아와요. 벌은 느리니까 계속 움직이면 따돌릴 수 있어요!"},
+      {k:[["spore","독 포자"],["bigjump","점프 내려찍기"],["ring","독액 분출"],["summon","슬라임 분열"]], split:1, sig:"💚 높이 뛰어올라 내 자리에 쿵! 빨간 원에서 나와요. 체력이 절반이 되면 작은 슬라임 둘로 갈라져요."},
+      {k:[["ring","꽃잎 폭풍"],["bigjump3","왕의 3연속 점프"],["spore","꽃가루 독"],["orbs","꽃의 구슬"],["summon","왕실 슬라임"]], ult:["nova","꽃왕관의 대축제"], sig:"👑 세 번 연속으로 뛰어올라 내려찍어요. 빨간 원이 생기면 계속 옮겨 다녀요!"} ],
+  2:[ {k:[["dash","도토리 창 돌격"],["acornroll","도토리 굴리기"],["summon","도토리 병사 부르기"]], sig:"🌰 큰 도토리가 여러 줄로 굴러와요. 빨간 띠가 없는 빈 줄로 피해요!"},
+      {k:[["boarcharge","3연속 돌진"],["stomp","땅 박치기"],["rock","돌 차올리기"]], sig:"🐗 세 번 연속으로 돌진해요. 다 돌진하면 어지러워서 잠깐 멈춰요. 그때가 공격 기회!"},
+      {k:[["spore","포자 구름"],["orbs","빛나는 포자"],["mushfield","버섯 고리"],["summon","버섯 부르기"]], sig:"🍄 내 주위에 버섯이 동그랗게 자라나 펑 터져요. 가운데에 가만히 있으면 안전해요!"},
+      {k:[["rootcross","뿌리 솟구치기"],["ring","잎사귀 폭풍"],["orbs","씨앗 폭탄"],["laser","덩굴 채찍"],["summon","숲의 부름"]], ult:["spiral","천년 숲의 분노"], sig:"🌳 보스에게서 여섯 갈래로 뿌리가 솟아요. 빨간 줄 사이 빈 곳으로 피해요!"} ],
+  3:[ {k:[["orbs","저주 연기"],["jarbomb","항아리 던지기"],["summon","깨진 항아리 부르기"]], sig:"🏺 항아리를 던져요. 떨어진 곳에서 저주 연기가 터지니 빨간 원에서 나와요!"},
+      {k:[["burrow","모래 잠행"],["fire3","독침 연사"],["stomp","모래 폭풍"]], sig:"🦂 모래 속에 숨어 나를 따라와요. 모래 둔덕이 멈추면 바로 피해요! 튀어나온 뒤엔 잠깐 어지러워해요."},
+      {k:[["shellspin","등껍질 팽이"],["stomp","대지 울림"],["meteor","유적 낙석"],["ring","보랏빛 균열"]], sig:"🐢 등껍질 속에 숨어 빙글빙글 돌며 천천히 쫓아오고 돌 조각을 뿌려요. 계속 움직여요! 다 돌고 나면 어지러워해요."},
+      {k:[["fire5","불꽃 갈기"],["dash","신수 돌진"],["meteor","하늘불 낙하"],["laser","해태의 눈빛"],["maneflame","불꽃 갈기 안팎"]], ult:["nova","해태의 심판"], sig:"🔥 '멀리!'가 뜨면 보스에게서 떨어지고, '가까이!'가 뜨면 보스 곁으로 가요. 불꽃이 안쪽, 바깥쪽 차례로 터져요!"} ],
+  4:[ {k:[["orbs","수정 조각"],["crystalbeam","수정 기둥 광선"],["summon","수정 요정 부르기"]], sig:"💎 내 주위에 수정 기둥이 솟아 빛줄기를 쏴요. 빨간 줄이 보이면 줄 밖으로 비켜요!"},
+      {k:[["dash","거미 도약"],["webtrap","거미줄 던지기"],["orbs","독 알"],["summon","새끼 거미"]], sig:"🕸 거미줄 뭉치를 던져요. 바닥에 남은 거미줄을 밟으면 느려지니 돌아서 가요!"},
+      {k:[["dash","어둠 활강"],["batring","박쥐 고리"],["orbs","박쥐 떼 구슬"],["ring","어둠의 날갯짓"],["summon","박쥐 떼"]], sig:"🦇 박쥐 떼가 나를 동그랗게 둘러싸고 점점 좁혀 와요. 박쥐가 없는 빈틈으로 빠져나가요!"},
+      {k:[["pearlbounce","튕기는 여의주"],["ring","똬리 휘감기"],["meteor","수정 가시"],["dash","꼬리 휘두르기"],["spiral","수정 소용돌이"],["orbs","수정 구슬"]], ult:["cross","여의주 대폭발"], sig:"🔮 커다란 여의주가 벽에 튕기며 이리저리 날아다녀요. 여의주가 오는 방향을 보고 피해요!"} ],
+  5:[ {k:[["dash","불꽃 돌진"],["ghosthounds","유령 사냥개"],["summon","사냥개 부르기"]], sig:"🐺 세 방향에서 유령 사냥개가 일직선으로 달려와요. 빨간 줄이 보이면 줄 밖으로 비켜요!"},
+      {k:[["dash","흑검 돌격"],["triplecleave","3연속 부채 베기"],["stomp","대검 내려찍기"],["ring","검기 폭풍"]], sig:"⚔ 부채 모양으로 세 번 베어요. 빨간 부채가 보이면 보스 뒤쪽이나 옆으로 돌아가요!"},
+      {k:[["fire5","화염 폭풍"],["meteor","화염 낙하"],["orbs","도깨비 불꽃"],["firetiles","바둑판 불기둥"],["summon","임프 부르기"]], sig:"🔥 바닥이 바둑판처럼 번갈아 불타요. 빨간 칸이 보이면 빈 칸으로 옮겨요. 두 번 터져요!"},
+      {k:[["fire5","지옥불"],["laser","파멸의 광선"],["meteor","운석 비"],["safezone","진홍의 피난처"],["ring","마왕의 포효"],["orbs","지옥 구슬"],["summon","마왕군 소환"]], ult:["nova","진홍의 종말"], sig:"☄ 빛나는 원이 하나 생기고 하늘에서 불이 쏟아져요. 시간이 끝나기 전에 빛나는 원 안으로 들어가요!"} ],
+  6:[ {k:[["orbs","바람 구슬"],["vortex","빨아들이는 회오리"],["dash","돌풍 비행"]], sig:"🌪 회오리가 생겨 나를 빨아들여요. 회오리 반대쪽으로 계속 걸어요!"},
+      {k:[["dash","폭풍 돌진"],["stomp","천둥 짓밟기"],["stormcloud","따라오는 먹구름"],["ring","먹구름 폭발"]], sig:"⛈ 먹구름이 내 머리 위에 생겨 번개를 내려요. 그림자가 생기면 바로 자리를 옮겨요! 세 번 따라와요."},
+      {k:[["spinbeam","회전 번개 빛줄기"],["spiral","눈의 소용돌이"],["meteor","번개 비"],["orbs","폭풍 구슬"],["ring","회오리 깃털"]], sig:"⚡ 번개 빛줄기가 시계처럼 빙글빙글 돌아요. 멀리 떨어지거나 빛줄기와 같은 방향으로 돌며 피해요!"},
+      {k:[["dash","천풍 강하"],["laser","뇌광 깃털"],["spiral","대회오리"],["meteor","천둥 낙뢰"],["quadstrike","네 구역 낙뢰"],["orbs","폭풍 구슬"],["ring","폭풍의 날개"]], ult:["storm","천풍 대폭풍"], sig:"⚡ 보스 주위가 네 구역으로 나뉘고 초록색 한 곳만 안전해요. 초록 구역으로 들어가요! 두 번 반복돼요."} ],
+  7:[ {k:[["laser","가면의 눈빛"],["orbs","빛의 머리칼"],["lightmirror","빛의 거울"]], sig:"🪞 내 주위에 빛의 거울이 생겨 차례로 빛줄기를 쏴요. 빨간 줄이 보이면 줄 밖으로 비켜요!"},
+      {k:[["skydive","하늘 급강하"],["fire5","빛의 발톱"],["laser","날개 광선"],["meteor","빛 낙하"]], sig:"🪽 하늘로 날아올라 그림자가 나를 따라와요. 그림자가 멈추면 바로 옆으로 비켜요!"},
+      {k:[["stomp","석상 내려찍기"],["ring","빛의 충격파"],["pillarline","석상 기둥 무너뜨리기"],["spiral","황금 소용돌이"],["dash","거인 돌진"]], sig:"🗿 나를 향해 두 줄로 돌기둥이 차례차례 솟아요. 두 줄 사이나 바깥으로 피해요!"},
+      {k:[["laser","빛의 검"],["holyswords","빛의 검 십자"],["fire5","빛의 창"],["meteor","천상 포격"],["spiral","수호 결계"],["dash","수문장 돌격"],["ring","빛의 머리칼"]], ult:["nova","수문장의 심판"], sig:"⚔ 보스에게서 빛의 검이 십자(+) 모양, 그다음 X 모양으로 꽂혀요. 줄 사이 빈 곳으로 옮겨요!"} ],
+  8:[ {k:[["dash","얼음 송곳니"],["wolflanes","늑대 무리 질주"],["summon","늑대 부르기"]], sig:"🐺 얼음 늑대들이 여러 줄로 달려와요. 빨간 줄이 없는 빈 줄로 피해요!"},
+      {k:[["stomp","얼음 주먹"],["snowroll","거대 눈덩이 굴리기"],["meteor","고드름 낙하"],["dash","설인 돌진"]], sig:"⛄ 커다란 눈덩이가 벽에 튕기며 점점 커져요. 눈덩이가 오는 방향을 보고 피해요!"},
+      {k:[["frostmine","얼음 결정 폭발"],["meteor","빙결 낙하"],["laser","빙결 광선"],["orbs","얼음 구슬"],["ring","눈보라"]], sig:"❄ 내 자리와 주위에 얼음 결정이 박히고 십자(+) 모양으로 터져요. 결정과 빨간 줄에서 비스듬히 피해요!"},
+      {k:[["breathsweep","냉기 브레스 휩쓸기"],["cross","여의주 냉광"],["spiral","오로라 소용돌이"],["meteor","고드름 폭우"],["dash","승천의 돌진"],["orbs","얼음 여의주"],["ring","눈보라 날개"]], ult:["storm","천공 대빙결"], sig:"🐉 얼음 숨결이 부채 모양으로 휩쓸어요. 빨간 부채 밖으로 나가거나 보스 뒤로 돌아가요!"} ],
+  9:[ {k:[["stomp","석사자 포효"],["lionroar","사자후 3연발"],["rock","석상 조각"],["summon","새끼 사자 부르기"]], sig:"🦁 나를 향해 부채 모양으로 세 번 포효해요. 빨간 부채가 보일 때마다 옆으로 비켜요!"},
+      {k:[["orbs","번개 북 구슬"],["drumtiles","북소리 낙뢰"],["spiral","북 고리 회전"],["dash","구름 타기"]], sig:"🥁 북소리에 맞춰 바닥 칸마다 번개가 떨어져요. 세 번 모양이 바뀌니 빈 칸으로 계속 옮겨요!"},
+      {k:[["thunderdash","천둥 질주"],["laser","기린의 뿔빛"],["meteor","번개 발굽"],["spiral","번개 갈기"],["ring","천둥 울림"]], sig:"⚡ 세 번 돌진하고 지나간 길에 번개가 터져요. 돌진한 길에서 비켜요! 다 끝나면 어지러워해요."},
+      {k:[["meteor","번개 망치"],["tribeam","뇌신의 삼지창 번개"],["laser","천둥 광선"],["spiral","북 고리 폭풍"],["stomp","망치 내려치기"],["ring","천둥 북"],["orbs","뇌전 구슬"]], ult:["storm","신의 심판"], sig:"⚡ 번개 빛줄기 세 개가 보스 둘레를 천천히 돌아요. 빛줄기 사이 빈 곳을 따라 함께 돌아요!"} ],
+  10:[ {k:[["dash","공허 할퀴기"],["fire5","별불꽃 날개"],["voidclaw","차원 가르기"],["summon","별 부스러기"]], sig:"🌌 내 자리를 지나는 세 줄로 공간이 갈라져요. 줄이 차례로 터지니 빈 곳으로 옮겨요!"},
+      {k:[["dash","성운 돌진"],["axethrow","별 도끼 던지기"],["orbs","별 구슬"],["meteor","성운 낙하"],["laser","도끼 광선"]], sig:"🪓 별 도끼를 던졌다가 다시 받아요. 빨간 줄 밖으로 피하고 돌아올 때도 조심해요!"},
+      {k:[["planetring","행성 고리"],["meteor","별똥별 낙하"],["orbs","중력 구슬"],["laser","천체 광선"],["cross","별자리 십자"],["ring","성좌 폭발"]], sig:"🪐 행성들이 고리 모양으로 보스에게서 퍼져 나가요. 초록색 빈틈으로 빠져나가요!"},
+      {k:[["eventhorizon","사건의 지평선"],["laser","종언의 낫"],["cross","종언의 십자"],["spiral","은하 소용돌이"],["meteor","별 비"],["nova","별의 소멸"],["orbs","공허 구슬"],["summon","지난 보스 불러내기"]], ult:["storm","우주의 종언"], sig:"🌀 보스가 블랙홀처럼 끌어당기고 충격파가 두 번 퍼져요. 바깥으로 걸으며 충격파를 피해요!"} ],
 };
 /* 스킬 세기: 맵 높이 × 보스 단계 */
 const bossPow = (m,tier)=>({ n:1+(m-1)*.09+tier*.12, cd:Math.max(.55,1.12-(m-1)*.04-tier*.07), sp:1+(m-1)*.035+tier*.04 });
