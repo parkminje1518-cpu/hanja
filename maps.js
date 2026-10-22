@@ -532,3 +532,36 @@ function drawLava(ctx,x,y,r,s,t){
   for(let i=0;i<7;i++){ const ph=(t*.55+mhash(i,(s*1e4)|0,15))%1, px=x+(mhash(i,(s*1e4)|0,16)-.5)*r*1.4+Math.sin(t*2+i)*6, py=y-ph*90; ctx.fillStyle=`rgba(255,${200-ph*110|0},70,${1-ph})`; const z=ph<.5?4:3; ctx.fillRect(px-z/2,py-z/2,z,z) }
   ctx.restore();
 }
+/* ===== 날씨: 보스가 나타날 때마다 맵 분위기가 한 단계씩 바뀌어요 (0 평소 → 1 → 2 → 3 최종 결전) =====
+   [이름, 파티클 종류, 개수, 안개색] · 화면 위에 가볍게 그려요 */
+const WEATHER={
+  1:[null,["🌸 꽃잎 바람이 불어요","petal",40],["🌇 노을이 지고 꽃잎이 휘날려요","petal",80,"255,140,80,.10"],["🌙 밤이 내려앉았어요","firefly",50,"30,20,80,.22"]],
+  2:[null,["🍂 낙엽이 흩날려요","leaf",45],["🌧 비가 내려요","rain",110,"40,60,90,.12"],["⛈ 폭풍우가 몰아쳐요!","rain",200,"20,30,60,.22",1]],
+  3:[null,["🏜 모래바람이 불어요","sand",60,"220,170,100,.08"],["🌪 모래 폭풍이 다가와요","sand",140,"200,140,70,.16"],["☠ 저주의 안개가 깔려요!","sand",160,"80,20,90,.24"]],
+  4:[null,["💧 천장에서 물이 떨어져요","drip",30],["💎 수정이 붉게 빛나요","dust",60,"120,40,140,.10"],["🌑 깊은 어둠이 몰려와요!","dust",80,"0,0,10,.20",0,1]],
+  5:[null,["🔥 불씨가 날려요","ember",50],["🌋 재가 비처럼 내려요","ash",110,"120,30,10,.12"],["👹 마왕의 붉은 하늘!","ember",160,"150,0,20,.20",1]],
+  6:[null,["💨 바람이 거세져요","wind",50],["🌧 비바람이 몰아쳐요","rain",130,"40,60,110,.12"],["⛈ 천풍의 폭풍우!","rain",220,"20,20,70,.22",1]],
+  7:[null,["✨ 빛 가루가 흩날려요","mote",50],["☁ 구름이 몰려와요","cloud",14,"200,210,230,.10"],["🌆 황혼의 하늘성!","mote",90,"120,40,80,.18"]],
+  8:[null,["❄ 눈이 내려요","snow",70],["🌨 눈보라가 불어요","snow",170,"220,235,255,.12"],["🌬 거센 눈보라!","blizzard",260,"235,245,255,.22"]],
+  9:[null,["✨ 신성한 빛이 내려와요","mote",60],["⚡ 하늘에서 번개가 쳐요","rain",90,"60,60,110,.12",1],["⛈ 뇌신의 폭풍!","rain",180,"30,20,70,.22",1]],
+  10:[null,["🌠 별똥별이 흘러요","star",60],["☄ 유성우가 쏟아져요","meteor",40,"60,20,90,.10"],["🌌 붉은 성운이 덮쳐요!","meteor",70,"140,20,60,.20",0,1]]};
+function wr(i,k){ const v=Math.sin(i*127.1+k*311.7)*43758.5453; return v-Math.floor(v) }
+function drawWeather(c,map,ph,t,W,H,camX,camY,fade){ const D=(WEATHER[map.id]||[])[Math.min(3,ph)]; if(!D) return; const [,kind,n0,fog,bolt,vig]=D, n=Math.round(n0*Math.min(1,fade*1.5));
+  c.save();
+  if(fog){ const [r,g,b,a]=fog.split(","); c.fillStyle=`rgba(${r},${g},${b},${(+a)*fade})`; c.fillRect(0,0,W,H) }
+  const px=camX*.35, py=camY*.35;
+  for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3);
+    if(kind==="rain"){ const sp=900+s3*400, x=((s1*W*1.3-t*sp*.25-px)%(W*1.3)+W*1.3)%(W*1.3)-W*.15, y=((s2*H+t*sp-py)%(H+60)+H+60)%(H+60)-30; c.strokeStyle="rgba(200,220,255,.6)"; c.lineWidth=1.6; c.beginPath(); c.moveTo(x,y); c.lineTo(x-6,y+22); c.stroke() }
+    else if(kind==="snow"||kind==="blizzard"){ const bz=kind==="blizzard", sp=(bz?160:50)+s3*60, x=((s1*W+(bz?-t*380:Math.sin(t+i)*20)-px)%W+W)%W, y=((s2*H+t*sp-py)%H+H)%H, r=1.4+s3*2.6; if(bz){ c.strokeStyle="rgba(110,140,190,.45)"; c.lineWidth=r+1.6; c.beginPath(); c.moveTo(x,y); c.lineTo(x+14+s3*18,y-4); c.stroke(); c.strokeStyle="rgba(255,255,255,.95)"; c.lineWidth=r; c.stroke() } else { c.fillStyle="rgba(110,140,190,.5)"; c.beginPath(); c.arc(x,y+.6,r+1.1,0,7); c.fill(); c.fillStyle="#fff"; c.beginPath(); c.arc(x,y,r,0,7); c.fill() } }
+    else if(kind==="petal"||kind==="leaf"){ const x=((s1*W-t*(40+s3*50)-px)%W+W)%W, y=((s2*H+t*(30+s3*30)-py)%H+H)%H, a=t*2+i; c.save(); c.translate(x,y); c.rotate(a); c.scale(1,.5+.5*Math.sin(t*3+i)); c.fillStyle=kind==="petal"?(i%2?"rgba(255,170,200,.85)":"rgba(255,220,235,.85)"):(i%3?"rgba(200,120,40,.85)":"rgba(230,170,60,.85)"); c.beginPath(); c.ellipse(0,0,5,3,0,0,7); c.fill(); c.restore() }
+    else if(kind==="sand"){ const x=((s1*W*1.2+t*(380+s3*260)-px)%(W*1.2)+W*1.2)%(W*1.2)-W*.1, y=((s2*H-py*.5)%H+H)%H+Math.sin(t*3+i)*8; c.strokeStyle=`rgba(230,190,120,${.25+s3*.3})`; c.lineWidth=1.5; c.beginPath(); c.moveTo(x,y); c.lineTo(x-16-s3*20,y); c.stroke() }
+    else if(kind==="wind"){ const x=((s1*W*1.4+t*(520+s3*200)-px)%(W*1.4)+W*1.4)%(W*1.4)-W*.2, y=((s2*H-py*.5)%H+H)%H; c.strokeStyle="rgba(230,250,255,.35)"; c.lineWidth=2; c.beginPath(); c.moveTo(x,y); c.quadraticCurveTo(x-30,y-6,x-70,y+2); c.stroke() }
+    else if(kind==="ember"||kind==="ash"){ const up=kind==="ember", x=((s1*W+Math.sin(t*1.5+i)*20-px)%W+W)%W, y=((s2*H+(up?-1:1)*t*(40+s3*60)-py)%H+H)%H; c.fillStyle=up?`rgba(255,${140+s3*100|0},60,${.5+s3*.5})`:`rgba(90,80,80,${.5+s3*.3})`; c.fillRect(x,y,up?2.5:3,up?2.5:3) }
+    else if(kind==="firefly"||kind==="mote"||kind==="dust"){ const x=((s1*W+Math.sin(t*.7+i)*30-px*.5)%W+W)%W, y=((s2*H+Math.cos(t*.6+i)*25-(kind==="mote"?t*20:0)-py*.5)%H+H)%H, a=.4+.6*Math.abs(Math.sin(t*2+i)); c.fillStyle=kind==="firefly"?`rgba(220,255,120,${a})`:kind==="mote"?`rgba(255,240,180,${a})`:`rgba(220,200,255,${a*.6})`; c.beginPath(); c.arc(x,y,kind==="dust"?1.5:2.4,0,7); c.fill() }
+    else if(kind==="drip"){ const ph=(t*.5+s3)%1, x=s1*W, y=s2*H*.8+ph*80; c.fillStyle=`rgba(170,220,255,${1-ph})`; c.fillRect(x,y,2,6) }
+    else if(kind==="cloud"){ const x=((s1*W*1.5+t*30-px*.6)%(W*1.5)+W*1.5)%(W*1.5)-W*.25, y=s2*H; c.fillStyle="rgba(255,255,255,.18)"; c.beginPath(); c.ellipse(x,y,90+s3*60,30+s3*15,0,0,7); c.fill() }
+    else if(kind==="star"||kind==="meteor"){ if(kind==="star"||i<n*.5){ const x=((s1*W-px*.2)%W+W)%W, y=((s2*H-py*.2)%H+H)%H, a=.3+.7*Math.abs(Math.sin(t*1.5+i)); c.fillStyle=`rgba(255,255,230,${a})`; c.fillRect(x,y,2,2) }
+      else { const ph=(t*.35+s3)%1, x=s1*W*1.2-ph*W*.5, y=s2*H*.6+ph*H*.4; c.strokeStyle=`rgba(255,220,180,${(1-ph)*.9})`; c.lineWidth=2; c.beginPath(); c.moveTo(x,y); c.lineTo(x+40,y-24); c.stroke() } } }
+  if(bolt){ const lt=(t*.37)%5; if(lt<.08||(lt>.18&&lt<.24)){ c.fillStyle="rgba(235,235,255,.28)"; c.fillRect(0,0,W,H) } }
+  if(vig){ const g=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.7); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,`rgba(0,0,0,${.45*fade})`); c.fillStyle=g; c.fillRect(0,0,W,H) }
+  c.restore() }

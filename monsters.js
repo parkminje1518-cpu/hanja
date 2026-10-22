@@ -453,8 +453,8 @@ loadBossArt();
 const artOf = e=>BOSS_ART[e.bid]||BOSS_ART[e.look];
 function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   // 단계별 최대 크기 (약한 185 · 중간 215 · 강한 250 · 최종 295 픽셀 높이) · 강할수록 위엄 있게
-  const tier=bossTier(e), MAXH=[185,215,250,295][Math.min(3,tier)], MAXW=MAXH*1.3;
-  const r=e.r, fs=e._pose?e._pose.face:(px<e.x?-1:1); let w=r*A.w*.8, h=w*A.im.height/A.im.width; const sc=Math.min(1,MAXH/h,MAXW/w); w*=sc; h*=sc; const y0=e.y+r*.95+A.dy*r; e._artTop=y0-h;
+  const tier=bossTier(e), MAXH=[225,260,300,350][Math.min(3,tier)], MAXW=MAXH*1.3;
+  const r=e.r, fs=e._pose?e._pose.face:(px<e.x?-1:1); let w=r*A.w*.85, h=w*A.im.height/A.im.width; const sc=Math.min(1,MAXH/h,MAXW/w); w*=sc; h*=sc; const y0=e.y+r*.95+A.dy*r; e._artTop=y0-h;
   if(!A.rig&&!A.noRig){ const key=RIGS[e.bid]?e.bid:null; if(key) try{ buildRig(key,A) }catch(err){ A.noRig=1 } else A.noRig=1 }
   ctx.save(); ctx.translate(e.x,y0); if(A.face) ctx.scale(Math.sign(fs*A.face)*Math.max(.15,Math.abs(fs)),1);
   const paint=()=>{ if(A.rig) drawRig(ctx,A,e,t,w,h); else ctx.drawImage(A.im,-w/2,-h,w,h) };
@@ -1460,7 +1460,7 @@ function heroRigOf(img){ const key=img.src.length+":"+img.src.slice(-40); if(HRI
     const base=document.createElement("canvas"); base.width=W; base.height=H; const bx=base.getContext("2d"); bx.filter="blur(2px) brightness(.7)"; bx.drawImage(cut(0,hip-2,W,hip+(bot-hip)*.45),0,0); R.base=base;
     return HRIG[key]=R }catch(e){ return HRIG[key]=null } }
 const HERO_POSE={ // [준비 시간 비율, 준비: 각도·앞뒤·위아래·가로늘림, 공격: 각도·앞뒤·위아래·가로늘림]
-  sword:[.34,-11,-5,0,.94, 15,11,0,1.12], arrow:[.55,-5,-5,0,.97, 3,2,0,1.03], star:[.3,-13,-3,-1,.95, 17,8,0,1.1], fireball:[.45,-6,-2,-7,.95, 9,8,0,1.08], gun:[0,0,0,0,1, -9,-6,-1,.96] };
+  sword:[.34,-11,-5,0,.94, 15,11,0,1.12], arrow:[.55,-5,-5,0,.97, 3,2,0,1.03], star:[.3,-13,-3,-1,.95, 17,8,0,1.1], fireball:[.45,-6,-2,-7,.95, 9,8,0,1.08], gun:[0,0,0,0,1, -9,-6,-1,.96], moon:[.4,-5,-2,-6,.96, 7,5,0,1.05], brush:[.3,-14,-5,0,.94, 18,10,0,1.12], charm:[.3,-12,-3,-1,.95, 15,7,0,1.08], punch:[.28,-4,-7,0,.95, 6,13,0,1.14] };
 function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
   const s=SZ/R.W, D=Math.PI/180, dt=Math.min(.05,st.dt||0);
   const S=st.S||(st.S={a:0,va:0,x:0,vx:0,y:0,vy:0,k:1,vk:0,l:0,vl:0,r:0,vr:0,ly:0,vly:0,ry:0,vry:0,h:[]});
