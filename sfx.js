@@ -118,6 +118,11 @@ const SND = (()=>{
     m3:{bpm:108, ch:[[57,60,64],[53,57,60],[55,59,62],[52,55,59]], lead:"square", bass:"triangle", drum:2, seed:31},
     m4:{bpm:84,  ch:[[62,65,69],[58,62,65],[60,64,67],[57,61,64]], lead:"sine", vib:1, bass:"sawtooth", drum:1, seed:41, dark:1},
     m5:{bpm:138, ch:[[52,55,59],[53,57,60],[52,55,59],[50,53,57]], lead:"sawtooth", bass:"sawtooth", drum:3, seed:51, dark:1},
+    m6:{bpm:132, ch:[[57,61,64],[62,66,69],[59,62,66],[64,68,71]], lead:"square", vib:1, bass:"sawtooth", drum:3, seed:61},
+    m7:{bpm:120, ch:[[60,64,67],[65,69,72],[67,71,74],[64,67,71]], lead:"triangle", bass:"sawtooth", drum:2, seed:71},
+    m8:{bpm:104, ch:[[62,66,69],[59,62,66],[57,61,64],[64,67,71]], lead:"sine", vib:1, bass:"triangle", drum:1, seed:81},
+    m9:{bpm:126, ch:[[60,64,67],[62,65,69],[65,69,72],[67,71,74]], lead:"square", bass:"sawtooth", drum:3, seed:91},
+    m10:{bpm:140, ch:[[57,60,64],[53,57,60],[55,58,62],[52,55,59]], lead:"sawtooth", vib:1, bass:"sawtooth", drum:3, seed:101, dark:1},
   };
   function mkMelody(T){ let r=T.seed*9301+49297; const rnd=()=>((r=(r*9301+49297)%233280)/233280);
     const RH=[[1,0,0,1,0,0,1,0,1,0,1,0,0,0,1,0],[1,0,1,0,1,0,0,0,1,0,1,1,1,0,0,0],[1,0,0,0,1,0,1,0,1,0,0,1,0,1,0,0],[1,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0]];
