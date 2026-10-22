@@ -112,6 +112,7 @@ function gameLobby(){
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
         <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         <small>${lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
+    ${mapGuideHtml(typeof NET!=="undefined"&&NET.role==="client"&&netInRoom()?(NET.map||1):(P.set.map||1))}
     <button class="big red" id="go" ${why?"disabled":""}>코인 ${GAME_COST}개 내고 ${mapById(P.set.map||1).name} 입장</button>
     ${why?`<p class="needmsg">${why}</p>`:""}
   </section>`;
@@ -123,6 +124,23 @@ function gameLobby(){
   document.getElementById("go").onclick = ()=>{ if(payGame()) startGame(); };
   if(typeof mpBind==="function"){ mpBind(); if(netInRoom()) document.getElementById("go").style.display="none" }
 }
+
+/* ===== 맵 도감: 들어가기 전에 풍경 · 몬스터 · 보스 · 조심할 것을 보여 줘요 ===== */
+const MAP_HAZ={1:"",2:"",3:"",4:"",5:"🔥 용암 웅덩이를 밟으면 계속 다쳐요. 길을 잘 봐요!",6:"🌪 회오리바람이 돌아다니며 끌어당겨요. 가끔 거센 돌풍이 몸을 밀어내요.",7:"💣 성벽 대포가 빨간 원 자리에 포탄을 떨어뜨려요. 성벽 때문에 길이 좁아요.",
+  8:"🧊 빙판 위에서는 미끄러져요. 하늘에서 고드름이 떨어져요.",9:"⚡ 「신의 심판」이 오면 빛나는 원 안으로 빨리 들어가요!",10:"🌌 블랙홀이 모든 것을 끌어당기고, 별똥별이 쏟아져요."};
+function mobThumb(mid,x){ try{ const c=document.createElement("canvas"); c.width=c.height=96; const k=c.getContext("2d"); const e={x:48,y:52,r:24,look:x.look,c:x.c,mapId:mid,wob:0,flash:0,type:"mob",born:-9,stun:0,hp:1,max:1};
+  (LOOKS[x.look]||LOOKS.slime)(k,e,.3,200,52); if(EXTRA[x.look]) EXTRA[x.look](k,e,.3,200,52); return c.toDataURL() }catch(err){ return "" } }
+const SIZE_TXT={small:"작고 날쌔요",normal:"보통",fast:"아주 빨라요",tough:"튼튼해요",big:"크고 아주 튼튼해요"};
+function mapGuideHtml(mid){ const m=mapById(mid), F=typeof FLOOR_FILES!=="undefined"&&FLOOR_FILES[mid], MA=typeof MOB_ART_FILES!=="undefined"?MOB_ART_FILES:{}, BA=typeof BOSS_ART_FILES!=="undefined"?BOSS_ART_FILES:{};
+  const seen=new Set(), mobs=(MOBS[mid]||[]).filter(x=>{ const k=x.look+x.name; if(seen.has(k)) return false; seen.add(k); return true });
+  const mobH=mobs.map(x=>{ const src=MA[mid+":"+x.look]||mobThumb(mid,x); return `<div class="mgMob">${src?`<img src="${src}" alt="">`:`<span class="mgNo">?</span>`}<b>${x.name}</b><small>${SIZE_TXT[x.size]||""}${x.from?` · ${x.from}초부터`:" · 처음부터"}</small></div>` }).join("");
+  const bossH=(STAGE[mid]||[]).map((k,i)=>{ const B=BOSSES[k]||{}, A=BA[k], S=typeof BOSS_SKILLS!=="undefined"&&BOSS_SKILLS[mid]&&BOSS_SKILLS[mid][i];
+    const sk=S?S.k.map(x=>x[1]).join(" · "):""; return `<div class="mgBoss t${i}"><div class="mgBimg">${A?`<img src="${A.src}" alt="">`:""}</div><em>${B.tn||["약한 보스","중간 보스","강한 보스","최종 보스"][i]}</em><b>${B.name||""}</b>${sk?`<small>기술: ${sk}</small>`:""}${S&&S.ult?`<small class="ult">필살기: ${S.ult[1]}</small>`:""}</div>` }).join("");
+  return `<section class="mapGuide" style="--m1:${m.sky[0]};--m2:${m.sky[1]}">
+    <div class="mgTop" ${F?`style="background-image:linear-gradient(90deg,rgba(0,0,0,.65),rgba(0,0,0,.15)),url(${F})"`:""}><span class="mgStep">📖 맵 도감 · ${m.id}단계</span><strong>${m.name}</strong><p>${m.desc}</p>${MAP_HAZ[mid]?`<p class="mgHaz">${MAP_HAZ[mid]}</p>`:`<p class="mgHaz ok">🌼 위험한 땅이 없어요. 몬스터만 조심해요!</p>`}</div>
+    <h3>나오는 몬스터</h3><div class="mgMobs">${mobH}</div>
+    <h3>보스 (차례대로 나와요)</h3><div class="mgBosses">${bossH}</div>
+  </section>` }
 function payGame(){
   const d=day();
   if(d.plays>=DAILY_PLAYS || P.coins<GAME_COST) return false;

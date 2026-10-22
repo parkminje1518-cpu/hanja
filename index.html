@@ -623,6 +623,24 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .mapc{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border-radius:14px;padding:12px 10px;min-height:150px;border:3px solid var(--line);
   background:linear-gradient(160deg,var(--m1),var(--m2));color:#1b1530;box-shadow:0 5px 0 rgba(0,0,0,.35)}
 .mapc.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(246,197,68,.35),0 5px 0 rgba(0,0,0,.35)}
+.mapGuide{margin:14px 0;border-radius:16px;overflow:hidden;border:3px solid var(--line);background:#1f1b33;color:#f3effd}
+.mapGuide h3{font-family:var(--f-title);font-weight:400;font-size:19px;margin:12px 14px 6px}
+.mgTop{padding:16px;background:linear-gradient(135deg,var(--m1),var(--m2));background-size:cover;background-position:center}
+.mgTop strong{display:block;font-family:var(--f-title);font-weight:400;font-size:28px;text-shadow:0 2px 0 rgba(0,0,0,.5)}
+.mgTop p{margin:4px 0 0;font-size:15px;line-height:1.45;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+.mgStep{font-size:12px;background:rgba(0,0,0,.45);border-radius:20px;padding:2px 10px}
+.mgHaz{display:inline-block;margin-top:8px!important;background:rgba(200,40,40,.75);border-radius:10px;padding:4px 10px}.mgHaz.ok{background:rgba(40,140,80,.75)}
+.mgMobs{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:0 14px}
+.mgMob{display:flex;flex-direction:column;align-items:center;text-align:center;background:rgba(255,255,255,.07);border-radius:12px;padding:8px 4px}
+.mgMob img{height:64px;max-width:96px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}.mgNo{height:64px;display:grid;place-items:center;font-size:28px;opacity:.5}
+.mgMob b{font-size:14px;margin-top:4px}.mgMob small{font-size:11px;opacity:.8}
+.mgBosses{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:0 14px 14px}
+@media (max-width:820px){.mgBosses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mgBoss{display:flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;padding:8px;background:rgba(255,255,255,.07);border:2px solid transparent}
+.mgBoss.t3{border-color:#f6c544;background:rgba(246,197,68,.12)}
+.mgBimg{height:110px;display:flex;align-items:flex-end}.mgBimg img{max-height:110px;max-width:100%;object-fit:contain;filter:drop-shadow(0 4px 3px rgba(0,0,0,.6))}
+.mgBoss em{font-style:normal;font-size:12px;background:#5a4a9a;border-radius:8px;padding:1px 8px;margin-top:6px}.mgBoss.t3 em{background:#b8871a}
+.mgBoss b{font-size:15px;margin:4px 0 2px;line-height:1.25}.mgBoss small{font-size:11px;line-height:1.35;opacity:.85}.mgBoss small.ult{color:#ffd36a;opacity:1}
 .mapc.mlock{filter:grayscale(.85) brightness(.55)}
 .mapc .mstep{font-family:var(--f-px);font-size:9px;opacity:.75}
 .realmHead{display:flex;align-items:baseline;gap:10px;margin:14px 0 6px;font-family:var(--f-ui)}
@@ -830,16 +848,16 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10221456"></script>
-<script src="jobs.js?v=10221456"></script>
-<script src="maps.js?v=10221456"></script>
-<script src="art.js?v=10221456"></script>
-<script src="monsters.js?v=10221456"></script>
-<script src="jobfx.js?v=10221456"></script>
-<script src="words.js?v=10221456"></script>
-<script src="sfx.js?v=10221456"></script>
+<script src="sprites.js?v=10221504"></script>
+<script src="jobs.js?v=10221504"></script>
+<script src="maps.js?v=10221504"></script>
+<script src="art.js?v=10221504"></script>
+<script src="monsters.js?v=10221504"></script>
+<script src="jobfx.js?v=10221504"></script>
+<script src="words.js?v=10221504"></script>
+<script src="sfx.js?v=10221504"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10221456"></script>
+<script src="mp.js?v=10221504"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1437,7 +1455,8 @@ function jobExam(id,back){
   let list=[]; while(list.length<5) list.push(...shuffle(src)); list=list.slice(0,5);
   const qs=list.map(makeQ); let i=0, right=0;
   modal.dataset.dismiss="no";
-  function draw(){
+  if(isAdmin()){ setTimeout(()=>end(),0); }   // 선생님: 전직 시험 없이 바로 전직
+  function draw(){ if(isAdmin()) return;
     const q=qs[i];
     openModal(`<div class="eyebrow">${TIER_NAME[next]} 시험</div><h3 style="font-size:26px">${J.titles[next]}이(가) 되려면?</h3>
       <div class="row" style="justify-content:center;gap:16px"><span class="meta">${i+1} / 5번</span><span class="meta">맞힌 개수 ${right} (4개면 통과)</span></div>
@@ -1451,7 +1470,7 @@ function jobExam(id,back){
     });
   }
   function end(){
-    const pass=right>=4;
+    const pass=right>=4||isAdmin();
     if(pass){ s.tier=next; saveP(); refreshHeroSprites(h=>((P.hl||{})[h]||{}).tier); sfx("jobup"); setTimeout(()=>stamp("전직!"),150) }
     const sk=J.skills[next-1];
     openModal(pass?`<div class="eyebrow">CLASS UP</div><h3>${TIER_NAME[next]} 성공!</h3>
@@ -2027,4 +2046,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10221456"></script>
+<script src="game.js?v=10221504"></script>
