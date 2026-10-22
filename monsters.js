@@ -452,8 +452,8 @@ function loadBossArt(){ for(const k in BOSS_ART_LIST){ const o=BOSS_ART_LIST[k],
 loadBossArt();
 const artOf = e=>BOSS_ART[e.bid]||BOSS_ART[e.look];
 function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
-  // 화면을 가리지 않게: 단계별 최대 크기 (약한 150 · 중간 175 · 강한 200 · 최종 235 픽셀 높이)
-  const tier=bossTier(e), MAXH=[150,175,200,235][Math.min(3,tier)], MAXW=MAXH*1.25;
+  // 단계별 최대 크기 (약한 185 · 중간 215 · 강한 250 · 최종 295 픽셀 높이) · 강할수록 위엄 있게
+  const tier=bossTier(e), MAXH=[185,215,250,295][Math.min(3,tier)], MAXW=MAXH*1.3;
   const r=e.r, fs=e._pose?e._pose.face:(px<e.x?-1:1); let w=r*A.w*.8, h=w*A.im.height/A.im.width; const sc=Math.min(1,MAXH/h,MAXW/w); w*=sc; h*=sc; const y0=e.y+r*.95+A.dy*r; e._artTop=y0-h;
   if(!A.rig&&!A.noRig){ const key=RIGS[e.bid]?e.bid:null; if(key) try{ buildRig(key,A) }catch(err){ A.noRig=1 } else A.noRig=1 }
   ctx.save(); ctx.translate(e.x,y0); if(A.face) ctx.scale(Math.sign(fs*A.face)*Math.max(.15,Math.abs(fs)),1);
@@ -1487,3 +1487,12 @@ function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawIma
 /* ===== 기술 그림 (이프리트 · 불사조 · 문어 포탑 …) ===== */
 const SKILL_IMG={}; (function(){ const F=typeof SKILL_ART_FILES!=="undefined"?SKILL_ART_FILES:{}; for(const k in F){ const im=new Image(); im.onload=()=>{ SKILL_IMG[k]=im }; im.src=F[k] } })();
 function drawSkillImg(c,k,h,flip){ const im=SKILL_IMG[k]; if(!im) return false; const w=h*im.width/im.height; c.save(); if(flip) c.scale(-1,1); c.drawImage(im,-w/2,-h/2,w,h); c.restore(); return true }
+
+/* 해적 선원: 바다 총잡이 그림을 작게 써요 */
+const CREW_IMG=(()=>{ const F=typeof HERO_ART_FILES!=="undefined"&&HERO_ART_FILES["pirate:1"]; if(!F) return null; const im=new Image(); im.src=F; return im })();
+function drawCrewArt(c,m,t,GL){ if(!CREW_IMG||!CREW_IMG.complete||!CREW_IMG.naturalWidth) return false;
+  const aim=m.aim!==undefined?m.aim:(m.side>0?0:Math.PI), right=Math.cos(aim)>=0, ph=t*8+m.side*1.7, hop=Math.abs(Math.sin(ph))*3, rec=m.fl>0?m.fl/.08:0, S=46;
+  c.save(); c.translate(m.x,m.y+14); c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(0,0,12,4,0,0,7); c.fill();
+  c.translate((right?-1:1)*rec*3,-hop); c.rotate(Math.sin(ph)*.05-(right?1:-1)*rec*.08); c.scale(right?1:-1,1); c.drawImage(CREW_IMG,-S/2,-S+2,S,S); c.restore();
+  if(m.fl>0){ c.save(); c.globalCompositeOperation=GL; jGlow(c,m.x+Math.cos(aim)*20,m.y-14+Math.sin(aim)*20,14,"255,220,120",rec); c.restore() }
+  return true }

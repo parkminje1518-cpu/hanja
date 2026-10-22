@@ -136,7 +136,8 @@ function startGame(opts){ opts=opts||{};
   root.innerHTML = `<canvas></canvas>
     <div class="ghud">
       <div class="gxp"><i></i></div>
-      <div class="grow"><span class="glv">Lv 1</span><span class="gtime">0:00</span><span class="gk">몬스터 0</span><button class="gpause" aria-label="잠깐 멈춤">Ⅱ</button></div>
+      <div class="grow"><span class="glv">Lv 1</span><span class="gtime">0:00</span><span class="gk">몬스터 0</span><button class="gtool" aria-label="선생님 도구" hidden>🛠</button><button class="gpause" aria-label="잠깐 멈춤">Ⅱ</button></div>
+      <div class="gtoolbox" hidden></div>
       <div class="gstat"><div class="ghp"><i></i><b class="ghpt">100 / 100</b></div>
         <span class="gs atk" title="공격력">공격 <b>×1.00</b></span><span class="gs spd" title="이동 속도">속도 <b>165</b></span><span class="gs cdr" title="공격 간격">공속 <b>100%</b></span></div>
       <div class="gskl"></div>
@@ -208,6 +209,20 @@ function startGame(opts){ opts=opts||{};
   const vis = ()=>{ if(document.hidden) pause() };
   document.addEventListener("visibilitychange",vis);
   $(".gpause").onclick = pause;
+  // ===== 선생님 도구: 무적 · 레벨 올리기 · 시간 당기기 · 보스 바로 부르기 (선생님 계정에서만) =====
+  if(typeof isAdmin==="function"&&isAdmin()){ const tb=$(".gtoolbox"), btn=$(".gtool"); btn.hidden=false;
+    const acts=[["god",()=>g.god?"🛡 무적 끄기":"🛡 무적 켜기",()=>{ g.god=!g.god; showBanner(g.god?"🛡 무적이 켜졌어요 (선생님 모드)":"무적을 껐어요") }],
+      ["qs",()=>g.qskip?"📝 카드 문제 건너뛰기: 켜짐":"📝 카드 문제 건너뛰기: 꺼짐",()=>{ g.qskip=!g.qskip }],
+      ["lv1",()=>"⬆ 레벨 +1",()=>{ g.xp+=g.need }],
+      ["lv5",()=>"⏫ 레벨 +5",()=>{ let n=0,L=g.lvl; for(let i=0;i<5;i++){ n+=needXP(L+i) } g.xp+=n }],
+      ["t60",()=>"⏩ 시간 +1분",()=>{ g.t+=60; if(g.nextBossT!==undefined&&!g.bossUp) g.nextBossT+=0; showBanner("⏩ 1분 앞으로! 몬스터가 더 세져요") }],
+      ["boss",()=>g.bossUp?"👑 보스 체력 → 1":"👑 다음 보스 바로 부르기",()=>{ if(g.bossUp){ for(const e of g.en) if(e.type==="boss"&&e.hp>1) e.hp=1 } else if(g.stageN<4){ g.nextBossT=g.t+.5; g.bossWarn=g.stageN } }],
+      ["ult",()=>"💢 보스 필살기 보기",()=>{ for(const e of g.en) if(e.type==="boss"&&e.hp>0){ e.hp=Math.min(e.hp,e.max*.49); e.ultDone=false; e.bt=0 } }],
+      ["clear",()=>"🧹 몬스터 모두 없애기",()=>{ g.en=g.en.filter(e=>e.type==="boss"); }]];
+    const render=()=>{ tb.innerHTML=acts.map(([k,l])=>`<button data-k="${k}">${l()}</button>`).join("")+`<small>선생님 확인용 · 기록에는 그대로 남아요</small>`;
+      tb.querySelectorAll("button").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const a=acts.find(x=>x[0]===b.dataset.k); a[2](); render() }) };
+    btn.onclick=ev=>{ ev.stopPropagation(); tb.hidden=!tb.hidden; if(!tb.hidden) render() };
+    g.god=true; g.qskip=true }
 
   function showBanner(txt){ banner.textContent=txt; banner.hidden=false; clearTimeout(showBanner.t); showBanner.t=setTimeout(()=>banner.hidden=true,2600) }
 
@@ -618,7 +633,7 @@ function startGame(opts){ opts=opts||{};
           for(let i=0;i<8;i++){ const ph=(g.t*1.6+i/8)%1; ctx.fillStyle=`rgba(255,${180+70*(1-ph)|0},80,${1-ph})`; const z=4*(1-ph)+1; ctx.fillRect(m.x-dir*(14+ph*46)+Math.sin(i*3+g.t*5)*6-z/2,m.y+10+ph*12-z/2,z,z) } ctx.restore();
           ctx.save(); ctx.translate(m.x,m.y+Math.sin(g.t*5)*3); ctx.rotate(dir*.12); ctx.scale(1,1+fl*.1); drawSkillImg(ctx,"phoenix",86,dir<0); ctx.restore() } else jfPhoenix(ctx,m,g.t,GLOW) }
       else if(m.kind==="clone") jfClone(ctx,m,heroImg,g.t);
-      else if(m.kind==="crew") jfCrew(ctx,m,g.t,GLOW);
+      else if(m.kind==="crew"){ if(!(HDFX&&drawCrewArt(ctx,m,g.t,GLOW))) jfCrew(ctx,m,g.t,GLOW) }
       else if(m.kind==="flare") jfFlare(ctx,m,g.t,GLOW);
       else if(m.kind==="octo"){ if(SKILL_IMG.octo){ const age=m.max-m.t, k=Math.min(1,m.t/.4), drop=age<.3?(1-age/.3):0, rec=Math.max(0,m.fl||0)/.12, right=Math.cos(m.aim||0)>0;
           ctx.save(); ctx.translate(m.x,m.y); ctx.globalAlpha=k; ctx.fillStyle="rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(0,16,26,7,0,0,7); ctx.fill();
@@ -894,7 +909,8 @@ function startGame(opts){ opts=opts||{};
           if(e.type==="boss"){ e.hp-=e.max*.25; e.flash=.3; if(e.hp<=0) kill(e) } else { e.hp=0; kill(e) } }
         g.eshots.length=0 }
       showBanner(`${oName()}! 화면의 몬스터를 쓸어버렸어요! 체력 회복 +40%`) }}) }
-  function hanjaDuel(ref){ if(g.over) return; const find=()=>NM==="client"?EN[ref.id]:ref, e0=find(); if(!e0||e0.hp<=0) return;
+  function hanjaDuel(ref){ if(g.qskip){ return }   // 선생님: 한자 결투 건너뛰기
+ if(g.over) return; const find=()=>NM==="client"?EN[ref.id]:ref, e0=find(); if(!e0||e0.hp<=0) return;
     g.paused=true; let i=0, hits=0; const qs=pickWeighted(QPOOL,3).map(c=>({c,q:makeQ(c,{short:true})}));
     const show=()=>{ const {c,q}=qs[i], e=find();
       mcard.className="gcard"; mcard.innerHTML=`<h3>⚡ 보스 한자 결투! ⚡</h3><p>${esc(e?e.name:"보스")}에게 한자의 힘을 보여 줘요! 맞힐 때마다 <b>한자 번개</b>가 떨어져요. (${i+1} / 3)</p>
@@ -949,6 +965,7 @@ function startGame(opts){ opts=opts||{};
       pick.onclick=()=>{ if(qs[i].st!=="ok") return; apply(cards[i]); close() };
     });
     document.getElementById("lvskip").onclick=()=>{ g.p.hp=Math.min(st().maxHp,g.p.hp+st().maxHp*.1); close() };
+    if(g.qskip){ els.forEach((el,i)=>{ qs[i].st="ok"; el.classList.add("ok"); const pk=el.querySelector(".lvpick"); pk.disabled=false; pk.textContent="선택하기 (선생님)" }); upd() }   // 선생님: 문제 없이 바로 고르기
     function close(){ modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() }
   }
   function apply(k){ sfx("pick"); const before=st(); g.sk[k]=lv(k)+1; if(k==="body") g.p.hp=Math.min(st().maxHp,g.p.hp+30); const after=st();
@@ -1047,6 +1064,7 @@ function startGame(opts){ opts=opts||{};
   // 업데이트
   function update(dt){
     g.t+=dt; const s=st(), P=g.p, frozen=!!g.paused, out=frozen||!!P.dead;
+    if(g.god){ P.hp=s.maxHp; P.dead=false }   // 선생님 무적
     patchArrs();
 
     for(const q of g.pending){ q.t-=dt; if(q.t<=0){ q.done=true; q.run() } } g.pending=g.pending.filter(q=>!q.done);
