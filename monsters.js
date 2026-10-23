@@ -458,12 +458,18 @@ function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   if(!A.rig&&!A.noRig){ const key=RIGS[e.bid]?e.bid:null; if(key) try{ buildRig(key,A) }catch(err){ A.noRig=1 } else A.noRig=1 }
   // 달리기 그림(4장면)이 있는 보스: 움직일 때는 장면을 넘기며 진짜로 달려요
   // 공격 그림(3~4장면)이 있는 보스: 기 모으기 → 내리치기 → 숨 고르기를 장면으로 보여 줘요
+  // 성운의 인도자 도끼 던지기: 젖히기(빨간 줄 동안) → 빈손으로 도끼가 날아갔다 오길 기다리기 → 돌아온 도끼 받기
+  const THR=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&e.atk&&e.atk.k==="axethrow"&&e.atk.t0!==undefined&&SKILL_IMG["thr_"+e.bid];
+  if(THR){ const wd=e.atk.wind||1, dt=t-e.atk.t0, L=wd+.9;
+    if(dt>=0&&dt<L+2.05){ const N=3, cw=THR.width/N, ch=THR.height, idx=dt<L?0:dt<L+1.65?1:2, rh=h*.86, rw=rh*cw/ch;
+      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
+      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
   const ATK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&!e.spin&&e.atk&&e.atk.t0!==undefined&&SKILL_IMG["atk_"+e.bid];
-  if(ATK){ const wd=e.atk.wind||.45, dt=t-e.atk.t0, N=(e.bid==="st9_3"||e.bid==="st3_3")?3:4;
+  if(ATK){ const wd=e.atk.wind||.45, dt=t-e.atk.t0, N=(e.bid==="st9_3"||e.bid==="st3_3"||e.bid==="st10_1")?3:4;
     if(dt>=0&&dt<wd+.42){ const cw=ATK.width/N, ch=ATK.height, idx=dt<wd?(N===4&&dt>wd*.55?1:0):dt<wd+.2?N-2:N-1, rh=h*.86, rw=rh*cw/ch;
       ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
       if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
-  const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], FLY=RUN&&RIGS[e.bid]&&RIGS[e.bid].move==="fly", moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.wind||.4)+.3);
+  const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], FLY=RUN&&RIGS[e.bid]&&RIGS[e.bid].move==="fly", moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.k==="axethrow"?(e.atk.wind||1)+2.95:(e.atk.wind||.4)+.3));
   if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, rh=h*(FLY?.95:.82), rw=rh*cw/ch, idx=FLY?Math.floor(t*11+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
     ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
     if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true }
@@ -611,6 +617,7 @@ const MOB_STYLE={ // [움직임, 키(몸 반지름의 몇 배), 그림이 보는
   sentinel:["march",3.8,-1], mask:["fly",2.8,0], orb:["float",2.6,0], gargoyle:["hop",2.9,-1], colossus:["march",2.7,0],
   icesprite:["float",3.2,0], frostwolf:["trot",2.4,-1], yetiling:["march",3.0,0],
   griffin:["trot",3.6,-1], medusa:["march",3.6,1], minotaur:["march",3.3,-1], titan:["march",3.0,0],
+  snail:["scuttle",2.3,1], stump:["march",2.9,0], turtle:["trot",2.3,1], troll:["march",3.4,1], knight:["march",3.7,1],
   rider:["trot",3.1,1], engine:["float",2.6,0], devourer:["sway",3.6,1], ruler:["march",3.5,0], behemoth:["march",2.9,1] };
 const MOB_STYLE_MAP={"8:crystal":["float",3.1,0]};   // 같은 모양 이름이라도 맵마다 다르게
 const mobArtOf=e=>{ loadMobArt(); return MOB_ART[e.mapId+":"+e.look] };
@@ -1528,7 +1535,14 @@ function heroRigOf(img){ const key=img.src.length+":"+img.src.slice(-40); if(HRI
 const HERO_POSE={ // [준비 시간 비율, 준비: 각도·앞뒤·위아래·가로늘림, 공격: 각도·앞뒤·위아래·가로늘림]
   // 공격 동작을 더 크게: 크게 젖혔다가(준비) → 몸 전체로 휙 내지르기(공격)
   sword:[.34,-16,-8,-1,.92, 21,15,0,1.15], arrow:[.55,-7,-7,0,.96, 4,3,0,1.04], star:[.3,-18,-5,-2,.93, 24,12,0,1.13], fireball:[.45,-9,-4,-9,.94, 13,12,0,1.1], gun:[0,0,0,0,1, -11,-8,-1,.95], moon:[.4,-8,-4,-8,.95, 10,8,0,1.07], brush:[.3,-19,-7,-1,.92, 24,14,0,1.15], charm:[.3,-16,-5,-2,.94, 20,10,0,1.1], punch:[.26,-6,-11,0,.93, 8,19,0,1.18] };
-function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
+/* 4차 용사 공격 그림(4장면): 기본 공격 순간 0.44초 동안 장면을 넘기며 실제로 휘두르고 쏴요 */
+function heroBB(img){ if(img.__bb) return img.__bb; try{ const W=64, H=64, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(img,0,0,W,H); const d=x.getImageData(0,0,W,H).data; let t=H, b=0;
+  for(let y=0;y<H;y++) for(let i=0;i<W;i++) if(d[(y*W+i)*4+3]>60){ if(y<t) t=y; if(y>b) b=y }
+  return img.__bb={h:Math.max(.3,(b-t+1)/H),b:(b+1)/H} }catch(e){ return img.__bb={h:.85,b:.97} } }
+function drawHeroAtk(ctx,img,SZ,st){ const HK=st.hk&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG[st.hk]; if(!HK||!(st.at>=0&&st.at<.44)) return false;
+  const bb=heroBB(img), N=4, cw=HK.width/N, ch=HK.height, idx=Math.min(N-1,Math.floor(st.at/.44*N)), rh=SZ*bb.h*1.04, rw=rh*cw/ch, by=-SZ+4+SZ*bb.b;
+  ctx.drawImage(HK,idx*cw,0,cw,ch,-rw/2,by-rh,rw,rh); return true }
+function drawHeroRig(ctx,img,SZ,st){ if(drawHeroAtk(ctx,img,SZ,st)) return; const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
   const s=SZ/R.W, D=Math.PI/180, dt=Math.min(.05,st.dt||0);
   const S=st.S||(st.S={a:0,va:0,x:0,vx:0,y:0,vy:0,k:1,vk:0,l:0,vl:0,r:0,vr:0,ly:0,vly:0,ry:0,vry:0,h:[]});
   const mv=st.mv||0, ph=st.ph||0, P=HERO_POSE[st.kind], aq=st.aq;
@@ -1560,7 +1574,15 @@ function drawSkillImg(c,k,h,flip){ const im=SKILL_IMG[k]; if(!im) return false; 
 
 /* 해적 선원: 바다 총잡이 그림을 작게 써요 */
 const CREW_IMG=(()=>{ const F=typeof HERO_ART_FILES!=="undefined"&&HERO_ART_FILES["pirate:1"]; if(!F) return null; const im=new Image(); im.src=F; return im })();
-function drawCrewArt(c,m,t,GL){ if(!CREW_IMG||!CREW_IMG.complete||!CREW_IMG.naturalWidth) return false;
+/* 선원 2명 (쌍권총·대포 명사수): 소환 → 걷기 → 사격 → 자세, 4장면 그림 */
+function drawCrewSheet(c,m,t,GL){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG[m.side>0?"crew_2":"crew_1"]; if(!im||!im.width) return false;
+  const dt=Math.min(.1,Math.max(0,t-(m.lt??t))); m.lt=t; m.age=(m.age||0)+dt; if(m.fl>0) m.ft=t;
+  const mv=Math.hypot(m.x-(m.px??m.x),m.y-(m.py??m.y))/Math.max(dt,1e-3); m.px=m.x; m.py=m.y;
+  const aim=m.aim!==undefined?m.aim:(m.side>0?0:Math.PI), right=Math.cos(aim)>=0, shoot=m.ft!==undefined&&t-m.ft<.2;
+  const idx=m.age<.55?0:shoot?2:(mv>25?(Math.floor(t*6+m.side)%2?1:3):1), N=4, cw=im.width/N, ch=im.height, H=62, W=H*cw/ch;
+  c.save(); c.translate(m.x,m.y+14); c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(0,0,14,4.5,0,0,7); c.fill();
+  if(m.age<.55){ c.globalAlpha=Math.min(1,m.age*4) } c.scale(right?1:-1,1); c.drawImage(im,idx*cw,0,cw,ch,-W/2,-H,W,H); c.restore(); return true }
+function drawCrewArt(c,m,t,GL){ if(drawCrewSheet(c,m,t,GL)) return true; if(!CREW_IMG||!CREW_IMG.complete||!CREW_IMG.naturalWidth) return false;
   const aim=m.aim!==undefined?m.aim:(m.side>0?0:Math.PI), right=Math.cos(aim)>=0, ph=t*8+m.side*1.7, hop=Math.abs(Math.sin(ph))*3, rec=m.fl>0?m.fl/.08:0, S=46;
   c.save(); c.translate(m.x,m.y+14); c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(0,0,12,4,0,0,7); c.fill();
   c.translate((right?-1:1)*rec*3,-hop); c.rotate(Math.sin(ph)*.05-(right?1:-1)*rec*.08); c.scale(right?1:-1,1); c.drawImage(CREW_IMG,-S/2,-S+2,S,S); c.restore();

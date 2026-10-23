@@ -34,10 +34,10 @@ const JOBS = {
     {name:"메테오 샤워", desc:"14초마다 하늘에서 거대한 운석 10개가 차례로 떨어져요", type:"meteors", cd:14, n:10, r:120, dmg:170, gap:0.18},
   ]},
   pirate: { titles:["견습 해적","바다 총잡이","바다 무법자","대해적","바다의 제왕"], skills:[
-    {name:"더블 샷", desc:"총알을 두 발씩 쏘고 · 공격력 +15%", type:"passive", p:{dmg:1.15}, flag:"double"},
-    {name:"문어 포탑", desc:"9초마다 문어 포탑을 내려놓아요. 포탑이 7초 동안 몬스터를 쏴요", type:"turret", cd:9, dur:7, rate:0.3, dmg:22},
-    {name:"선원 소환", desc:"총을 든 선원 두 명이 따라다니며 함께 싸워요", type:"summon", what:"crew", dmg:11},
-    {name:"전함 포격", desc:"15초마다 차원문을 열고 강철 전함이 화면을 가르며 돌진해 와요. 지나가는 길의 몬스터를 들이받고 대포알 14발을 퍼부어요", type:"battleship", cd:15, n:14, r:100, dmg:180},
+    {name:"더블 샷", desc:"총알을 두 발씩 쏘고 · 공격력 +35%", type:"passive", p:{dmg:1.35}, flag:"double"},
+    {name:"문어 포탑", desc:"9초마다 문어 포탑을 내려놓아요. 포탑이 7초 동안 몬스터를 쏴요", type:"turret", cd:9, dur:7, rate:0.3, dmg:28},
+    {name:"선원 소환", desc:"쌍권총 선원과 대포 선원이 따라다니며 함께 싸워요 · 대포알은 맞은 곳에서 터져요", type:"summon", what:"crew", dmg:15},
+    {name:"전함 포격", desc:"13초마다 차원문을 열고 강철 전함이 화면을 가르며 돌진해 와요. 지나가는 길의 몬스터를 들이받고 대포알 14발을 퍼부어요", type:"battleship", cd:13, n:14, r:100, dmg:215},
   ]},
   healer: { titles:["견습 달빛 치유사","초승달 치유사","반달의 사제","보름달 대사제","월광의 성녀"], skills:[
     {name:"초승달의 가호", desc:"최대 체력 +30 · 1초마다 체력이 조금씩 차요 · 달 구슬이 1번 더 튕기고, 맞힐 때 차는 체력이 2배가 돼요", type:"passive", p:{hp:30, regen:1.2}, flag:"moonbounce"},

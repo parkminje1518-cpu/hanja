@@ -943,17 +943,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10240257"></script>
-<script src="jobs.js?v=10240257"></script>
-<script src="maps.js?v=10240257"></script>
-<script src="art.js?v=10240257"></script>
-<script src="monsters.js?v=10240257"></script>
-<script src="jobfx.js?v=10240257"></script>
-<script src="words.js?v=10240257"></script>
-<script src="sayings.js?v=10240257"></script>
-<script src="sfx.js?v=10240257"></script>
+<script src="sprites.js?v=10240458"></script>
+<script src="jobs.js?v=10240458"></script>
+<script src="maps.js?v=10240458"></script>
+<script src="art.js?v=10240458"></script>
+<script src="monsters.js?v=10240458"></script>
+<script src="jobfx.js?v=10240458"></script>
+<script src="words.js?v=10240458"></script>
+<script src="sayings.js?v=10240458"></script>
+<script src="sfx.js?v=10240458"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10240257"></script>
+<script src="mp.js?v=10240458"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1489,7 +1489,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240257"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240458"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -2155,4 +2155,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10240257"></script>
+<script src="game.js?v=10240458"></script>
