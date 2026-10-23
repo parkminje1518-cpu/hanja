@@ -840,6 +840,33 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P
     document.getElementById("bk").onclick=()=>{ modal.dataset.dismiss=""; closeModal(); learn() } }
   draw() }
 
+/* ----- 도감: 한자 / 사자성어 / 속담 ----- */
+function dexTabs(cur){ const n=c=>SAY_ALL[c].filter(sayMastered).length; return `<div class="ltabs">${[["H","한자"],["S","사자성어"],["P","속담"]].map(([k,nm])=>`<button class="ltab dtab ${cur===k?"on":""}" data-tab="${k}">${nm}${k!=="H"?`<small>익힌 말 ${n(k)}/${SAY_ALL[k].length}</small>`:""}</button>`).join("")}</div>` }
+function bindDexTabs(){ $app.querySelectorAll(".dtab").forEach(b=>b.onclick=()=>{ P.set.dtab=b.dataset.tab; saveP(); dex() }) }
+function sayDex(cat){ const L=SAY_ALL[cat], m=L.filter(sayMastered).length, seen=L.filter(x=>(P.seen||{})[x.h]).length, nm=SAY_NAME[cat];
+  $app.innerHTML = topbar("도감") + dexTabs(cat) + `
+  <section class="panel"><div class="dexHead"><div class="dexBar"><div class="prog"><div class="pt"><span>익힌 ${nm} (3번 맞히고 생활 문제도 맞히기)</span><b>${m} / ${L.length}</b></div><div class="bar"><i style="width:${m/L.length*100}%"></i></div></div></div>
+    <span class="meta">만난 ${nm} ${seen}개 · 누르면 뜻과 쓰임을 볼 수 있어요</span></div></section>
+  <div class="dexgrid">${Array.from({length:SAY_WEEKS[cat]},(_,i)=>i+1).map(w=>`<div class="dweek"><h3>${w}주차${sayWeekDone(cat,w)?" ★":""}</h3><div class="drow sayrow">${L.filter(x=>x.w===w).map(x=>{ const ms=sayMastered(x), s=(P.seen||{})[x.h];
+      return `<button class="dz sayz ${ms?"ms":s?"":"un"}" data-h="${esc(x.h)}"><b>${s||ms?esc(x.k):"?"}</b>${x.hz&&(s||ms)?`<small>${esc(x.hz)}</small>`:""}<i>${ms?"익힘":s?`${Math.min(SAY_MASTER,(P.mastery||{})[x.h]||0)}/${SAY_MASTER}`:"아직"}</i></button>` }).join("")}</div></div>`).join("")}</div>`;
+  bindBack(); bindDexTabs();
+  $app.querySelectorAll(".sayz").forEach(b=>b.onclick=()=>{ const x=sayFind(b.dataset.h); if(!(P.seen||{})[x.h]){ toast(`아직 만나지 않은 ${nm}예요. 학습하기에서 만나 보세요!`); return } sayDetail(x) }) }
+function sayDetail(x){ speak(x.k);
+  openModal(`<div class="eyebrow">${SAY_NAME[x.cat]} · ${x.w}주차</div><h3 style="font-size:30px;margin:4px 0">${esc(x.k)}</h3>${x.hz?`<div class="scHz">${esc(x.hz)}</div>`:""}
+    <p style="font-family:var(--f-ui);font-size:18px;line-height:1.55;text-align:left">${esc(x.m)}</p>
+    <div class="scTip" style="text-align:left">💡 ${esc(x.t)}</div>
+    <div class="scEx" style="color:#2b2216"><b>이렇게 써요</b>${esc(x.o)}</div>
+    <div class="scEx" style="color:#2b2216;margin-top:8px"><b>이런 상황에서</b>${esc(x.s[0])}</div>
+    <div class="btns"><button class="btn gold" id="sdOk">닫기</button></div>`);
+  document.getElementById("sdOk").onclick=()=>closeModal() }
+/* 오답 노트에 붙는 사자성어·속담 칸 */
+function sayNotesHtml(){ const L=(P.swrong||[]).map(sayFind).filter(Boolean); if(!L.length) return "";
+  return `<section class="panel" style="margin-top:14px"><div class="row"><h2>틀린 사자성어·속담</h2><span class="meta">${L.length}개 · 다시 풀어서 맞히면 빠져요</span></div>
+    <div class="notelist sayNotes">${L.map(x=>`<button class="note saynote" data-h="${esc(x.h)}"><b style="font-size:20px">${esc(x.k)}</b><span>${esc(x.t)}</span><small>${SAY_NAME[x.cat]} ${x.w}주차 · 눌러서 보기</small></button>`).join("")}</div>
+    <div class="btns">${["S","P"].filter(c=>L.some(x=>x.cat===c)).map(c=>`<button class="btn gold sayretry" data-c="${c}">틀린 ${SAY_NAME[c]} 다시 풀기</button>`).join("")}</div></section>` }
+function bindSayNotes(){ $app.querySelectorAll(".saynote").forEach(b=>b.onclick=()=>sayDetail(sayFind(b.dataset.h)));
+  $app.querySelectorAll(".sayretry").forEach(b=>b.onclick=()=>{ const c=b.dataset.c; sayQuiz((P.swrong||[]).map(sayFind).filter(x=>x&&x.cat===c),c,{fromNotes:true}) }) }
+
 /* ----- 화면 꾸미기 ----- */
 (function(){ const st=document.createElement("style"); st.textContent=`
 .ltabs{display:flex;gap:8px;margin:0 0 14px}
@@ -877,5 +904,12 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P
 .lvq.long .lvqq{font-size:13px;line-height:1.35;text-align:left}
 .lvq.long .lvo{font-size:12.5px;line-height:1.25;padding:5px 4px}
 .gq.sayg{font-size:18px!important}
+.sayrow{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dz.sayz{aspect-ratio:auto;min-height:74px;padding:8px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center}
+.dz.sayz b{font-size:17px;line-height:1.3;word-break:keep-all}
+.dz.sayz small{font-family:serif;font-size:13px;opacity:.7}
+.dz.sayz i{font-style:normal;font-size:11px;opacity:.7}
+.sayNotes{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))!important;gap:10px}
+.sayNotes .note{text-align:left;align-items:flex-start;padding:10px 12px}
 .sayTitleTag{display:inline-block;margin-left:6px;padding:0 8px;border-radius:10px;background:#f6c544;color:#2a1d00;font-size:12px;vertical-align:middle}
 `; document.head.appendChild(st) })();

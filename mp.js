@@ -14,7 +14,7 @@ function netErr(e){ const t=e&&e.type||"";
 function netLeave(silent){ try{ NET.peer&&NET.peer.destroy() }catch(e){} Object.assign(NET,{peer:null,role:null,code:"",myId:"",conns:{},hostConn:null,lobby:[],busy:false,ing:new Set(),onGame:null}); if(!silent) netRefresh() }
 function netLobbyList(){ return NET.lobby }
 function netHostLobby(){ NET.lobby=[Object.assign({id:NET.myId,host:true},netMe())].concat(Object.values(NET.conns).filter(c=>c.info).map(c=>Object.assign({id:c.peer},c.info)));
-  const m={t:"lobby",list:NET.lobby,map:P.set.map||1}; Object.values(NET.conns).forEach(c=>{ try{ c.send(m) }catch(e){} }); netRefresh() }
+  const m={t:"lobby",list:NET.lobby,map:P.set.map||1,dif:typeof mapDif==="function"?mapDif(P.set.map||1):0}; Object.values(NET.conns).forEach(c=>{ try{ c.send(m) }catch(e){} }); netRefresh() }
 function netCreate(){ if(!window.Peer||NET.busy) return; netLeave(true); NET.busy=true; NET.msg="방을 만들고 있어요..."; netRefresh();
   const code=String(1000+Math.floor(Math.random()*9000)), peer=new Peer(NET_PREFIX+code,netOpts()); NET.peer=peer;
   peer.on("open",id=>{ Object.assign(NET,{role:"host",code,myId:id,busy:false,msg:""}); netHostLobby() });
@@ -33,7 +33,7 @@ function netJoin(code){ if(!window.Peer||NET.busy) return; code=String(code||"")
   peer.on("open",id=>{ NET.myId=id; const c=peer.connect(NET_PREFIX+code,{reliable:true,serialization:"json"}); NET.hostConn=c; NET.role="client"; NET.code=code;
     c.on("open",()=>{ clearTimeout(to); NET.busy=false; NET.msg=""; c.send({t:"hello",me:netMe()}); netRefresh() });
     c.on("data",d=>{ if(!d) return;
-      if(d.t==="lobby"){ NET.lobby=d.list; NET.map=d.map; netRefresh(); return }
+      if(d.t==="lobby"){ NET.lobby=d.list; NET.map=d.map; NET.dif=d.dif||0; netRefresh(); return }
       if(d.t==="full"){ fail(d.ing?"친구들이 게임 중이에요. 끝나면 다시 들어와요.":"방이 꽉 찼어요. (최대 4명)"); return }
       if(d.t==="start"){ netStartClient(d); return }
       if(NET.onGame) NET.onGame(d,"host") });
@@ -42,14 +42,14 @@ function netJoin(code){ if(!window.Peer||NET.busy) return; code=String(code||"")
 }
 function netStartHost(){ if(NET.role!=="host") return;
   if(!payGame()){ toast("코인이나 오늘 남은 판이 부족해요"); return }
-  NET.ing=new Set(Object.keys(NET.conns)); const m={t:"start",map:P.set.map||1};
+  NET.ing=new Set(Object.keys(NET.conns)); const m={t:"start",map:P.set.map||1,dif:typeof mapDif==="function"?mapDif(P.set.map||1):0};
   Object.values(NET.conns).forEach(c=>{ try{ c.send(m) }catch(e){} });
-  startGame({mp:true,map:P.set.map||1});
+  startGame({mp:true,map:P.set.map||1,dif:typeof mapDif==="function"?mapDif(P.set.map||1):0});
 }
 function netStartClient(d){
   if(document.querySelector(".game")) return;
   if(!payGame()){ toast("코인이나 오늘 남은 판이 부족해서 이번 판은 쉬어요"); try{ NET.hostConn.send({t:"quit"}) }catch(e){} return }
-  startGame({mp:true,map:d.map});
+  startGame({mp:true,map:d.map,dif:d.dif||0});
 }
 /* 게임 로비에 들어가는 '친구와 같이 하기' 칸 */
 function mpPanelHtml(){

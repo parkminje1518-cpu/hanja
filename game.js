@@ -20,6 +20,24 @@ const STAR_COIN = [10,15,22,0];
 const starCoin = (mapId,tier)=>Math.round(STAR_COIN[tier]*(MAP_F[mapId]||1));
 const clearCoin = mapId=>Math.round(45*(MAP_F[mapId]||1));
 const firstClearCoin = mapId=>Math.round(60*(MAP_F[mapId]||1));
+/* ===== 맵 도전 단계: 보통 → 어려움 → 지옥 (어려움부터는 내 용사 레벨에 맞춰 몬스터가 세져요) ===== */
+const DIFS=[{n:"보통",c:"#3fcf8e",d:"맵 원래 세기"},{n:"어려움",c:"#f6a23a",d:"내 용사 레벨에 맞춰 세져요"},{n:"지옥",c:"#e9475f",d:"내 레벨보다 더 세게! 보상도 가장 커요"}];
+const HP_BY_LV=[[1,.6],[5,.9],[20,1.35],[45,2.1],[75,3.2],[80,3.6],[85,4.1],[90,4.7],[95,5.4],[100,6.4]];
+const hpForLv=L=>{ let a=HP_BY_LV[0]; for(const b of HP_BY_LV){ if(L<=b[0]){ const t=(L-a[0])/Math.max(1,b[0]-a[0]); return a[1]+(b[1]-a[1])*Math.max(0,t) } a=b } return a[1] };
+function difMap(m,dif,L){ if(!dif) return Object.assign({},m,{dif:0}); const hp=Math.max(m.hp*(dif===1?1.35:1.8),hpForLv(L)*(dif===1?.85:1.08));
+  // 보스도 레벨이 비슷한 맵의 보스만큼 튼튼하게 (어려움 70%, 지옥 95%)
+  const fin=id=>{ const L2=typeof STAGE_LOOKS!=="undefined"&&STAGE_LOOKS[id]; const B=L2&&BOSSES[L2[3]]; return B||{hp:1,dmg:1} }, eq=MAPS.filter(x=>x.lv<=L).pop()||m, A=fin(m.id), E=fin(eq.id);
+  const bossX=Math.max(1,(dif===1?.7:.95)*E.hp/A.hp), bossDmgX=Math.max(1,Math.pow(E.dmg/A.dmg,.7)*(dif===1?.85:1));
+  return Object.assign({},m,{hp0:m.hp,hp,spawn:m.spawn*(dif===1?1.1:1.2),dmgX:dif===2?1.12:1,bossX,bossDmgX,exp:m.exp*Math.max(1.3,hp/m.hp)*(dif===2?1.15:1),dif}) }
+const difUnlocked=(id,dif)=>dif===0||(typeof isAdmin==="function"&&isAdmin())||(dif===1?!!((P.cleared||{})[id]):((P.clearD||{})[id]||0)>=2);
+const difCoinX=d=>[1,1.6,2.2][d||0];
+const mapDif=id=>{ const d=((P.set.difs||{})[id])||0; return difUnlocked(id,d)?d:0 };
+/* 맵마다 도전 훈장 3개 */
+const MEDALS=[["🏆","어려움 클리어","어려움이나 지옥 단계에서 보스 4마리를 모두 물리치기"],["✨","패턴 완벽 회피","보스 고유 패턴에 한 번도 맞지 않고 그 보스 물리치기"],["📜","문제 박사","한 판에서 문제를 8개 이상 맞히고 정답률 80% 넘기기"]];
+const MEDAL_MILE=[[5,"새내기 탐험가",200],[10,"용감한 탐험가",300],[15,"노련한 탐험가",400],[20,"전설의 탐험가",500],[25,"지혜의 영웅",600],[30,"탐험대장",800]];
+const medalsOf=id=>((P.medal||{})[id])||[0,0,0];
+const medalCount=()=>Object.values(P.medal||{}).reduce((a,m)=>a+m.filter(Boolean).length,0);
+const medalTitle=()=>{ let t=""; for(const [n,nm] of MEDAL_MILE) if((P.mmile||0)>=n) t=nm; return t };
 const gameCoins = (mapId,stars)=>{ let c=0; for(let i=0;i<Math.min(3,stars);i++) c+=starCoin(mapId,i); return c+(stars>=4?clearCoin(mapId):0) };
 const maxGameCoins = id=>Math.round(gameCoins(id,4)*((typeof qrangeOf==="function"&&qrangeOf().cm)||1))+((typeof qrangeOf==="function"&&qrangeOf().coin)||0);
 const starStr = n=>"★".repeat(n)+"☆".repeat(4-n);
@@ -111,10 +129,11 @@ function gameLobby(){
     <div class="mapgrid">${MAPS.filter(m=>m.realm===rl).map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), lock=!cli&&!isAdmin()&&(HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
       return `<button class="mapc ${on?"on":""} ${lock?"mlock":""} ${m.hud==="#f3effd"?"dk":""}" data-map="${m.id}" ${lock?"disabled":""} style="--m1:${m.sky[0]};--m2:${m.sky[1]};--mt:${m.tag}">
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
-        <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
+        <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mmedal">${medalsOf(m.id).map((x,i)=>`<i class="${x?"on":""}">${MEDALS[i][0]}</i>`).join("")}${((P.clearD||{})[m.id]||0)>=2?`<em style="background:${DIFS[((P.clearD||{})[m.id])-1].c}">${DIFS[((P.clearD||{})[m.id])-1].n} 클리어</em>`:""}</span><span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         <small>${lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
+    ${difPanelHtml()}
     ${mapGuideHtml(typeof NET!=="undefined"&&NET.role==="client"&&netInRoom()?(NET.map||1):(P.set.map||1))}
-    <button class="big red" id="go" ${why?"disabled":""}>코인 ${GAME_COST}개 내고 ${mapById(P.set.map||1).name} 입장</button>
+    <button class="big red" id="go" ${why?"disabled":""}>코인 ${GAME_COST}개 내고 ${mapById(P.set.map||1).name} · ${DIFS[mapDif(P.set.map||1)].n} 입장</button>
     ${why?`<p class="needmsg">${why}</p>`:""}
   </section>`;
   bindBack();
@@ -122,6 +141,7 @@ function gameLobby(){
   $app.querySelectorAll(".qrc").forEach(b=>b.onclick=()=>{ P.set.qrange=+b.dataset.qr; saveP(); sfx("tap"); gameLobby() });
   $app.querySelectorAll(".mapc").forEach(b=>b.onclick=()=>{ if(typeof NET!=="undefined"&&NET.role==="client") return; P.set.map=+b.dataset.map; saveP(); sfx("tap"); if(typeof NET!=="undefined"&&NET.role==="host") netHostLobby(); else gameLobby() });
   if(!isAdmin() && (HS().lv<mapById(P.set.map||1).lv||(mapById(P.set.map||1).tier&&HS().tier<mapById(P.set.map||1).tier))){ P.set.map=1; saveP() }
+  $app.querySelectorAll(".difb").forEach(b=>b.onclick=()=>{ if(typeof NET!=="undefined"&&NET.role==="client") return; const id=P.set.map||1, d=+b.dataset.dif; if(!difUnlocked(id,d)){ toast(d===1?"보통 단계를 클리어하면 열려요!":"어려움 단계를 클리어하면 열려요!"); return } P.set.difs=P.set.difs||{}; P.set.difs[id]=d; saveP(); sfx("tap"); if(typeof NET!=="undefined"&&NET.role==="host") netHostLobby(); else gameLobby() });
   document.getElementById("go").onclick = ()=>{ if(payGame()) startGame(); };
   if(typeof mpBind==="function"){ mpBind(); if(netInRoom()) document.getElementById("go").style.display="none" }
 }
@@ -149,6 +169,14 @@ function payGame(){
 }
 const fmtT = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
 
+function difPanelHtml(){ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), id=cli?(NET.map||1):(P.set.map||1), cur=cli?(NET.dif||0):mapDif(id), m=mapById(id), L=HS().lv;
+  const rows=DIFS.map((D,i)=>{ const un=difUnlocked(id,i)||cli, M=difMap(m,i,L), hx=M.hp/m.hp;
+    return `<button class="difb ${cur===i?"on":""} ${un?"":"lk"}" data-dif="${i}" style="--dc:${D.c}"><b>${D.n}</b><small>${un?(i?`몬스터 체력 ×${hx.toFixed(1)} · 코인 ×${difCoinX(i)} · 경험치 ×${(M.exp/m.exp).toFixed(1)}`:"맵 원래 세기"):(i===1?"🔒 보통 클리어하면 열려요":"🔒 어려움 클리어하면 열려요")}</small></button>` }).join("");
+  const md=medalsOf(id);
+  return `<div class="row"><h2 style="font-size:22px">도전 단계</h2><span class="meta">어려움부터는 출전 용사 레벨(Lv ${L})에 맞춰 몬스터가 세져요${cli?" · 단계는 방장이 골라요":""}</span></div>
+    <div class="difrow">${rows}</div>
+    <div class="medalrow">${MEDALS.map((M,i)=>`<span class="${md[i]?"on":""}">${M[0]} <b>${M[1]}</b><small>${M[2]}</small></span>`).join("")}</div>
+    <p class="meta" style="margin:2px 0 6px">훈장 ${medalCount()}/30${medalTitle()?` · 칭호 <b style="color:var(--gold);font-weight:400">${medalTitle()}</b>`:""}${(()=>{ const nx=MEDAL_MILE.find(([n])=>n>(P.mmile||0)); return nx?` · ${nx[0]}개 모으면 '${nx[1]}' 칭호와 코인 ${nx[2]}`:"" })()}</p>` }
 function startGame(opts){ opts=opts||{};
   const root = document.createElement("div");
   root.className = "game";
@@ -182,7 +210,8 @@ function startGame(opts){ opts=opts||{};
   resize(); window.addEventListener("resize", resize);
 
   const HERO = heroById(P.hero); setMainSkill();
-  const MAP = mapById(opts.map||P.set.map||1);
+  const DIF = opts.mp?(opts.dif||0):mapDif(opts.map||P.set.map||1);
+  const MAP = difMap(mapById(opts.map||P.set.map||1),DIF,HS().lv);
   const GLOW = MAP.dark ? "lighter" : "source-over";
   let HDFX=!window.__lowfx; window.__fxLow=window.__lowfx?1:0; let HERO_HD=null; const REMOTE_HD=[]; const HSZ=96;   // 그림 용사 크기
   try{ pfxInit(); pfxInit2(); pfxInit3(); pfxInitTheme(); pfxInitWind(); pfxInitIce() }catch(e){}
@@ -250,7 +279,7 @@ function startGame(opts){ opts=opts||{};
   function showBanner(txt){ banner.textContent=txt; banner.hidden=false; clearTimeout(showBanner.t); showBanner.t=setTimeout(()=>banner.hidden=true,2600) }
 
   // 생성
-  const dmgMul = MAP.hp>1?1+(MAP.hp-1)*.35:1;
+  const dmgMul = (MAP.hp>1?1+(MAP.hp-1)*.35:1)*(MAP.dmgX||1);
   const RESCUE = 3+Math.max(0,MAP.id-5)*.5;   // 높은 맵일수록 친구 살리기가 오래 걸려요
   function edgePos(){ const m=40, side=Math.random()*4|0, u=Math.random();
     return [ side<2?(u-.5)*(W+2*m):(side===2?-1:1)*(W/2+m), side<2?(side===0?-1:1)*(H/2+m):(u-.5)*(H+2*m) ] }
@@ -318,14 +347,14 @@ function startGame(opts){ opts=opts||{};
     if(g.stageN>=4){ say(`🏆 ${MAP.name} 스테이지 클리어!`,"win"); g.pending.push({t:2.2,run:()=>{ NM?endAll(true):finish(true) }}); return }
     g.nextBossT=g.t+BOSS_GAP[g.stageN-1] }
   function spawnBoss(id){ const B=BOSSES[id], [sx,sy]=edgePos(), A=NM?randPlayer():g.p;
-    const e={mapId:MAP.id,type:"boss",bid:id,look:B.look,c:B.c,crown:B.crown,name:B.name,x:A.x+sx,y:A.y+sy,r:B.r*1.2,hp:B.hp*MAP.hp*1.15*(1+g.t*.72/200)*(NM?CO.bossBase*(1+CO.boss*(nPlayers()-1)):1),id:nid++,di:-1-BKEYS.indexOf(id),max:0,sp:B.sp*MAP.spd,dmg:B.dmg*dmgMul*1.05,xp:5,
+    const e={mapId:MAP.id,type:"boss",bid:id,look:B.look,c:B.c,crown:B.crown,name:B.name,x:A.x+sx,y:A.y+sy,r:B.r*1.2,hp:B.hp*MAP.hp*1.15*(MAP.bossX||1)*(1+g.t*.72/200)*(NM?CO.bossBase*(1+CO.boss*(nPlayers()-1)):1),id:nid++,di:-1-BKEYS.indexOf(id),max:0,sp:B.sp*MAP.spd,dmg:B.dmg*dmgMul*1.05*(MAP.bossDmgX||1),xp:5,
       slow:0,flash:0,stoneCD:0,wob:0,ai:B.ai,bt:2.5,bi:0,buff:B.buff,minion:B.minion,big:B.big};
     if(NM){ e.dmg*=CO.dmg; e.sp*=1.08 } e.max=e.hp; g.en.push(e); say(B.tier===3?`👑 최종 보스 등장! ${B.name}`:`${B.tn?B.tn+" 등장! ":"보스 등장! "}${B.name}`,"boss"); if(B.tier===3){ g.fx.push({k:"flash",col:"#ff3a4a",life:.7,max:.7}); stamp("최종<br>보스!") } g.pending.push({t:1.6,run:()=>{ g.duelQ=e; evAll({t:"duel",id:e.id}) }}); g.shake=.4; SND.setIntensity(1) }
   function absorb(x){ if(g.shield>0){ const a=Math.min(g.shield,x); g.shield-=a; x-=a; if(a>0) g.fx.push({k:"ring",x:g.p.x,y:g.p.y-6,life:.25,max:.25}) } return x }
   function healMe(v){ const P=g.p, s=st(); if(P.dead||v<=0) return; const b=P.hp; P.hp=Math.min(s.maxHp,P.hp+v); g.healAcc=(g.healAcc||0)+(P.hp-b); if(g.healAcc>=1&&(!g.healT||g.t-g.healT>.6)){ g.fx.push({k:"num",x:P.x,y:P.y-46,v:Math.round(g.healAcc),me:true,life:.8,max:.8}); g.healAcc=0; g.healT=g.t } }
   function healArea(x,y,r,pct,shield){ const P=g.p; if(!P.dead&&(P.x-x)**2+(P.y-y)**2<r*r){ healMe(st().maxHp*pct); if(shield){ g.shield=Math.max(g.shield||0,st().maxHp*shield); g.shieldT=4 } } }
   function healPulse(x,y,r,pct,shield){ healArea(x,y,r,pct,shield); g.fx.push({k:"healp",x,y,r,pct,sh:shield||0,life:.6,max:.6}) }   // 친구들에게도 전해져요
-  function hitPlayer(d){ const P=g.p; if(g.god||P.inv>0||P.dead) return; sfx("hurt"); d=absorb(d*M.armor)/M.armor; P.hp-=d*M.armor; g.dmgIn=(g.dmgIn||0)+d*M.armor; g.fx.push({k:"num",x:P.x,y:P.y-40,v:-Math.round(d*M.armor),me:true,life:.8,max:.8}); P.inv=.5; g.fx.push({k:"hit",x:P.x,y:P.y,life:.25,max:.25}); g.shake=Math.max(g.shake,.15) }
+  function hitPlayer(d){ const P=g.p; if(g.god||P.inv>0||P.dead) return; sfx("hurt"); for(const b of g.en) if(b.type==="boss"&&b.sigUntil>g.t) b.sigHit=1; d=absorb(d*M.armor)/M.armor; P.hp-=d*M.armor; g.dmgIn=(g.dmgIn||0)+d*M.armor; g.fx.push({k:"num",x:P.x,y:P.y-40,v:-Math.round(d*M.armor),me:true,life:.8,max:.8}); P.inv=.5; g.fx.push({k:"hit",x:P.x,y:P.y,life:.25,max:.25}); g.shake=Math.max(g.shake,.15) }
   function bossAI(e,dt){
     const P=NM?nearestPlayer(e.x,e.y):g.p, TP=()=>NM?nearestPlayer(e.x,e.y):g.p;
     if(e.dash>0){ e.dash-=dt; e.x+=e.dvx*dt; e.y+=e.dvy*dt; if(Math.random()<.5) g.fx.push({k:"hit",x:e.x,y:e.y,life:.15,max:.15}) }
@@ -341,6 +370,7 @@ function startGame(opts){ opts=opts||{};
     if(e.stun>0) return;
     e.bt-=dt; if(e.bt>0) return;
     if(!e.enraged && e.hp<e.max*.5 && SIGSPLIT(e)){ const m=(MOBS[MAP.id]||[]).find(x=>x.look===e.look)||MOBS[MAP.id][0]; for(const s of [-1,1]){ addMob(m,e.x+s*e.r*1.6,e.y,5,true) } say(`${e.name}이(가) 작은 슬라임 둘로 갈라졌어요!`,"alarm"); g.fx.push({k:"ring",x:e.x,y:e.y,life:.6,max:.6}) }
+    if(e.awake){ e.awT=(e.awT||0)-dt; if(e.awT<=0){ e.awT=1.1; g.fx.push({k:"boom",x:e.x,y:e.y,r:e.r*1.6,col:"#e9475f",life:.5,max:.5}) } }
     if(!e.enraged && e.hp<e.max*.5){ e.enraged=true; e.sp*=1.3; say(`${e.name}이(가) 분노했어요! 스킬을 더 자주 써요!`,"enrage"); g.shake=.5; g.fx.push({k:"flash",col:"#e9475f",life:.5,max:.5}) }
     const SKT=(typeof BOSS_SKILLS!=="undefined"&&BOSSES[e.bid]&&BOSSES[e.bid].tier!==undefined)?BOSS_SKILLS[MAP.id]&&BOSS_SKILLS[MAP.id][BOSSES[e.bid].tier]:null;
     const PW=typeof bossPow==="function"?bossPow(MAP.id,(BOSSES[e.bid]||{}).tier||0):{n:1,cd:1,sp:1};
@@ -349,7 +379,11 @@ function startGame(opts){ opts=opts||{};
     else if(SKT){ const pick=SKT.k[e.bi++%SKT.k.length]; act=pick[0]; skName=pick[1]; e.isUlt=false }
     else { act=e.ai[e.bi++%e.ai.length]; e.isUlt=false }
     { const XP=bossExtra(MAP.id,(BOSSES[e.bid]||{}).tier||0); if(XP.length&&!e.isUlt&&(e.xn=(e.xn||0)+1)%(e.enraged?2:3)===0){ const x=XP[(e.xi=(e.xi||0)+1)%XP.length]; act=x[0]; skName=x[1] } }
-    e.bt=(e.big?2.2:2.8)*(e.enraged?.65:1)*PW.cd;
+    // 어려움·지옥: 고유 패턴을 더 자주 써요
+    if(MAP.dif&&SKT&&!e.isUlt){ const sg=SKT.k.find(x=>SIG[x[0]]||x[0]==="bigjump3"); if(sg&&act!==sg[0]&&Math.random()<(MAP.dif===2?.5:.35)){ act=sg[0]; skName=sg[1] } }
+    // 지옥: 체력이 절반 아래면 각성해요 (붉은 기운 · 쉬는 시간이 짧아져요)
+    if(MAP.dif===2&&e.enraged&&!e.awake){ e.awake=true; say(`🔥 ${e.name}이(가) 각성했어요! 패턴을 두 번씩 써요!`,"enrage"); g.fx.push({k:"flash",col:"#ff3a3a",life:.6,max:.6}); g.shake=.6 }
+    e.bt=(e.big?2.2:2.8)*(e.enraged?.65:1)*PW.cd*(e.awake?.85:1);
     const N=x=>Math.max(1,Math.round(x*PW.n*(e.isUlt?1.5:1)));   // 탄 개수: 맵·단계가 높을수록 많아요
     const isSp=e.isUlt||!(typeof BASIC_ATK!=="undefined"&&BASIC_ATK[act]);   // 특수 공격은 미리 알려줘요
     e.atk={k:act,t0:g.t,wind:e.isUlt?1.4:isSp?1.0:.45,sp:isSp?1:0,ult:e.isUlt?1:0};   // 공격 모션 (기 모으기 → 내지르기)
@@ -359,7 +393,10 @@ function startGame(opts){ opts=opts||{};
     const BX=BOSSES[e.bid]||{};   // 보스마다 기술 이름·색이 달라요
     const nm=skName||(BX.sn&&BX.sn[act])||SN[act]||act; e.atk.name=nm; e.th=themeOf(nm); e.thName=nm;
     sfx(isSp?"alarm":"bosscast"); g.fx.push({k:"bosscast",x:e.x,y:e.y-e.r*1.9,text:nm,life:1.3,max:1.3,eid:e.id,ak:act,wd:e.atk.wind,sp:e.atk.sp,ul:e.atk.ult});
-    g.pending.push({t:e.atk.wind,run:()=>{ if(e.hp>0) bossAct(e,act,TP(),N,PW,BX) }}) }
+    g.pending.push({t:e.atk.wind,run:()=>{ if(e.hp<=0) return; bossAct(e,act,TP(),N,PW,BX);
+      // 어려움·지옥: 고유 패턴을 한 번 더 연달아 (경고 시간은 그대로)
+      const isSig=SIG[act]||act==="bigjump3"; if(isSig&&MAP.dif&&Math.random()<(MAP.dif===2?(e.awake?1:.85):.35)){ const gap=Math.max(1.2,e.bt*.75);
+        g.pending.push({t:gap,run:()=>{ if(e.hp<=0) return; say(`⚡ ${e.name}: 한 번 더!`,"alarm"); bossAct(e,act,TP(),N,PW,BX) }}); e.bt+=gap } }}) }
   // 보스 검기: 맵(보스) 특징에 맞는 반달 파도가 날아가요 · 지나가며 맞혀요
   function bossWave(e,a,dmg,j){ const sp=560-j*40; g.eshots.push({th:e.th,kind:"wave",x:e.x+Math.cos(a)*e.r*.6,y:e.y+Math.sin(a)*e.r*.6,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,a,r:26-j*5,sz:1-j*.22,dmg,life:1.6,map:MAP.id,pierce:1}) }
   // ===== 위험 패턴: 맵이 올라갈수록 하나씩 늘어나요 (즉사는 아니지만 아주 아파요 · 모두 미리 경고) =====
@@ -448,7 +485,7 @@ function startGame(opts){ opts=opts||{};
       say("⚔ 빛의 검이 십자 모양으로 꽂혀요! 줄 사이 빈 곳으로!","alarm") },
     wolflanes(e,P,TP){ const q=TP(), dir=Math.random()<.5?1:-1, gap=1+Math.floor(Math.random()*3); e.bt=3.2; sfx("roar");
       for(let l=0;l<5;l++){ if(l===gap) continue; const y=q.y+(l-2)*80, x0=q.x-dir*600; g.fx.push({k:"laserwarn",x:x0,y,a:dir>0?0:Math.PI,len:1200,life:1.15,max:1.15});
-        g.pending.push({t:1.15+l*.06,run:()=>{ g.eshots.push({kind:"ghound",x:x0,y,vx:dir*760,vy:0,a:dir>0?0:Math.PI,r:26,dmg:(e.dmg*0.83)*.9,life:1.7,pierce:1}) }}) } },
+        g.pending.push({t:1.15+l*.06,run:()=>{ g.eshots.push({kind:"wolfrun",x:x0,y,vx:dir*1050,vy:0,a:dir>0?0:Math.PI,r:32,dmg:(e.dmg*0.83)*.9,life:1.3,pierce:1,ph:l*1.7}) }}) } },
     snowroll(e,P,TP){ const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.bt=5.5; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:500,life:.9,max:.9}); g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return;
         g.eshots.push({kind:"snowball",bounce:1,grow:1,cx:q.x,cy:q.y,hw:W*.46,hh:H*.44,x:e.x,y:e.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330,r:30,dmg:e.dmg*.75,life:4.6,pierce:1,hitCD:0}); sfx("quake") }}) },
     frostmine(e,P,TP){ const q=TP(); e.bt=3.6; const pts=[[0,0]]; for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.random()*.5; pts.push([Math.cos(a)*150,Math.sin(a)*120]) }
@@ -472,7 +509,7 @@ function startGame(opts){ opts=opts||{};
       g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return; sfx("multislash"); g.eshots.push({kind:"axe",x:e.x,y:e.y,vx:0,vy:0,sx:e.x,sy:e.y,tx:e.x+Math.cos(a)*D,ty:e.y+Math.sin(a)*D,T:.85,tt:0,r:40,dmg:(e.dmg*0.71)*.8,life:1.8,hitCD:0,eid:e.id}) }}) },
     planetring(e,P,TP){ const n=14, gap=Math.floor(Math.random()*n), gid=(Math.random()*1e9)|0, ga=(gap+1)/n*6.283; e.bt=4.6; sfx("alarm"); say("🪐 행성 고리가 퍼져 나가요! 빈틈을 지나가요!","alarm");
       for(let i=0;i<n;i++){ if(i===gap||i===(gap+1)%n||i===(gap+2)%n) continue; const a0=i/n*6.283; g.eshots.push({kind:"planet",lead:i===(gap+3)%n?1:0,orbit:1,cx:e.x,cy:e.y,a0,w:.45,R0:e.r*.8,dR:120,ot:0,x:e.x,y:e.y,vx:0,vy:0,r:20,dmg:(e.dmg*0.47)*.9,life:5,pierce:1,gid,ga,pc:i%3}) } },
-    eventhorizon(e,P,TP){ e.bt=5.4; g.eshots.push({kind:"vortex",x:e.x,y:e.y,vx:0,vy:0,r:e.r*.9,pr:400,pull:58,minR:e.r*1.5,dmg:(e.dmg*0.78)*.5,life:4,hitCD:0}); say("🌀 사건의 지평선! 끌려가지 않게 바깥으로 걸으며 고리를 피해요!","alarm");
+    eventhorizon(e,P,TP){ e.bt=5.4; g.eshots.push({kind:"vortex",hole:1,x:e.x,y:e.y,vx:0,vy:0,r:e.r*.9,pr:400,pull:58,minR:e.r*1.5,dmg:(e.dmg*0.78)*.5,life:4,hitCD:0}); say("🌀 사건의 지평선! 끌려가지 않게 바깥으로 걸으며 고리를 피해요!","alarm");
       for(let i=0;i<2;i++) g.pending.push({t:1.2+i*1.3,run:()=>{ if(e.hp<=0) return; sfx("quake"); g.eshots.push({th:e.th,kind:"shock",x:e.x,y:e.y,vx:0,vy:0,rad:e.r,v:260,maxR:760,band:24,r:0,dmg:(e.dmg*0.78)*.6,life:2.6,map:MAP.id}) }}) },
     maneflame(e){ const R=e.r*3.1, R2=e.r*6.5; e.bt=5.5;
       say("🔥 멀리 떨어져요!","alarm"); g.fx.push({k:"label",x:e.x,y:e.y-e.r*2.2,text:"멀리!",life:1.6,max:1.6}); g.fx.push({k:"warn",x:e.x,y:e.y,r:R,life:1.6,max:1.6});
@@ -486,7 +523,7 @@ function startGame(opts){ opts=opts||{};
   function bossAct(e,act,P,N,PW,BX){ const TP=()=>NM?nearestPlayer(e.x,e.y):g.p; const SPD=PW.sp;
     const aim=Math.atan2(P.y-e.y,P.x-e.x);
     g.curTh=e.th;
-    if(act==="bigjump3"){ SIG.bigjump(e,P,TP,3); return } if(SIG[act]){ SIG[act](e,P,TP,1); return }
+    if(act==="bigjump3"||SIG[act]){ e.sigUntil=g.t+5.5; e.sigUsed=1 } if(act==="bigjump3"){ SIG.bigjump(e,P,TP,3); return } if(SIG[act]){ SIG[act](e,P,TP,1); return }
     if(act==="stomp"){ const R=e.r*2.8; g.fx.push({k:"warn",x:e.x,y:e.y,r:R,life:.85,max:.85});
       g.pending.push({t:.85,run:()=>{ aoeC(e.x,e.y,R*.55,e.dmg*1.3); g.fx.push({th:e.th,k:"quake",x:e.x,y:e.y,r:R,life:.5,max:.5}); g.shake=.35;
         g.eshots.push({th:e.th,kind:"shock",x:e.x,y:e.y,vx:0,vy:0,rad:R*.4,v:330,maxR:R*2.1,band:22,r:0,dmg:e.dmg*.8,life:(R*2.1-R*.4)/330,map:MAP.id}) }}) }
@@ -532,6 +569,7 @@ function startGame(opts){ opts=opts||{};
     g.gems.push({x:e.x,y:e.y,v:e.xp});
     if(e.type==="boss"){ dropAll(); if(NM) evAll({t:"chest"})
       for(let i=0;i<10;i++){ const a=i*.628; g.gems.push({x:e.x+Math.cos(a)*40,y:e.y+Math.sin(a)*40,v:6}) }
+      if(e.sigUsed&&!e.sigHit&&!g.medalSig){ g.medalSig=1; showBanner("✨ 고유 패턴 완벽 회피! 훈장을 받았어요"); sfx("win") }
       g.bossKills++; { const BB=BOSSES[e.bid]; g.bossCoins+=BB&&BB.tier!==undefined&&BB.tier<3?starCoin(MAP.id,BB.tier):0 } stageBossDown(e); const B=e.buff; g.bbuff=Object.assign({},B,{t:30,max:30}); evAll({t:"bb",bid:e.bid,name:e.name,more:g.en.some(o=>o!==e&&o.type==="boss"&&o.hp>0)});
       stamp("보스<br>처치!"); sfx("win"); if((BOSSES[e.bid]||{}).deathMsg) g.pending.push({t:1.2,run:()=>say(BOSSES[e.bid].deathMsg,"win")}); SND.setIntensity(g.en.some(o=>o!==e&&o.type==="boss"&&o.hp>0)); g.shake=.5; g.fx.push({k:"flash",col:"#f6c544",life:.5,max:.5});
       showBanner(`${e.name} 처치! ★ 별 ${Math.min(4,g.bossKills)}개 · ${B.name}: 30초 동안 공격력 ×${B.dmg} · 이동 ×${B.spd}`); }
@@ -556,7 +594,7 @@ function startGame(opts){ opts=opts||{};
   const SHARE={inkpath:1,roar:1,rockup:1,crystalpillar:1,pbeam:1,conewarn:1,cleave:1,tilewarn:1,firepillar:1,cloudwarn:1,mushsprout:1,roots:1,jarfly:1,slimepud:1,donutwarn:1,firering:1,robobeam:1,healp:1,mzone:1,glyph:1,inkdragon:1,robot:1,fullmoon:1,crossfx:1,none:1,safe:1,icicle:1,blackhole:1,slash:1,bigslash:1,quake:1,bolt:1,boom:1,ring:1,meteor:1,label:1,warn:1,laserwarn:1,laser:1,ragewave:1,bosscast:1,scorch:1};
   function teamPlayers(){ const L=[]; if(!g.p.dead) L.push(g.p); for(const id in RP){ const r=RP[id]; if(!r.dead&&!r.gone) L.push(r) } return L }
   /* 같이 하기: 기술을 고르는 친구(최대 30초)에게는 몬스터가 가지 않고 다른 친구를 노려요 */
-  const PZ_MAX=30000;
+  const PZ_MAX=40000;
   function choosing(q){ const now=performance.now();
     if(q===g.p){ if(g.paused&&!g.over){ g.pzT=g.pzT||now; return now-g.pzT<PZ_MAX } g.pzT=0; return false }
     return !!q.pzT && now-q.pzT<PZ_MAX }
@@ -606,12 +644,14 @@ function startGame(opts){ opts=opts||{};
     const gm=[]; for(const o of g.gems){ if(!o.id) o.id=nid++; if(gm.length<150&&nearAny(o,800)) gm.push([o.id,Math.round(o.x),Math.round(o.y),o.v]) }
     const it=g.items.filter(o=>!o.local).map(o=>{ if(!o.id) o.id=nid++; return [o.id,Math.round(o.x),Math.round(o.y),o.k] });
     const pl={}; pl[NET.myId]=meState(); for(const id in RP) if(!RP[id].gone) pl[id]=RP[id].st;
-    return {t:"s",tm:+g.t.toFixed(2),k:g.kills,en,gm,it,pl,sg:g.stageN,nb:Math.round(g.nextBossT),bu:g.bossUp?1:0} }
+    return {t:"s",tm:+g.t.toFixed(2),k:g.kills,en,gm,it,pl,sg:g.stageN,nb:Math.round(g.nextBossT),bu:g.bossUp?1:0,lr:g.lvR?{i:g.lvR.id,d:Object.keys(g.lvR.done)}:0} }
   function hostRecv(m,from){
     if(m.t==="quit"){ if(RP[from]) RP[from].gone=true; NET.ing.delete(from); return }
     if(m.t!=="c") return;
     if(m.me) setRP(from,m.me);
     if(m.or) originRes(from,m.or.id,!!m.or.ok);
+    if(m.lvd&&g.lvR&&m.lvd===g.lvR.id) g.lvR.done[from]=1;
+    if(m.ch){ const n=(RP[from]&&RP[from].st&&RP[from].st.n)||"친구", e=String(m.ch).slice(0,4); hostEv.push({t:"cheer",n,e}); cheerShow(n,e) }
     if(RP[from]){ const r=RP[from]; if(m.pz){ if(!r.pzT) r.pzT=performance.now() } else r.pzT=0 }
     if(m.cc&&m.cc.length){ const by=new Map(g.en.map(e=>[e.id,e])), cl=v=>Math.max(-260,Math.min(260,v||0));
       for(const [id,st,sl,px,py] of m.cc){ const e=by.get(id); if(!e||e.hp<=0) continue; if(st>0) e.stun=Math.max(e.stun||0,Math.min(3,st)); if(sl>0) e.slow=Math.max(e.slow||0,Math.min(4,sl)); if(px||py){ e.x+=cl(px); e.y+=cl(py) } } }
@@ -623,7 +663,7 @@ function startGame(opts){ opts=opts||{};
     if(m.duel){ const by=new Map(g.en.map(e=>[e.id,e])), pct=.09/(1+.5*(nPlayers()-1)); for(const id of m.duel){ const e=by.get(id); if(e&&e.hp>0){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) } } } }
   function clientRecv(m){
     if(m.t!=="s") return;
-    g.t=m.tm; g.kills=m.k; if(m.sg!==undefined){ g.stageN=m.sg; STAGE_PH=Math.min(3,m.sg); setVph(Math.min(3,m.sg+(m.bu?1:0))); g.nextBossT=m.nb; g.bossUp=!!m.bu }
+    g.t=m.tm; g.kills=m.k; g.lvSt=m.lr||null; if(m.sg!==undefined){ g.stageN=m.sg; STAGE_PH=Math.min(3,m.sg); setVph(Math.min(3,m.sg+(m.bu?1:0))); g.nextBossT=m.nb; g.bossUp=!!m.bu }
     const seen=new Set();
     for(const a of m.en){ const [id,x,y,hp,di,fl,dmg]=a; seen.add(id); let e=EN[id];
       if(!e){ e=EN[id]=mkEnt(id,di,fl,x,y); g.en.push(e) }
@@ -640,6 +680,9 @@ function startGame(opts){ opts=opts||{};
       else if(ev.t==="sh") addRemoteShot(ev.s);
       else if(ev.t==="es") g.eshots.push(Object.assign({},ev.b));
       else if(ev.t==="xp") g.xp+=ev.v*M.xp;
+      else if(ev.t==="lvup"){ g.xp=Math.max(0,g.xp-g.need); g.lvl=ev.L; g.need=ev.need; if(ev.q){ g.lvRid=ev.id; lvOpen() } else lvAuto() }
+      else if(ev.t==="lvgo") lvGo();
+      else if(ev.t==="cheer") cheerShow(ev.n,ev.e);
       else if(ev.t==="chest") dropAll();
       else if(ev.t==="kd"){ sfx("kill"); g.fx.push({k:"poof",x:ev.x,y:ev.y,r:ev.r,c:"#ffffff",life:.45,max:.45,seed:Math.random()*6}); if(EN[ev.id]){ EN[ev.id].hp=0; delete EN[ev.id] } }
       else if(ev.t==="aoe") onAoe(ev);
@@ -660,6 +703,10 @@ function startGame(opts){ opts=opts||{};
     NET.onDrop=id=>{ if(NM==="host"){ if(RP[id]){ RP[id].gone=true; showBanner("친구 한 명이 나갔어요") } } else if(id==="host"&&!g.over){ showBanner("방장과 연결이 끊어졌어요"); setTimeout(()=>finish(false),1200) } } }
   function netTick(dt){
     while(inbox.length){ const [m,from]=inbox.shift(); if(NM==="host") hostRecv(m,from); else clientRecv(m); if(g.over) return }
+    if(g.lvPend && !g.paused && !g.over){ g.lvPend=0; if(g.p.dead) lvDone(); else levelUp() }
+    else if(g.lvFree && !g.paused && !g.over && !g.p.dead){ g.lvFree--; levelUp(true) }
+    if(NM==="host" && g.lvR && !g.lvR.go){ const R_=g.lvR, ids=[NET.myId,...Object.keys(RP).filter(id=>!RP[id].gone)];
+      if(ids.every(id=>R_.done[id]) || performance.now()-R_.t0>(LV_T+3)*1000){ R_.go=1; hostEv.push({t:"lvgo"}); lvGo() } }
     netAcc+=dt; if(netAcc<1/12) return; netAcc=0;   // 렉 줄이기: 1초에 12번만 주고받아요
     if(NM==="host"){
       if(xpShare){ hostEv.push({t:"xp",v:xpShare}); xpShare=0 }
@@ -672,8 +719,8 @@ function startGame(opts){ opts=opts||{};
       wipeT = alive?0:wipeT+1/15; if(wipeT>1.5){ endAll(false) }
     } else {
       const c=NET.hostConn; if(!c||!c.open) return;
-      try{ c.send({t:"c",pz:(g.paused&&!g.over)?1:0,me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[],or:netOut.or||null,cc:Object.entries(netOut.cc).slice(0,120).map(([id,c])=>[+id,+c[0].toFixed(2),+c[1].toFixed(2),Math.round(c[2]),Math.round(c[3])])}) }catch(e){}
-      netOut.d={}; netOut.g=[]; netOut.it=[]; netOut.sh=[]; netOut.fx=[]; netOut.duel=[]; netOut.or=null; netOut.cc={} } }
+      try{ c.send({t:"c",pz:(g.paused&&!g.over)?1:0,lvd:netOut.lvd||0,ch:netOut.ch||"",me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[],or:netOut.or||null,cc:Object.entries(netOut.cc).slice(0,120).map(([id,c])=>[+id,+c[0].toFixed(2),+c[1].toFixed(2),Math.round(c[2]),Math.round(c[3])])}) }catch(e){}
+      netOut.lvd=0; netOut.ch=""; netOut.d={}; netOut.g=[]; netOut.it=[]; netOut.sh=[]; netOut.fx=[]; netOut.duel=[]; netOut.or=null; netOut.cc={} } }
   function endAll(win){ if(g.over) return; if(NM==="host"){ const m={t:"s",tm:g.t,k:g.kills,en:[],gm:[],it:[],pl:{},ev:[{t:"end",win}]}; for(const id of NET.ing){ const c=NET.conns[id]; try{ c&&c.send(m) }catch(e){} } } finish(win) }
   function down(){ const q=g.p; q.dead=true; q.hp=0; g.rescue=0; modal.hidden=true; g.paused=false; showBanner(`쓰러졌어요! 친구가 옆에 ${RESCUE}초 동안 서 있으면 다시 일어나요`); }
   function drawRemotes(){ for(const id in RP){ const r=RP[id]; if(r.gone||!r.st) continue; r.rx+=(r.x-r.rx)*.25; r.ry+=(r.y-r.ry)*.25; const s=r.st;
@@ -871,7 +918,8 @@ function startGame(opts){ opts=opts||{};
           let t=null, bd=1e18; for(const e of near(P.x,P.y,6)){ if((e.x-P.x)**2+(e.y-P.y)**2>460*460) continue; const d=(e.x-m.x)**2+(e.y-m.y)**2; if(d<bd){ bd=d; t=e } }
           if(t){ const dx=t.x-m.x, dy=t.y-m.y, d=Math.hypot(dx,dy)||1; m.face=dx>=0?1:-1;
             if(d<190&&m.acc<=0){ m.acc=.85*Math.max(.6,s.cd); m.sx=m.x; m.sy=m.y; m.ex=t.x; m.ey=t.y; m.pz=.3; sfx("ox") }
-            else if(d>t.r+34){ const st2=Math.min(d-t.r-30,380*dt); m.x+=dx/d*st2; m.y+=dy/d*st2; m.run=1 } }
+            else if(d>t.r+34){ const st2=Math.min(d-t.r-30,380*dt); m.x+=dx/d*st2; m.y+=dy/d*st2; m.run=1 }
+            else { m.sw=(m.sw||0)-dt; if(m.sw<=0){ m.sw=.45; hurt(t,m.dmg*lvScale*sm*.35); g.fx.push({k:"claw",x:t.x,y:t.y,life:.22,max:.22}); m.pz2=.15 } } }   // 덮치기를 기다리는 동안에도 앞발로 할퀴어요
           else { const bx=P.x-48, by=P.y+20, dx=bx-m.x, dy=by-m.y, d=Math.hypot(dx,dy); if(d>8){ const st2=Math.min(d,Math.max(200,d*3.5)*dt); m.x+=dx/d*st2; m.y+=dy/d*st2; m.run=d>20?1:0; m.face=dx>=0?1:-1 } }
           if(Math.hypot(P.x-m.x,P.y-m.y)>620){ m.x=P.x-48; m.y=P.y+20 } }
         m.rr=(m.rr??5)-dt; if(m.rr<=0){ m.rr=9; sfx("roar"); g.fx.push({k:"roar",x:m.x,y:m.y,r:220,life:.6,max:.6}); g.en.forEach(e=>{ if(inR(m.x,m.y,220,e)){ ccS(e,1); hurt(e,m.dmg*lvScale*sm*.5) } }) } }
@@ -933,7 +981,8 @@ function startGame(opts){ opts=opts||{};
           if(age<.55&&age>.25){ const p=(age-.25)/.3; ctx.strokeStyle=`rgba(200,240,255,${1-p})`; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(0,14,20+p*50,(20+p*50)*.4,0,0,7); ctx.stroke() }
           const sq=1+Math.sin(g.t*4)*.03+rec*.08; ctx.translate((right?-1:1)*rec*5,-22-drop*160); ctx.scale(1/sq,sq); drawSkillImg(ctx,"octo",74,right); ctx.restore() } else jfOcto(ctx,m,g.t,GLOW) }
       else if(m.kind==="ifrit"){
-        if(m.breath>0&&HDFX&&PFX.boom_fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); ctx.globalCompositeOperation="lighter";
+        if(m.breath>0&&typeof drawFireBreath==="function"&&drawFireBreath(ctx,m.x,m.y,m.face,265,Math.min(1,m.breath/.12),g.t)){}
+        else if(m.breath>0&&HDFX&&PFX.boom_fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); ctx.globalCompositeOperation="lighter";
           for(let i=0;i<14;i++){ const ph=((g.t*2.4+i/14)%1), sp=(jr(i,3)-.5)*.66*ph, d=18+ph*225, fi=Math.min(5,Math.floor(ph*5.5)); pfxDraw(ctx,"boom_fire"+fi,Math.cos(sp)*d,Math.sin(sp)*d,i*1.3+g.t*2,.3+ph*.95,(1-ph*ph)*.8) }
           jGlow(ctx,20,0,46,"255,190,90",.7); ctx.restore() }
         else if(m.breath>0){ ctx.save(); ctx.globalCompositeOperation=GLOW; ctx.translate(m.x,m.y); ctx.rotate(m.face); const k=m.breath/.25;
@@ -958,11 +1007,12 @@ function startGame(opts){ opts=opts||{};
     }
   }
   function drawSkillFx(f,k){
+    if(typeof drawArtFx==="function"&&drawArtFx(ctx,f,k,g.t)) return true;
     if(drawNewFx(ctx,f,k,g.t,GLOW,g.p)) return true;
     if(f.k==="hitspk"){ drawHitSpark(ctx,f,k,HERO.id); return true }
     if(f.k==="bigslash"){ jfBigSlash(ctx,f,k,GLOW); return true }
     if(f.k==="quake"){ jfQuake(ctx,f,k,GLOW,g.t); return true }
-    if(f.k==="meteor"){ if(!(f.th&&drawThemeFall(ctx,f,k,g.t))) jfMeteor(ctx,f,k,GLOW,g.t); return true }
+    if(f.k==="meteor"){ if(f.th==="bolt"&&typeof drawArtFall==="function"&&drawArtFall(ctx,f,k,g.t)) return true; if(!(f.th&&drawThemeFall(ctx,f,k,g.t))) jfMeteor(ctx,f,k,GLOW,g.t); return true }
     if(f.k==="none") return true;
     if(f.k==="crossfx"){ drawCrossFx(ctx,f,k,g.t); return true }
     if(f.k==="scorch") return true;
@@ -1229,10 +1279,47 @@ function startGame(opts){ opts=opts||{};
         if(ok){ hits++; g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c); saveP(); const e=find(); duelHit(e) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) }
         setTimeout(()=>{ i++; if(i<3) show(); else { modal.hidden=true; g.paused=false; last=performance.now(); showBanner(hits?`한자 결투 ${hits}/3 성공! 보스에게 한자 번개 ${hits}번!`:"한자 결투 실패... 다음엔 꼭 맞혀요!"); if(hits===3){ stamp("결투<br>완승!"); sfx("win") } } },ok?800:1300) }) };
     sfx("bosscast"); show() }
-  function levelUp(){
-    g.paused=true; sfx("lvup");
+  /* ===== 같이하기: 경험치 통 공유 · 2레벨마다 다 같이 문제 ===== */
+  const LV_T=30;   // 문제 제한 시간(초)
+  const coopNeed=L=>Math.round(needXP(L)*(1+.25*(nPlayers()-1)));
+  function lvStart(){ g.xp-=g.need; g.lvl++; g.need=coopNeed(g.lvl); const q=g.lvl%2===0;
+    hostEv.push({t:"lvup",L:g.lvl,need:g.need,q:q?1:0,id:(g.lvRn=(g.lvRn||0)+1)});
+    if(q){ g.lvR={id:g.lvRn,t0:performance.now(),done:{}}; g.lvRid=g.lvRn; lvOpen() } else lvAuto() }
+  /* 홀수 레벨: 문제 없이 내가 바로 카드를 골라요 (나만 잠깐 멈추고, 고르는 동안 무적) */
+  function lvAuto(){ if(g.p.dead) return; if(g.paused){ g.lvFree=(g.lvFree||0)+1; return } levelUp(true) }
+  function lvOpen(){ if(g.over) return; if(g.p.dead){ lvDone(); return } if(g.paused){ g.lvPend=1; return } levelUp() }
+  function lvDone(){ if(NM==="host"){ if(g.lvR) g.lvR.done[NET.myId]=1 } else netOut.lvd=g.lvRid||0 }
+  function lvPpl(){ const L=[[NET.myId,myName]]; for(const id in RP) if(!RP[id].gone) L.push([id,(RP[id].st&&RP[id].st.n)||"친구"]);
+    const d=NM==="host"?(g.lvR?Object.keys(g.lvR.done):[]):((g.lvSt&&g.lvSt.i===g.lvRid&&g.lvSt.d)||[]);
+    return L.map(([id,n])=>`<span class="${d.includes(id)?"dn":""}">${d.includes(id)?"✅":"⏳"} ${esc(n)}${id===NET.myId?" (나)":""}</span>`).join("") }
+  function cheerShow(n,e){ const box=document.getElementById("lvcheers"); if(!box) return; const s=document.createElement("span"); s.textContent=`${n||"친구"} ${e}`; box.appendChild(s); setTimeout(()=>s.remove(),2600); while(box.children.length>5) box.firstChild.remove() }
+  function sendCheer(e){ if(NM==="host"){ hostEv.push({t:"cheer",n:myName,e}); cheerShow(myName,e) } else netOut.ch=e }
+  const cheerBtns=()=>`<div class="lvcheer">응원 보내기 ${["💪","👍","🔥","😊"].map(e=>`<button class="lvch" data-e="${e}">${e}</button>`).join("")}</div><div class="lvcheers" id="lvcheers"></div>`;
+  function bindCheer(){ mcard.querySelectorAll(".lvch").forEach(b=>b.onclick=()=>{ sendCheer(b.dataset.e); b.disabled=true; setTimeout(()=>b.disabled=false,1500) }) }
+  /* 먼저 끝낸 친구: 기다리는 동안 친구 상황 보기 · 응원 · 보너스 문제(맞히면 코인) */
+  function lvWait(){ lvDone(); if(g.lvGoing) return; g.lvOn=1; modal.classList.add("lvmodal"); mcard.className="gcard lvcard lvwait";
+    mcard.innerHTML=`<div class="lvhead"><div class="lvsub">★ 친구를 기다려요 ★</div><h3 class="lvbig">모두 풀면 함께 출발!</h3><div class="lvtip">몬스터도 멈춰 있어요 · 최대 ${LV_T}초</div></div>
+      <div class="lvppl" id="lvppl">${lvPpl()}</div>${cheerBtns()}
+      <div class="lvbonus" id="lvbonus"></div>`;
+    modal.hidden=false; bindCheer();
+    let bn=0; const bonus=()=>{ const box=document.getElementById("lvbonus"); if(!box||g.lvGoing) return; if(bn>=5){ box.innerHTML=`<p class="lvbt">보너스 문제를 다 풀었어요! 🎉</p>`; return } bn++;
+      const c=pickMixed(1)[0]||QPOOL[Math.random()*QPOOL.length|0], Q=makeQ(c,{short:true});
+      box.innerHTML=`<p class="lvbt">🪙 보너스 문제 ${bn}/5 · 맞히면 코인 +2</p>${Q.big?`<b class="lvhz">${esc(Q.big)}</b>`:""}<p class="lvqq">${esc(Q.q)}</p><div class="lvopts">${Q.opts.map((o,j)=>`<button class="lvo ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div>`;
+      box.querySelectorAll(".lvo").forEach(b=>b.onclick=()=>{ const ok=Q.opts[+b.dataset.j].ok; box.querySelectorAll(".lvo").forEach(x=>{ x.disabled=true; if(Q.opts[+x.dataset.j].ok) x.classList.add("ok") });
+        g.qN++; trackAns(c,!!ok); if(ok){ g.qOk++; g.bqC=(g.bqC||0)+2; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP() } else { b.classList.add("no"); sfx("no"); addWrong(c.h) }
+        setTimeout(bonus,ok?700:1400) }) };
+    bonus(); clearInterval(g.lvWT); g.lvWT=setInterval(()=>{ const p=document.getElementById("lvppl"); if(p) p.innerHTML=lvPpl(); else clearInterval(g.lvWT) },300) }
+  /* 모두 끝나면(또는 시간이 다 되면) 3-2-1 후 다시 출발 */
+  function lvGo(){ g.lvGoing=1; g.lvPend=0; if(g.lvForce){ const f=g.lvForce; g.lvForce=null; f() } clearInterval(g.lvWT);
+    const show=g.lvOn; let n=3;
+    const tick=()=>{ if(g.over) return;
+      if(n>0){ if(show){ modal.hidden=false; mcard.className="gcard lvcard"; mcard.innerHTML=`<div class="lvcount">${n}</div><div class="lvsub">모두 준비 완료! 다시 출발해요</div>` } else showBanner(`다시 출발까지 ${n}`); sfx("pick"); n--; setTimeout(tick,650) }
+      else { if(show){ modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() } g.lvOn=0; g.lvGoing=0; if(NM==="host") g.lvR=null } };
+    tick() }
+  function levelUp(free){
+    g.paused=true; sfx("lvup"); const MPL=!!NM&&!free; let closed=false, tmr=null; if(MPL) g.lvOn=1;
     const all=Object.keys(SK).filter(k=>lv(k)<MAXLV);
-    if(!all.length){ g.p.hp=Math.min(st().maxHp,g.p.hp+30); g.paused=false; return }
+    if(!all.length){ g.p.hp=Math.min(st().maxHp,g.p.hp+30); if(MPL){ lvWait(); return } g.paused=false; last=performance.now(); return }
     const N=Math.min(all.length,PK.cards+QR.cards), cards=shuffle(all).slice(0,N);
     const used=new Set();
     const picks=pickMixed(N);
@@ -1240,7 +1327,7 @@ function startGame(opts){ opts=opts||{};
     modal.classList.add("lvmodal");
     mcard.className="gcard lvcard";
     mcard.innerHTML = `<div class="lvhead"><div class="lvsub">★ LEVEL UP ★</div><h3 class="lvbig">LV.${g.lvl} 달성!</h3>
-        <div class="lvtip">✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 ✦</div>${coopNote()}</div>
+        <div class="lvtip">${free?"✦ 쉬는 레벨! 문제 없이 원하는 기술을 바로 골라요 · 다음 레벨에는 다 같이 문제를 풀어요 ✦":"✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 ✦"}</div>${free?coopNote():""}${MPL?`<div class="lvtip coopNote">👫 다 같이 레벨업! 모두 풀 때까지 몬스터도 멈춰요 · <b id="lvhint">10초가 지나면 힌트가 나와요</b></div><div class="lvtime"><i id="lvbar"></i><b id="lvsec">${LV_T}</b></div>`:""}</div>
       <div class="lvcards c${N}">${cards.map((k,i)=>{ const s=SK[k], l=lv(k)+1, Q=qs[i].q;
         return `<div class="lvk" data-i="${i}">
           <div class="lvic">${skImg(k,60)}</div>
@@ -1252,7 +1339,7 @@ function startGame(opts){ opts=opts||{};
             <div class="lvopts">${Q.opts.map((o,j)=>`<button class="lvo ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div></div>
           <button class="lvpick" disabled>문제를 먼저 풀어요</button>
         </div>` }).join("")}</div>
-      <div class="lvfoot"><span id="lvstat">맞힌 카드 0 / ${N}</span><button class="lvskip" id="lvskip" hidden>모두 틀렸어요 · 계속하기</button></div>`;
+      <div class="lvfoot"><span id="lvstat">맞힌 카드 0 / ${N}</span><button class="lvskip" id="lvskip" hidden>모두 틀렸어요 · 계속하기</button></div>${MPL?cheerBtns():""}`;
     modal.hidden=false;
     const els=[...mcard.querySelectorAll(".lvk")];
     const upd=()=>{ const ok=qs.filter(q=>q.st==="ok").length, done=qs.every(q=>q.st!=="ask");
@@ -1272,8 +1359,17 @@ function startGame(opts){ opts=opts||{};
       pick.onclick=()=>{ if(qs[i].st!=="ok") return; apply(cards[i]); close() };
     });
     document.getElementById("lvskip").onclick=()=>{ g.p.hp=Math.min(st().maxHp,g.p.hp+st().maxHp*.1); close() };
-    if(g.qskip){ els.forEach((el,i)=>{ qs[i].st="ok"; el.classList.add("ok"); const pk=el.querySelector(".lvpick"); pk.disabled=false; pk.textContent="선택하기 (선생님)" }); upd() }   // 선생님: 문제 없이 바로 고르기
-    function close(){ modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() }
+    if(g.qskip||free){ els.forEach((el,i)=>{ qs[i].st="ok"; el.classList.add("ok"); const pk=el.querySelector(".lvpick"); pk.disabled=false; pk.textContent=free?"이 기술 고르기":"선택하기 (선생님)"; if(free){ const q=el.querySelector(".lvq"); if(q) q.remove() } }); upd(); if(free) document.getElementById("lvstat").textContent="원하는 기술을 하나 골라요" }   // 선생님 · 쉬는 레벨: 문제 없이 바로 고르기
+    function close(){ if(closed) return; closed=true; clearInterval(tmr); if(MPL){ g.lvForce=null; lvWait(); return } modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() }
+    if(MPL){ bindCheer(); const T0=performance.now(); let hinted=false;
+      const timeUp=()=>{ if(closed) return; const okI=qs.map((q,i)=>q.st==="ok"?i:-1).filter(i=>i>=0);
+        if(okI.length){ const i=okI[Math.random()*okI.length|0]; apply(cards[i]); showBanner(`⏰ 시간이 다 됐어요! ${skName(cards[i])} 카드를 대신 골랐어요`) }
+        else { g.p.hp=Math.min(st().maxHp,g.p.hp+st().maxHp*.1); showBanner("⏰ 시간이 다 됐어요! 다음 문제 레벨에서 꼭 맞혀요") } close() };
+      g.lvForce=timeUp;
+      tmr=setInterval(()=>{ if(closed||g.over){ clearInterval(tmr); return } const el=(performance.now()-T0)/1000, left=Math.max(0,LV_T-el);
+        const bar=document.getElementById("lvbar"), sec=document.getElementById("lvsec"); if(bar) bar.style.width=(left/LV_T*100)+"%"; if(sec){ sec.textContent=Math.ceil(left); sec.classList.toggle("hurry",left<=10) }
+        if(!hinted&&el>=10){ hinted=true; els.forEach((el2,i)=>{ if(qs[i].st!=="ask") return; const wr=[...el2.querySelectorAll(".lvo")].filter(b=>!qs[i].q.opts[+b.dataset.j].ok&&!b.disabled); if(wr.length>1){ const b=wr[Math.random()*wr.length|0]; b.disabled=true; b.classList.add("gone") } }); const h=document.getElementById("lvhint"); if(h) h.textContent="💡 힌트: 틀린 보기 하나를 지웠어요!" }
+        if(left<=0) timeUp() },200) }
   }
   function apply(k){ sfx("pick"); const before=st(); g.sk[k]=lv(k)+1; if(k==="body") g.p.hp=Math.min(st().maxHp,g.p.hp+30); const after=st();
     const P=g.p, msg=k==="body"?`최대 체력 ${Math.round(before.maxHp)} → ${Math.round(after.maxHp)}`:k==="spd"?`이동 속도 ${Math.round(before.spd)} → ${Math.round(after.spd)}`
@@ -1339,15 +1435,23 @@ function startGame(opts){ opts=opts||{};
     const rec = {t:g.t,k:g.kills,win};
     const stars = win?4:Math.min(3,g.bossKills);
     P.stars=P.stars||{}; const prevStars=P.stars[MAP.id]||0; if(stars>prevStars) P.stars[MAP.id]=stars;
-    P.cleared=P.cleared||{}; const firstClear = win && !P.cleared[MAP.id]; if(win) P.cleared[MAP.id]=1; saveP();
+    P.cleared=P.cleared||{}; const firstClear = win && !P.cleared[MAP.id]; if(win) P.cleared[MAP.id]=1;
+    P.clearD=P.clearD||{}; const prevD=P.clearD[MAP.id]||0, newDif=win&&MAP.dif+1>prevD; if(win&&MAP.dif+1>prevD) P.clearD[MAP.id]=MAP.dif+1;
+    P.medal=P.medal||{}; const md=(P.medal[MAP.id]||[0,0,0]).slice(), got=[];
+    if(win&&MAP.dif>=1&&!md[0]){ md[0]=1; got.push(0) } if(g.medalSig&&!md[1]){ md[1]=1; got.push(1) } if(g.qOk>=8&&g.qN&&g.qOk/g.qN>=.8&&!md[2]){ md[2]=1; got.push(2) }
+    P.medal[MAP.id]=md; const mc=medalCount(), mileHit=MEDAL_MILE.filter(([n])=>n>(P.mmile||0)&&n<=mc), mileCoin=mileHit.reduce((a,m)=>a+m[2],0); if(mileHit.length){ P.mmile=mileHit[mileHit.length-1][0]; P.coins+=mileCoin; P.earned+=mileCoin }
+    saveP();
     const isBest = stars>prevStars || (win && (!best||!best.win||rec.t<best.t));
     if(isBest){ P.best=rec; saveP(); }
     const coop = NM?1.3:1;
     const gotExp = addExp(Math.round((g.kills*1 + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150)*MAP.exp*QR.exp*coop));
-    const qCoin = rec.t>=60 ? QR.coin : 0;
-    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)), fCoin=firstClear?firstClearCoin(MAP.id):0, want=sCoin+qCoin+fCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
+    const qCoin = (rec.t>=60 ? QR.coin : 0)+(g.bqC||0);   // 같이하기 보너스 문제 코인 포함
+    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*difCoinX(MAP.dif)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=sCoin+qCoin+fCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
     if(win) stamp("클리어!");
-    mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:"게임 끝"}</h3><p>${MAP.name} · ${MAP.diff} · 경험치 ×${MAP.exp}</p>
+    mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:"게임 끝"}</h3><p>${MAP.name} · <b style="color:${DIFS[MAP.dif].c}">${DIFS[MAP.dif].n}</b> · 경험치 ×${(+MAP.exp).toFixed(1)}</p>
+      ${newDif&&MAP.dif<2?`<p class="gbest">🔓 ${DIFS[MAP.dif+1].n} 단계가 열렸어요!</p>`:""}
+      ${got.length?`<div class="gmedal">${got.map(i=>`<span>${MEDALS[i][0]} <b>${MEDALS[i][1]}</b> 훈장!</span>`).join("")}</div>`:""}
+      ${mileHit.length?`<p class="gbest">🎖 훈장 ${mc}개 돌파! 칭호 '${mileHit[mileHit.length-1][1]}' · 코인 +${mileCoin}</p>`:""}
       <div class="gstars">${starStr(stars)}</div>${firstClear?`<p class="gbest">처음 클리어 보너스 +${fCoin} 코인!</p>`:""}
       <div class="gres"><div><b>${fmtT(rec.t)}</b><span>걸린 시간</span></div><div><b>${g.kills}</b><span>물리친 몬스터</span></div><div><b>${Math.min(4,g.bossKills)} / 4</b><span>물리친 보스</span></div></div>
       <p style="font-family:var(--f-ui);font-size:18px;color:#25211b">한자 퀴즈 ${g.qOk} / ${g.qN} 정답 · ${QR.label} (경험치 ×${QR.exp})</p>
@@ -1577,7 +1681,8 @@ function startGame(opts){ opts=opts||{};
     if(g.fx.length>220){ const SMALL={num:1,poof:1,hit:1,crit:1,spark:1}; let cut=g.fx.length-220; g.fx=g.fx.filter(f=>{ if(cut>0&&SMALL[f.k]){ cut--; return false } return true }) }
     { let nums=0; for(let i=g.fx.length-1;i>=0;i--){ const f=g.fx[i]; if(f.k==="num"&&!f.me&&++nums>40) f.life=0 } }
     if(g.duelQ && !frozen && !P.dead && !g.over){ const d=g.duelQ; g.duelQ=null; hanjaDuel(d); return }
-    if(g.xp>=g.need && !frozen && !P.dead){ g.xp-=g.need; g.lvl++; g.need=needXP(g.lvl); levelUp() }
+    if(!NM && g.xp>=g.need && !frozen && !P.dead){ g.xp-=g.need; g.lvl++; g.need=needXP(g.lvl); levelUp() }
+    else if(NM==="host" && g.xp>=g.need && !g.lvR && !g.paused && !g.lvPend && !Object.values(RP).some(r=>!r.gone&&r.pzT)) lvStart()
   }
 
   // 그리기
@@ -1760,7 +1865,7 @@ function startGame(opts){ opts=opts||{};
         const ag=ctx.createRadialGradient(P.x,P.y+18,2,P.x,P.y+18,34+HSt.tier*4); ag.addColorStop(0,tc+"aa"); ag.addColorStop(1,tc+"00"); ctx.globalAlpha=.55*pu; ctx.fillStyle=ag; ctx.beginPath(); ctx.ellipse(P.x,P.y+18,34+HSt.tier*4,12+HSt.tier*1.5,0,0,7); ctx.fill();
         if(HSt.tier>=3){ for(let i=0;i<(HSt.tier===4?8:5);i++){ const ph=(g.t*.7+i/7)%1, a=i*2.4; ctx.globalAlpha=1-ph; ctx.fillStyle=tc; ctx.fillRect(P.x+Math.cos(a)*18-1.5,P.y+14-ph*46-1.5,3,3) } }
         ctx.restore() }
-      ctx.fillStyle="rgba(37,33,27,.22)"; ctx.beginPath(); ctx.ellipse(P.x,P.y+20,16*shS,5*shS,0,0,7); ctx.fill();
+      ctx.fillStyle="rgba(20,16,30,.16)"; ctx.beginPath(); ctx.ellipse(P.x,P.y+20,23*shS,7.5*shS,0,0,7); ctx.fill(); ctx.fillStyle="rgba(20,16,30,.28)"; ctx.beginPath(); ctx.ellipse(P.x,P.y+20,13*shS,4*shS,0,0,7); ctx.fill();
       const AK=HERO.main.kind, AD={sword:.24,arrow:.32,star:.22,gun:.16,fireball:.4,moon:.32,brush:.3,charm:.22,punch:.22}[AK], at=g.atk?g.t-g.atk.t:9, aq=at<AD?at/AD:-1, aa=g.atk?g.atk.a:0;
       let lx=0, ly=0, face=P.face||1;
       if(aq>=0){ face=Math.cos(aa)>=0?1:-1;
@@ -1768,7 +1873,7 @@ function startGame(opts){ opts=opts||{};
         lx=Math.cos(aa)*push; ly=Math.sin(aa)*push*.6 }
       if(aq>=0 && AK==="fireball") drawAtkUnder(P.x,P.y,aq,aa);
       if(heroImg.complete && heroImg.naturalWidth){
-        if(isHeroArt(heroImg.src)){ const rs=g.hrs||(g.hrs={}); rs.dt=g.t-(rs.t??g.t); rs.t=g.t; rs.mv=mv; rs.ph=ph; rs.kind=AK; rs.aq=aq; HERO_HD={x:P.x+lx*.5,y:P.y+20-hop*.45+ly*.5,rot:tilt*.6,sx:face*br,sy:br*(1+(sq-1)*.4),rs} }
+        if(isHeroArt(heroImg.src)){ const rs=g.hrs||(g.hrs={}); rs.dt=g.t-(rs.t??g.t); rs.t=g.t; rs.mv=mv; rs.ph=ph; rs.kind=AK; rs.aq=aq; rs.fs=rs.fs??face; rs.fs+=(face-rs.fs)*Math.min(1,(rs.dt||0)*16); const turn=Math.sign(rs.fs||face)*Math.max(.18,Math.abs(rs.fs)); HERO_HD={x:P.x+lx*.5,y:P.y+20-hop*.45+ly*.5,rot:tilt*.6,sx:turn*br,sy:br*(1+(sq-1)*.4)*(1+(1-Math.abs(turn))*.03),rs} }
         else { ctx.imageSmoothingEnabled=false;
         ctx.save(); ctx.translate(P.x+lx,P.y+20-hop+ly); ctx.rotate(tilt); ctx.scale(face*br/sq,br*sq);
         if(aq>=0 && aq<.35){ ctx.scale(1.08,.94) }
@@ -1846,12 +1951,12 @@ function startGame(opts){ opts=opts||{};
     const dt=Math.min(.05,(now-last)/1000); last=now; if(!g.over&&!g.paused) perfTick((now-(loop.p||now))/1000||dt); loop.p=now;
     raf=requestAnimationFrame(loop);   // 그리다 오류가 나도 게임이 멈추지 않게 먼저 다음 프레임을 예약해요
     try{
-    if(!g.over && (!g.paused || NM) && !(NM==="host" && allChoosing())) update(dt);
+    if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(dt);
     if(NM && !g.over) netTick(dt);
     draw();
     }catch(err){ if(!loop.errN||loop.errN<3){ loop.errN=(loop.errN||0)+1; console.error(err) } try{ ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over"; ctx.filter="none" }catch(e){} }
   }
 
   raf=requestAnimationFrame(loop);
-  showBanner(`${MAP.name} · ${MAP.diff} · 경험치 ×${MAP.exp} · 화면을 끌어서 움직여요`); sfx("start"); SND.bgm("m"+MAP.id);
+  showBanner(`${MAP.name} · ${DIFS[MAP.dif].n} · 경험치 ×${(+MAP.exp).toFixed(1)} · 화면을 끌어서 움직여요`); sfx("start"); SND.bgm("m"+MAP.id);
 }

@@ -1474,11 +1474,19 @@ const isHeroArt=src=>typeof src==="string"&&src.startsWith("data:image/webp");
 const HRIG={};
 function heroRigOf(img){ const key=img.src.length+":"+img.src.slice(-40); if(HRIG[key]!==undefined) return HRIG[key];
   try{ const W=img.naturalWidth, H=img.naturalHeight, c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(img,0,0);
+    // 명암: 위·왼쪽은 살짝 밝게, 아래·오른쪽은 살짝 어둡게 (빛이 왼쪽 위에서 비쳐요)
+    x.globalCompositeOperation="source-atop"; const gd=x.createLinearGradient(W*.15,0,W*.85,H); gd.addColorStop(0,"rgba(255,248,225,.16)"); gd.addColorStop(.45,"rgba(255,255,255,0)"); gd.addColorStop(1,"rgba(20,15,40,.22)"); x.fillStyle=gd; x.fillRect(0,0,W,H);
+    const gb=x.createLinearGradient(0,H*.6,0,H); gb.addColorStop(0,"rgba(0,0,0,0)"); gb.addColorStop(1,"rgba(10,8,20,.18)"); x.fillStyle=gb; x.fillRect(0,0,W,H); x.globalCompositeOperation="source-over";
+    // 림 라이트: 그림 테두리를 따라 은은하게 빛나는 윤곽 (뒤에 깔아요)
+    const rim=document.createElement("canvas"); rim.width=W; rim.height=H; const rx=rim.getContext("2d"); { // 흐릿한 기운(빛 번짐)은 빼고 진한 몸통 윤곽만 림 라이트로 써요
+      const hc=document.createElement("canvas"); hc.width=W; hc.height=H; const hx=hc.getContext("2d"); hx.drawImage(img,0,0); const id=hx.getImageData(0,0,W,H), q=id.data; for(let i=3;i<q.length;i+=4) q[i]=q[i]>215?255:0; hx.putImageData(id,0,0);
+      rx.filter="blur(3px)"; rx.drawImage(hc,0,0); rx.filter="none" } rx.globalCompositeOperation="source-in"; rx.fillStyle="#fff2cf"; rx.fillRect(0,0,W,H);
+    img=c;
     const d=x.getImageData(0,0,W,H).data; let top=H, bot=0; for(let y=0;y<H;y++) for(let i=0;i<W;i+=2) if(d[(y*W+i)*4+3]>100){ if(y<top) top=y; if(y>bot) bot=y; break }
     const hip=Math.round(top+(bot-top)*.74), y0=Math.round(top+(bot-top)*.86); let sw=0,sx=0,mn=W,mx=0; for(let y=y0;y<=bot;y++) for(let i=0;i<W;i++){ const a=d[(y*W+i)*4+3]; if(a>120){ sw+=a; sx+=a*i; if(i<mn) mn=i; if(i>mx) mx=i } }
     const mid=sw?sx/sw:W/2, ov=Math.round((bot-top)*.03);
     const cut=(x0,y0_,x1,y1)=>{ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const cx=cv.getContext("2d"); cx.save(); cx.beginPath(); cx.rect(x0,y0_,x1-x0,y1-y0_); cx.clip(); cx.drawImage(img,0,0); cx.restore(); return cv };
-    const R={W,H,hip,mid,bot,lp:(mn+mid)/2,rp:(mid+mx)/2,upper:cut(0,0,W,hip+ov),legL:cut(0,hip,mid,H),legR:cut(mid,hip,W,H)};
+    const R={W,H,hip,mid,bot,lp:(mn+mid)/2,rp:(mid+mx)/2,upper:cut(0,0,W,hip+ov),legL:cut(0,hip,mid,H),legR:cut(mid,hip,W,H),full:c,rim};
     // 다리를 돌려도 틈이 안 보이게: 허리 아래 그림을 흐리게 깔아 둬요
     const base=document.createElement("canvas"); base.width=W; base.height=H; const bx=base.getContext("2d"); bx.filter="blur(2px) brightness(.7)"; bx.drawImage(cut(0,hip-2,W,hip+(bot-hip)*.45),0,0); R.base=base;
     return HRIG[key]=R }catch(e){ return HRIG[key]=null } }
@@ -1497,8 +1505,10 @@ function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawIma
     for(let j=0;j<n;j++){ S.va+=(K*(ta-S.a)-C*S.va)*h; S.a+=S.va*h; S.vx+=(K*(tx-S.x)-C*S.vx)*h; S.x+=S.vx*h; S.vy+=(K*(ty-S.y)-C*S.vy)*h; S.y+=S.vy*h; S.vk+=(K*(tk-S.k)-C*S.vk)*h; S.k+=S.vk*h;
       S.vl+=(240*(tl-S.l)-C2*S.vl)*h; S.l+=S.vl*h; S.vr+=(240*(tr-S.r)-C2*S.vr)*h; S.r+=S.vr*h; S.vly+=(240*(tly-S.ly)-C2*S.vly)*h; S.ly+=S.vly*h; S.vry+=(240*(try_-S.ry)-C2*S.vry)*h; S.ry+=S.vry*h } }
   else if(st.dt===undefined){ S.a=ta; S.x=tx; S.y=ty; S.k=tk }
-  const body=(a,x,y,k,alpha)=>{ ctx.save(); if(alpha<1) ctx.globalAlpha*=alpha; ctx.translate(x,4+y); ctx.rotate(a*D); ctx.scale(k,1-(k-1)*.5); ctx.scale(s,s); ctx.translate(-R.W/2,-R.H);
-    if(Math.abs(S.l)+Math.abs(S.ly)<.3&&Math.abs(S.r)+Math.abs(S.ry)<.3) ctx.drawImage(img,0,0);
+  const T=st.t||0, still=Math.max(0,1-mv*1.5), br=Math.sin(T*2.4)*.014*still, step=Math.abs(Math.cos(ph))*mv, bob=-step*2.2, sq=(1-step)*.02*mv;
+  const body=(a,x,y,k,alpha)=>{ ctx.save(); if(alpha<1) ctx.globalAlpha*=alpha; ctx.translate(x,4+y+bob); ctx.rotate(a*D+Math.sin(ph)*.035*mv); ctx.scale(k*(1-br*.5+sq),(1-(k-1)*.5)*(1+br-sq)); ctx.scale(s,s); ctx.translate(-R.W/2,-R.H);
+    if(alpha>=1&&R.rim&&!window.__noRim){ ctx.save(); ctx.globalAlpha*=.55; ctx.globalCompositeOperation="lighter"; ctx.drawImage(R.rim,0,0); ctx.restore() }
+    if(Math.abs(S.l)+Math.abs(S.ly)<.3&&Math.abs(S.r)+Math.abs(S.ry)<.3) ctx.drawImage(R.full||img,0,0);
     else { ctx.drawImage(R.base,0,0); const leg=(cv,px,an,dy)=>{ ctx.save(); ctx.translate(px,R.hip+dy/s); ctx.rotate(an*D); ctx.drawImage(cv,-px,-R.hip); ctx.restore() };
       leg(R.legL,R.lp,S.l,S.ly); leg(R.legR,R.rp,S.r,S.ry); ctx.drawImage(R.upper,0,0) }
     ctx.restore() };
