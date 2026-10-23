@@ -832,6 +832,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
   padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .gcard.origin{background:radial-gradient(circle at 50% 0%,#4a2a08,#1a1028 70%);color:#fff4d6;border:3px solid #ffd36a;box-shadow:0 0 40px rgba(255,200,80,.55)}
 .gcard.origin h3{color:#ffd36a}.gcard.origin p{color:#fff4d6!important}.gcard.origin .gq{color:#fff}
+.gcard.origin h3,.gcard.origin .oriHead{font-family:var(--f-hz);font-weight:900;text-shadow:0 0 14px rgba(255,190,80,.6),0 2px 0 #2a1408}
+.gcard.origin h3{background:linear-gradient(#fffbe8,#ffe39a 45%,#e8b54a 55%,#b8802a);-webkit-background-clip:text;background-clip:text;color:transparent!important;font-size:30px;letter-spacing:.06em;text-shadow:none;filter:drop-shadow(0 0 10px rgba(255,190,80,.55)) drop-shadow(0 2px 0 #2a1408)}
+/* 직업별 4차·오리진 글씨체 (필요한 글자만 담은 가벼운 파일) */
+@font-face{font-family:"HF-warrior";src:url("hf_warrior.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-archer";src:url("hf_archer.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-thief";src:url("hf_thief.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-mage";src:url("hf_mage.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-pirate";src:url("hf_pirate.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-healer";src:url("hf_healer.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-calli";src:url("hf_calli.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-zodiac";src:url("hf_zodiac.woff2") format("woff2");font-display:swap}
+@font-face{font-family:"HF-mech";src:url("hf_mech.woff2") format("woff2");font-display:swap}
 .oriHead{font-family:var(--f-ui);letter-spacing:.3em;font-size:14px;color:#ffd36a;animation:gwp 1s ease-in-out infinite}
 @keyframes gwp{50%{opacity:.5}}
 .gcard{background:#fffdf6;color:#25211b;border-radius:20px;padding:20px;width:min(100%,640px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px;text-align:center}
@@ -873,6 +885,54 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
   .reward{min-width:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation-duration:.01s!important}}
+
+/* ===== 맵 잠금 쇠사슬 · 자물쇠 ===== */
+.mapc{position:relative}
+.mapc.chained{filter:saturate(.35) brightness(.8)}
+.mchain{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;z-index:3}
+.mchain .c1,.mchain .c2{position:absolute;left:-12%;top:50%;width:124%;height:16px;margin-top:-8px;
+  background:repeating-linear-gradient(90deg,#3a3a44 0 6px,#9aa0ae 6px 9px,#d8dce6 9px 13px,#7a7f8c 13px 18px,#3a3a44 18px 22px);
+  border-radius:8px;box-shadow:0 3px 6px rgba(0,0,0,.55),inset 0 2px 0 rgba(255,255,255,.35);transition:transform 1s cubic-bezier(.5,0,.8,.4),opacity 1s}
+.mchain .c1{transform:rotate(28deg)}.mchain .c2{transform:rotate(-28deg)}
+.plock{position:absolute;left:50%;top:50%;width:46px;height:54px;margin:-24px 0 0 -23px;transition:transform .9s cubic-bezier(.5,0,.8,.4),opacity .9s}
+.plock .shk{position:absolute;left:9px;top:0;width:28px;height:26px;border:6px solid #b8bcc8;border-bottom:none;border-radius:16px 16px 0 0;box-shadow:inset 0 2px 0 #fff8;transition:transform .35s}
+.plock .bod{position:absolute;left:0;top:20px;width:46px;height:34px;border-radius:7px;background:linear-gradient(#ffe08a,#d4a23a 55%,#8a5e1a);box-shadow:0 4px 8px rgba(0,0,0,.6),inset 0 2px 0 #fff8}
+.plock .bod::after{content:"";position:absolute;left:19px;top:9px;width:8px;height:14px;border-radius:4px 4px 2px 2px;background:#3a2408}
+.mchain.go .plock{animation:lockshake .35s 2}
+.mchain.go .plock .shk{transform:translateY(-12px) rotate(-18deg);transition-delay:.7s}
+.mchain.go .plock{transform:translateY(160px) rotate(40deg);opacity:0;transition-delay:1s}
+.mchain.go .c1{transform:rotate(28deg) translate(-130%,40px);opacity:0;transition-delay:1.05s}
+.mchain.go .c2{transform:rotate(-28deg) translate(130%,40px);opacity:0;transition-delay:1.05s}
+@keyframes lockshake{25%{margin-left:-27px}75%{margin-left:-19px}}
+.unlockToast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:9999;background:radial-gradient(circle,#4a3010,#1a1028);color:#fff4d6;border:3px solid #ffd36a;border-radius:18px;padding:18px 28px;font-family:var(--f-title);font-size:28px;display:flex;align-items:center;gap:14px;box-shadow:0 0 40px rgba(255,200,80,.6);animation:utoast 3.2s ease forwards}
+.unlockToast img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 10px #ffd36a)}.unlockToast b{color:#ffd36a}
+@keyframes utoast{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}10%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}18%{transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%)}}
+/* ===== 결과 화면 보물상자 ===== */
+.gchest{display:flex;flex-direction:column;align-items:center;gap:6px}
+.chestbox{position:relative;width:92px;height:70px}
+.chestbox .box{position:absolute;left:0;bottom:0;width:92px;height:44px;border-radius:6px;background:linear-gradient(#a8692a,#6a3a12);border:3px solid #ffd36a;box-sizing:border-box}
+.chestbox .lid{position:absolute;left:0;top:4px;width:92px;height:26px;border-radius:30px 30px 4px 4px;background:linear-gradient(#c8853a,#8a4e1a);border:3px solid #ffd36a;box-sizing:border-box;transform-origin:10% 100%;animation:lidopen .6s .5s ease forwards}
+.chestbox .glow{position:absolute;left:46px;top:30px;width:0;height:0;border-radius:50%;box-shadow:0 0 30px 18px rgba(255,220,120,0);animation:cglow 1s .7s ease forwards}
+@keyframes lidopen{to{transform:rotate(-38deg) translateY(-6px)}}
+@keyframes cglow{to{box-shadow:0 0 50px 30px rgba(255,220,120,.85)}}
+.chestout{opacity:0;animation:cout .7s 1s ease forwards;text-align:center}
+.chestout .ckey{width:110px;height:110px;object-fit:contain;filter:drop-shadow(0 0 12px #ffd36a);animation:kfloat 2.4s 1.7s ease-in-out infinite}
+@keyframes cout{from{opacity:0;transform:translateY(30px) scale(.6)}to{opacity:1;transform:none}}
+@keyframes kfloat{50%{transform:translateY(-6px) rotate(4deg)}}
+/* ===== 보스 카드 ===== */
+.gcards{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.bcard{width:104px;border-radius:10px;padding:5px;background:#1a1428;border:3px solid #555;color:#f3effd;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--f-ui);animation:cflip .7s ease both}
+.bcard.t1{border-color:#c98a4a;box-shadow:0 0 8px rgba(201,138,74,.5)}.bcard.t2{border-color:#cfd8e8;box-shadow:0 0 10px rgba(207,216,232,.6)}.bcard.t3{border-color:#ffd36a;box-shadow:0 0 14px rgba(255,211,106,.8)}
+.bcard.fin{width:124px;border-width:4px}.bcard.fin .bcin{height:104px}
+.bcard.none{opacity:.55;animation:none}
+.bcin{width:100%;height:84px;border-radius:6px;background:radial-gradient(circle,#3a2a5a,#120c1e);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.bcin img{max-width:96%;max-height:96%;object-fit:contain}
+.bcard b{font-size:13px;text-align:center;line-height:1.2}.bcard small{font-size:11px;color:#c8c0dc}
+.bq{font-size:36px;color:#5a4a7a}
+@keyframes cflip{from{transform:rotateY(90deg)}to{transform:none}}
+.cardmap{margin-top:12px}.cmh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:var(--f-ui);margin-bottom:6px}.cmh span{color:var(--muted);font-size:14px}
+.cardrow{display:flex;gap:8px;flex-wrap:wrap}
+.cardsum{font-family:var(--f-ui);font-size:16px;margin:8px 0}
 </style>
 
 <div id="moveBar"></div>
@@ -883,17 +943,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10231719"></script>
-<script src="jobs.js?v=10231719"></script>
-<script src="maps.js?v=10231719"></script>
-<script src="art.js?v=10231719"></script>
-<script src="monsters.js?v=10231719"></script>
-<script src="jobfx.js?v=10231719"></script>
-<script src="words.js?v=10231719"></script>
-<script src="sayings.js?v=10231719"></script>
-<script src="sfx.js?v=10231719"></script>
+<script src="sprites.js?v=10240257"></script>
+<script src="jobs.js?v=10240257"></script>
+<script src="maps.js?v=10240257"></script>
+<script src="art.js?v=10240257"></script>
+<script src="monsters.js?v=10240257"></script>
+<script src="jobfx.js?v=10240257"></script>
+<script src="words.js?v=10240257"></script>
+<script src="sayings.js?v=10240257"></script>
+<script src="sfx.js?v=10240257"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10231719"></script>
+<script src="mp.js?v=10240257"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1429,7 +1489,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10231719"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240257"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -1975,6 +2035,7 @@ function strokes(list){
 /* ===== 한자 도감 ===== */
 function dex(){
   if((P.set.dtab==="S"||P.set.dtab==="P")&&typeof sayDex==="function") return sayDex(P.set.dtab);
+  if(P.set.dtab==="B"&&typeof bossCardDex==="function") return bossCardDex();
   const mastered=UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length, seen=UNIQUE.filter(c=>P.seen[c.h]).length;
   const shown=new Set();
   $app.innerHTML = topbar("도감") + (typeof dexTabs==="function"?dexTabs("H"):"") + `
@@ -2094,4 +2155,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10231719"></script>
+<script src="game.js?v=10240257"></script>

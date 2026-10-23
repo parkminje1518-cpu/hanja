@@ -36,7 +36,12 @@ function jfBoom(c,f,k,GL){
   c.restore();
 }
 /* 목표 표시: 내 스킬은 금빛 조준 원, 보스 스킬은 붉은 경고 원 */
-function jfWarn(c,f,k,t){
+function jfWarn(c,f,k,t){ if(f.fire&&drawFireCircle(c,f,k,t)) return;
+  { const own=!!f.own, q=1-k, sc=.8+.2*Math.min(1,q*4), key=own?"warnown":"warncircle", col=own?OWN_COL:dangerCol(f.th);
+    if(warnTex(key,col)){ c.save(); c.translate(f.x,f.y); c.scale(1,.75); c.fillStyle=own?`rgba(255,214,90,${.04+.05*q})`:`rgba(200,30,40,${.06+.07*q})`; c.beginPath(); c.arc(0,0,f.r,0,TAU); c.fill();
+      c.fillStyle=own?"rgba(255,214,90,.12)":"rgba(220,40,50,.14)"; c.beginPath(); c.arc(0,0,f.r*Math.min(1,q),0,TAU); c.fill(); c.restore();
+      drawWarnEllipse(c,key,col,f.x,f.y,f.r*sc*1.04,f.r*.75*sc*1.04,Math.min(1,q*5)*(.5+.18*Math.sin(t*(own?8:16))));
+      if(!own){ c.save(); c.strokeStyle=`rgba(255,50,60,${.45+.4*Math.sin(t*16)})`; c.lineWidth=2.5; c.beginPath(); c.ellipse(f.x,f.y,f.r,f.r*.75,0,0,TAU); c.stroke(); c.restore() } return } }
   const own=!!f.own, rgb=own?"255,214,90":"235,60,60", q=1-k, r=f.r;
   c.save(); c.translate(f.x,f.y); c.scale(1,.75);
   c.fillStyle=`rgba(${rgb},${.08+.12*q})`; c.beginPath(); c.arc(0,0,r,0,TAU); c.fill();
@@ -68,6 +73,13 @@ function jfBigSlash(c,f,k,GL){
 }
 function jfQuake(c,f,k,GL,t){
   const s=jSeed(f), q=1-k, R=f.r;
+  // 노을 유적: 모래 폭풍 (모래 소용돌이 그림이 빙글 돌며 퍼져요)
+  if(f.th&&window.__mapId===3&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.sandstorm){ const im=SKILL_IMG.sandstorm, W=R*2.6*(.55+.45*Math.min(1,q*3)), H=W*im.height/im.width;
+    c.save(); c.translate(f.x,f.y); c.scale(1,H/W); c.rotate(-q*3.5); c.globalAlpha=Math.min(1,k*2); c.drawImage(im,-W/2,-W/2*im.height/im.width*W/H,W,W*im.height/im.width*W/H); c.restore(); return }
+  // 전사 대지 내려찍기: 제미나이 그림 (갈라진 땅 + 튀어 오르는 바위 + 충격파 고리)
+  const QI=!f.th&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.quakefx; if(QI){ const sc=.7+.4*(1-Math.pow(1-Math.min(1,q*2.2),3)), Wd=R*2.7*sc, Hd=Wd*QI.height/QI.width;
+    c.save(); c.globalAlpha=Math.min(1,k*2.2); c.drawImage(QI,f.x-Wd*.5,f.y-Hd*.6-q*10,Wd,Hd);
+    if(q<.4){ c.globalCompositeOperation=GL; c.globalAlpha=(.4-q)*1.6; c.drawImage(QI,f.x-Wd*.5,f.y-Hd*.6,Wd,Hd) } c.restore(); return }
   if(!f.cr){ f.cr=[]; for(let i=0;i<9;i++){ let a=jr(s,i)*TAU, x=0, y=0; const p=[[0,0]]; const L=R*(.5+.5*jr(s,i+30)); for(let j=0;j<6;j++){ a+=(jr(s,i*10+j)-.5)*.8; x+=Math.cos(a)*L/6; y+=Math.sin(a)*L/6*.6; p.push([x,y]) } f.cr.push(p) } }
   c.save(); c.translate(f.x,f.y);
   // 갈라진 땅 (빛나는 균열)
@@ -158,7 +170,7 @@ function jfRain(c,z,t,GL){
       c.fillStyle=`rgba(255,255,255,${(1-p)*k})`; for(let j=0;j<3;j++) c.fillRect(gx+(j-1)*6*p-1,gy-p*12-1,3,3) } }
   c.restore();
 }
-function jfArrow(c,sh,a,GL){
+function jfArrow(c,sh,a,GL){ if(typeof drawWindArrow==="function"&&drawWindArrow(c,sh.x,sh.y,a,sh.glow||sh.boom?120:96,1,!!(sh.glow||sh.boom))) return;
   c.save(); c.translate(sh.x,sh.y); c.rotate(a);
   if(sh.glow){ c.save(); c.globalCompositeOperation=GL; const g=c.createLinearGradient(-70,0,14,0); g.addColorStop(0,"rgba(90,240,170,0)"); g.addColorStop(.8,"rgba(150,255,210,.75)"); g.addColorStop(1,"rgba(255,255,255,.95)");
     c.fillStyle=g; c.beginPath(); c.moveTo(-70,0); c.lineTo(4,-5); c.lineTo(16,0); c.lineTo(4,5); c.closePath(); c.fill(); jGlow(c,10,0,14,"200,255,230",.6); c.restore() }
@@ -179,12 +191,15 @@ function shadowOf(img){ if(_shadowSrc===img.src && _shadowImg) return _shadowImg
   c.globalAlpha=.35; c.drawImage(img,2,2); _shadowImg=cv; _shadowSrc=img.src; return cv }
 function jfClone(c,m,img,t){
   if(!(img.complete&&img.naturalWidth)) return; const sh=shadowOf(img);
+  const SM=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.shadowsmoke; if(SM){ const H=86, W=H*SM.width/SM.height; c.save(); c.translate(m.x,m.y+26); c.scale(1+Math.sin(t*3)*.06,1+Math.sin(t*2.3)*.04); c.globalAlpha=.6+Math.sin(t*4)*.08; c.drawImage(SM,-W/2,-H,W,H); c.restore() }
   c.save(); c.imageSmoothingEnabled=false;
   for(let i=0;i<5;i++){ const ph=(t*1.2+i/5)%1; c.fillStyle=`rgba(80,40,140,${.4*(1-ph)})`; c.beginPath(); c.arc(m.x+Math.sin(i*2+t*2)*12,m.y+18-ph*40,6+ph*6,0,TAU); c.fill() }
   c.globalAlpha=.85; c.drawImage(sh,Math.round(m.x-32-2*64/sh.width),Math.round(m.y-40),64*sh.width/(sh.width-4),64*sh.height/(sh.height-4)); c.restore();
 }
 function jfMark(c,e,t,GL){
   const r=e.r+12, p=Math.max(0,e.mark/1.2);
+  const MK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.assmark; if(MK){ const S=r*2.6*(1+(1-p)*.12); c.save(); c.translate(e.x,e.y); c.globalCompositeOperation=GL; c.rotate(t*1.2); c.globalAlpha=.8+Math.sin(t*10)*.15; c.drawImage(MK,-S/2,-S/2,S,S); c.rotate(-t*1.2);
+    c.strokeStyle="rgba(255,200,240,.9)"; c.lineWidth=3; c.beginPath(); c.arc(0,0,S*.5+3,-Math.PI/2,-Math.PI/2+TAU*p); c.stroke(); c.restore(); return }
   c.save(); c.translate(e.x,e.y); c.globalCompositeOperation=GL;
   jGlow(c,0,0,r*1.4,"200,40,90",.35);
   c.strokeStyle="rgba(255,70,110,.95)"; c.lineWidth=2.5; c.beginPath(); c.arc(0,0,r,0,TAU); c.stroke();
@@ -201,6 +216,8 @@ function jfStarShape(c,R,col,dark){
 }
 function jfStar(c,sh,t,GL){
   const dk=!!sh.dark;
+  if(typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.star){ const S=dk?32:26; c.save(); c.globalCompositeOperation=GL; jGlow(c,sh.x,sh.y,S*.9,"170,90,255",dk?.5:.3); c.restore();
+    for(let j=2;j>=0;j--){ c.save(); c.translate(sh.x-sh.vx*.012*j,sh.y-sh.vy*.012*j); c.rotate(t*22-j*.5); c.globalAlpha=j?.25/j:1; drawSkillImg(c,"star",S,false); c.restore() } return }
   c.save(); c.globalCompositeOperation=GL;
   for(let j=1;j<=4;j++){ c.fillStyle=dk?`rgba(150,80,255,${.3-j*.06})`:`rgba(220,230,255,${.25-j*.05})`; c.beginPath(); c.arc(sh.x-sh.vx*.014*j,sh.y-sh.vy*.014*j,9-j*1.4,0,TAU); c.fill() }
   if(dk) jGlow(c,sh.x,sh.y,20,"170,90,255",.5);
@@ -209,7 +226,7 @@ function jfStar(c,sh,t,GL){
 }
 
 /* ========== 마법사: 독 안개 / 메테오 / 독불꽃 ========== */
-function jfMist(c,z,t,GL){
+function jfMist(c,z,t,GL){ if(drawMistArt(c,z,t)) return;
   const k=Math.min(1,z.t/.5,(z.max-z.t)/.4+.15), s=(z.x*5+z.y*11)|0;
   c.save(); c.translate(z.x,z.y);
   c.save(); c.scale(1,.6); c.strokeStyle=`rgba(190,140,255,${.55*k})`; c.lineWidth=2; c.rotate(-t*.6); for(let i=0;i<6;i++){ c.beginPath(); c.arc(0,0,z.r*.95,i*TAU/6,i*TAU/6+.7); c.stroke() } c.restore();
@@ -243,7 +260,7 @@ function jfBurn(c,e,t){
     c.fillStyle="rgba(170,90,255,.85)"; c.beginPath(); c.moveTo(x-4,y); c.quadraticCurveTo(x-1,y-h*.6,x,y-h); c.quadraticCurveTo(x+2,y-h*.5,x+4,y); c.closePath(); c.fill();
     c.fillStyle="rgba(230,200,255,.9)"; c.fillRect(x-1,y-4,2,3) }
 }
-function jfFireShot(c,sh,t,GL){
+function jfFireShot(c,sh,t,GL){ if(typeof drawFireballFx==="function"&&drawFireballFx(c,sh.x,sh.y,Math.atan2(sh.vy,sh.vx),sh.big?170:120,t)) return;
   c.save(); c.globalCompositeOperation=GL;
   for(let j=6;j>=1;j--){ const x=sh.x-sh.vx*.011*j, y=sh.y-sh.vy*.011*j, r=(11-j*1.2)*(1+Math.sin(t*30+j)*.1); c.fillStyle=`rgba(255,${200-j*22},${60-j*6},${.5-j*.06})`; c.beginPath(); c.arc(x+Math.sin(t*25+j)*1.5,y,r,0,TAU); c.fill() }
   jGlow(c,sh.x,sh.y,26,"255,150,50",.65);
@@ -338,14 +355,24 @@ function jfCutin(c,f,k,W,H,img,t,GL){
 function jfCutinText(c,f,W,H){
   const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=H*.3, x=cutinX(f,W)+W*.6;
   c.save(); c.globalAlpha=al; c.textAlign="center"; c.textBaseline="middle";
-  c.font='15px "Do Hyeon",sans-serif'; c.fillStyle="rgba(255,255,255,.9)"; c.fillText(f.sub,x,y-30);
-  c.font=`${Math.round(Math.min(46,W/14))}px "Black Han Sans","Do Hyeon",sans-serif`; c.lineWidth=7; c.strokeStyle="#140c20"; c.strokeText(f.text,x,y+6); c.fillStyle="#ffffff"; c.fillText(f.text,x,y+6);
-  c.globalCompositeOperation="source-atop"; const g=c.createLinearGradient(0,y-16,0,y+26); g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(1,f.c3); c.fillStyle=g; c.fillRect(x-W/2,y-20,W,50);
+  // 고급 MMORPG 느낌: 명조체(Noto Serif KR 900) · 금빛 그라데이션 · 은은한 빛 번짐
+  const HF=window.__heroId?`"HF-${window.__heroId}",`:"", SF=HF+'"Noto Serif KR","Nanum Myeongjo","Batang",serif', W9=HF?"":"900 ", W6=HF?"":"600 ";
+  try{ c.letterSpacing="4px" }catch(e){} c.font=`${W6}15px ${SF}`; c.fillStyle="rgba(255,240,210,.92)"; c.shadowColor="rgba(0,0,0,.8)"; c.shadowBlur=6; c.fillText(f.sub,x,y-32);
+  const fs=Math.round(Math.min(48,W/13)); try{ c.letterSpacing="2px" }catch(e){} c.font=`${W9}${fs}px ${SF}`;
+  c.shadowColor=f.c2||"#ffb84a"; c.shadowBlur=18; c.lineWidth=6; c.strokeStyle="#140c08"; c.strokeText(f.text,x,y+6); c.shadowBlur=0;
+  const g=c.createLinearGradient(0,y+6-fs*.55,0,y+6+fs*.5); g.addColorStop(0,"#fffbe8"); g.addColorStop(.45,"#ffe39a"); g.addColorStop(.55,"#e8b54a"); g.addColorStop(1,"#a8701e"); c.fillStyle=g; c.fillText(f.text,x,y+6);
+  c.lineWidth=1.2; c.strokeStyle="rgba(255,250,230,.7)"; c.strokeText(f.text,x,y+6);
+  // 글자 위를 스쳐 지나가는 빛줄기
+  const sw=((1-f.life/f.max)*1.6%1)*W; c.globalCompositeOperation="source-atop"; const lg=c.createLinearGradient(x-W/2+sw-60,0,x-W/2+sw+60,0); lg.addColorStop(0,"rgba(255,255,255,0)"); lg.addColorStop(.5,"rgba(255,255,255,.75)"); lg.addColorStop(1,"rgba(255,255,255,0)"); c.fillStyle=lg; c.fillRect(x-W/2,y-24,W,60);
   c.restore();
 }
 
 /* ---------- 전사 4차: 영웅의 각성 (하늘에서 성검이 꽂히고 화면을 다섯 번 가름) ---------- */
 function drawHolySword(c,x,tip,len,al,t,GL){
+  // 제미나이 성검 그림: 칼끝이 tip에 오도록, 뒤에 금빛 광채
+  const SI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holysword; if(SI){ const H=len*.95, Wd=H*SI.width/SI.height;
+    c.save(); c.globalAlpha=al; c.globalCompositeOperation=GL; jGlow(c,x,tip-H*.45,Wd*1.4,"255,225,140",.35); c.globalCompositeOperation="source-over"; c.drawImage(SI,x-Wd/2,tip-H,Wd,H);
+    c.globalCompositeOperation=GL; c.globalAlpha=al*(.25+.15*Math.sin(t*12)); c.drawImage(SI,x-Wd/2,tip-H,Wd,H); c.restore(); return }
   const w=len*.075;
   c.save(); c.globalAlpha=al; c.translate(x,tip);
   c.globalCompositeOperation=GL; jGlow(c,0,-len*.45,len*.55,"255,214,110",.5); c.globalCompositeOperation="source-over";
@@ -372,16 +399,19 @@ function jfWorldSlash(c,f,k,W,H,GL,t){
   if(tau<1.25){ const d=ease(tau/.45), tip=-len*.2+(cy+len*.2)*d, al=tau>1?1-(tau-1)/.25:1;
     if(tau<.45){ c.globalCompositeOperation=GL; for(let i=0;i<7;i++){ const xx=cx+(i-3)*len*.03; c.fillStyle=`rgba(255,236,170,${.35})`; c.fillRect(xx-1,tip-len*1.4,2,len*.6) } c.globalCompositeOperation="source-over" }
     drawHolySword(c,cx,tip,len,al,t,GL) }
-  // 꽂히는 순간 충격파
-  if(tau>.45&&tau<1.2){ const p=(tau-.45)/.75; c.globalCompositeOperation=GL;
-    for(let i=0;i<3;i++){ const r=Math.max(W,H)*(.08+p*(.9-i*.2)); c.strokeStyle=`rgba(255,230,150,${(1-p)*(1-i*.25)})`; c.lineWidth=14*(1-p)+2; c.beginPath(); c.ellipse(cx,cy,r,r*.45,0,0,TAU); c.stroke() }
-    jGlow(c,cx,cy,220*(1-p*.5),"255,240,190",(1-p)*.9);
-    for(let i=0;i<12;i++){ const a=i*TAU/12+.13, L=Math.max(W,H)*.6*ease(p*2); c.strokeStyle=`rgba(255,210,100,${1-p})`; c.lineWidth=3; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+Math.cos(a)*L,cy+Math.sin(a)*L*.5); c.stroke() }
-    c.globalCompositeOperation="source-over" }
-  // 화면을 가르는 다섯 번의 초승달 베기
-  c.globalCompositeOperation=GL; const R=Math.hypot(W,H)*.42;
-  for(let i=0;i<5;i++){ const st=.55+i*.11, p=(tau-st)/.32; if(p<0||p>1) continue; const a=-.9+i*1.3, al=1-p;
-    jfCrescent(c,cx+Math.cos(a+2)*R*.25,cy+Math.sin(a+2)*R*.18,R*(.85+p*.25),a,Math.PI*1.1,.3,[[0,"rgba(255,180,60,0)"],[.55,"rgba(255,200,80,A)"],[.9,"rgba(255,250,220,A)"],[1,"rgba(255,255,255,A)"]],al) }
+  // 꽂히는 순간: 금빛 마법진 + 하늘로 치솟는 빛기둥 (제미나이 그림)
+  const HC=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holycircle;
+  if(tau>.42&&tau<1.45){ const p=(tau-.42)/1.03, grow=1-Math.pow(1-Math.min(1,p*3.2),3), fade=p<.7?1:Math.max(0,1-(p-.7)/.3);
+    if(HC){ const Wd=Math.min(W*.95,H*1.25)*(.55+.45*grow), Hd=Wd*HC.height/HC.width; c.save(); c.globalCompositeOperation=GL; c.globalAlpha=fade*.85; c.drawImage(HC,cx-Wd*.5,cy-Hd*.737,Wd,Hd);
+      if(p<.2){ c.globalAlpha=(.2-p)*2; c.drawImage(HC,cx-Wd*.5,cy-Hd*.737,Wd,Hd) } c.restore() }
+    else { c.globalCompositeOperation=GL; jGlow(c,cx,cy,220*(1-p*.5),"255,240,190",(1-p)*.9); c.globalCompositeOperation="source-over" }
+    // 바깥으로 한 번 퍼지는 얇은 금빛 충격파
+    c.save(); c.globalCompositeOperation=GL; const r=Math.max(W,H)*(.1+p*.8); c.strokeStyle=`rgba(255,230,150,${Math.max(0,.8-p*1.3)})`; c.lineWidth=6*(1-p)+1; c.beginPath(); c.ellipse(cx,cy,r,r*.45,0,0,TAU); c.stroke(); c.restore() }
+  // 화면을 가르는 다섯 번의 금빛 검기 (세렌 검기 그림을 금빛으로, 화면을 가로질러 휙)
+  const WT=typeof waveTex==="function"&&waveTex("hw");
+  for(let i=0;i<5;i++){ const st=.55+i*.11, p=(tau-st)/.34; if(p<0||p>1) continue; const a=-.5+i*1.25+(i%2?Math.PI:0), al=Math.min(1,(1-p)*2.2)*Math.min(1,p*5);
+    if(WT){ const Hd=Math.min(W,H)*.48, Wd=Hd*WT.width/WT.height, d=(p-.5)*Math.hypot(W,H)*.9; c.save(); c.translate(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.75); c.rotate(a); c.globalCompositeOperation=GL; c.globalAlpha=al*.8; c.drawImage(WT.cv,-Wd*.9,-Hd/2,Wd,Hd); c.restore() }
+    else { const R=Math.hypot(W,H)*.42; c.globalCompositeOperation=GL; jfCrescent(c,cx+Math.cos(a+2)*R*.25,cy+Math.sin(a+2)*R*.18,R*(.85+p*.25),a,Math.PI*1.1,.3,[[0,"rgba(255,180,60,0)"],[.55,"rgba(255,200,80,A)"],[.9,"rgba(255,250,220,A)"],[1,"rgba(255,255,255,A)"]],1-p) } }
   c.restore();
 }
 
@@ -395,6 +425,9 @@ function jfHurricane(c,P,t,k,GL,aim){
   // 앞으로 날아가는 바람 고리
   for(let i=0;i<5;i++){ const ph=(t*2.6+i/5)%1, d=50+ph*320, r=22+ph*44; c.save(); c.globalCompositeOperation="source-over"; c.strokeStyle=`rgba(20,110,80,${(1-ph)*.5*k})`; c.lineWidth=5*(1-ph)+1; c.beginPath(); c.ellipse(d,0,r*.28,r,0,0,TAU); c.stroke(); c.restore(); c.strokeStyle=`rgba(190,255,225,${(1-ph)*.75*k})`; c.lineWidth=3*(1-ph)+1; c.beginPath(); c.ellipse(d,0,r*.28,r,0,0,TAU); c.stroke() }
   // 빛의 활
+  const BI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windbow;
+  if(BI){ const Hd=200, Wd=Hd*BI.width/BI.height, vib=Math.sin(t*60)*1.5; c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=k; c.drawImage(BI,-Wd*.62+vib,-Hd/2,Wd,Hd); c.globalAlpha=k*(.3+.2*Math.sin(t*14)); c.drawImage(BI,-Wd*.62,-Hd/2,Wd,Hd); c.restore();
+    drawWindArrow(c,40,0,0,150,k,true); jGlow(c,52,0,30,"180,255,220",.7*k); c.restore(); return }
   const R=84, vib=Math.sin(t*60)*2;
   c.save(); c.translate(-26,0);
   c.save(); c.globalCompositeOperation="source-over"; c.lineCap="round";
@@ -421,11 +454,16 @@ function jfHurricane(c,P,t,k,GL,aim){
 function jfFlare(c,m,t,GL){
   const k=Math.min(1,(m.max-m.t)/.35,m.t/.4), bob=Math.sin(t*2.5)*5, spin=t*9, R=48;
   c.save(); c.translate(m.x,m.y);
+  // 땅의 어둠 소용돌이 (제미나이 그림이 있으면 그림이 빙글빙글 돌아요)
+  const VX=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.darkvortex;
+  if(VX){ c.save(); c.scale(1,.45); c.translate(0,60/.45*.42); c.globalAlpha=k; c.rotate(-t*2.2); c.globalCompositeOperation=GL; c.drawImage(VX,-170,-170,340,340); c.globalAlpha=k*.35; c.rotate(t*.9); c.drawImage(VX,-130,-130,260,260); c.restore() }
+  else {
   // 땅의 어둠 소용돌이
   c.save(); c.scale(1,.42); c.globalAlpha=k;
   const dg=c.createRadialGradient(0,60,4,0,60,150); dg.addColorStop(0,"rgba(20,0,40,.85)"); dg.addColorStop(.6,"rgba(80,20,150,.4)"); dg.addColorStop(1,"rgba(60,10,120,0)"); c.fillStyle=dg; c.beginPath(); c.arc(0,60,150,0,TAU); c.fill();
   c.globalCompositeOperation=GL; c.translate(0,60); c.rotate(-t*2.5); for(let i=0;i<6;i++){ c.rotate(TAU/6); c.strokeStyle="rgba(190,120,255,.6)"; c.lineWidth=3; c.beginPath(); c.arc(40,0,70,Math.PI*.8,Math.PI*1.3); c.stroke() }
   c.restore();
+  }
   for(let i=0;i<10;i++){ const ph=(t*1.2+i/10)%1, a=i*2.4-t; c.fillStyle=`rgba(200,140,255,${(1-ph)*k})`; c.fillRect(Math.cos(a)*(110*(1-ph))-2,22+Math.sin(a)*(40*(1-ph))-ph*70-2,4,4) }
   c.translate(0,-46+bob); c.globalAlpha=k;
   // 번개 실선
@@ -737,13 +775,19 @@ function pfxBoom(c,f,k){ const P=PFX.boom_fire0; if(!P) return false; const col=
   if(q<.7){ const rr=f.r*(.5+q*1.1), al=(1-q/.7)*.8, RC={fire:"255,200,120",purple:"220,170,255",green:"190,255,200",gold:"255,240,170",blue:"190,230,255",moon:"235,240,255"}[p]||"255,230,190"; c.save(); c.strokeStyle=`rgba(${RC},${al})`; c.lineWidth=3*(1-q)+1; c.beginPath(); c.ellipse(f.x,f.y,rr,rr*.72,0,0,7); c.stroke(); c.restore() }
   return true }
 function pfxRing(c,P,R,t){ for(let i=0;i<16;i++){ const a=t*1.8+i*Math.PI/8, fx=P.x+Math.cos(a)*R, fy=P.y+Math.sin(a)*R*.9; pfxDraw(c,"flame"+((Math.floor(t*12)+i)&3),fx,fy-10,0,.75+.15*Math.sin(t*9+i)) } }
-function pfxRain(c,z,t){ const k=Math.min(1,z.t/.4,(z.max-z.t)/.25+.2), s=(z.x*7+z.y*3)|0; c.save(); c.translate(z.x,z.y);
+function pfxRain(c,z,t){ const k=Math.min(1,z.t/.4,(z.max-z.t)/.25+.2), s=(z.x*7+z.y*3)|0;
+  const RI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windrain;
+  if(RI&&SKILL_IMG.windarrow){ const Wd=z.r*2/.81, Hd=Wd*RI.height/RI.width; c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=k*(.8+Math.sin(t*9)*.08); c.drawImage(RI,z.x-Wd*.496,z.y-Hd*.784,Wd,Hd); c.restore();
+    c.save(); c.globalCompositeOperation="lighter"; for(let i=0;i<16;i++){ const sp=2.6+jr(s,i)*1.2, ph=(t*sp+jr(s,i+30))%1, cyc=Math.floor(t*sp+jr(s,i+30)), a=jr(s+cyc,i)*TAU, d=Math.sqrt(jr(s+cyc,i+50))*z.r*.9, gx=z.x+Math.cos(a)*d, gy=z.y+Math.sin(a)*d*.6;
+      if(ph<.85){ const p=ph/.85; drawWindArrow(c,gx+60*(1-p),gy-220*(1-p),1.84,90,k*Math.min(1,p*4)) }
+      else { const p=(ph-.85)/.15; c.strokeStyle=`rgba(180,255,210,${(1-p)*k})`; c.lineWidth=2; c.beginPath(); c.ellipse(gx,gy,4+p*16,(4+p*16)*.45,0,0,TAU); c.stroke() } } c.restore(); return }
+  c.save(); c.translate(z.x,z.y);
   c.save(); c.scale(1,.6); c.strokeStyle=`rgba(150,255,200,${.6*k})`; c.lineWidth=2.5; c.beginPath(); c.arc(0,0,z.r,0,TAU); c.stroke(); c.restore();
   for(let i=0;i<20;i++){ const sp=2.6+jr(s,i)*1.2, ph=(t*sp+jr(s,i+30))%1, cyc=Math.floor(t*sp+jr(s,i+30)), a=jr(s+cyc,i)*TAU, d=Math.sqrt(jr(s+cyc,i+50))*z.r*.9, gx=Math.cos(a)*d, gy=Math.sin(a)*d*.6;
     if(ph<.85){ const p=ph/.85; pfxDraw(c,"arrow1",gx+40*(1-p),gy-160*(1-p),1.82,.8,k) }
     else { const p=(ph-.85)/.15; c.strokeStyle=`rgba(180,255,210,${(1-p)*k})`; c.lineWidth=2; c.beginPath(); c.ellipse(gx,gy,4+p*14,(4+p*14)*.45,0,0,TAU); c.stroke() } }
   c.restore() }
-function pfxMist(c,z,t){ const k=Math.min(1,z.t/.5,(z.max-z.t)/.4+.15), s=(z.x*5+z.y*11)|0; c.save(); c.translate(z.x,z.y);
+function pfxMist(c,z,t){ if(drawMistArt(c,z,t)) return; const k=Math.min(1,z.t/.5,(z.max-z.t)/.4+.15), s=(z.x*5+z.y*11)|0; c.save(); c.translate(z.x,z.y);
   for(let i=0;i<9;i++){ const a=jr(s,i)*TAU+t*(.3+jr(s,i+9)*.4)*(i%2?1:-1), d=z.r*(.15+.55*jr(s,i+20)), sc=z.r/80*(.8+.3*jr(s,i+30))*(1+.06*Math.sin(t*2+i));
     pfxDraw(c,i%3===0?"puffg":"puffp",Math.cos(a)*d,Math.sin(a)*d*.6,0,sc,.38*k) }
   for(let i=0;i<10;i++){ const ph=(t*.8+jr(s,i+50))%1; pfxDraw(c,"bubble",(jr(s,i+60)-.5)*z.r*1.4,(jr(s,i+70)-.5)*z.r*.8-ph*40,0,.8+ph*.4,(1-ph)*k) }
@@ -810,19 +854,34 @@ function slashSprite(m){ const C=WAVE_PAL[m]||WAVE_PAL[5], rgb=h=>hexRgb(h); ret
   star(CX+Math.cos(SP*.95)*(R-4),Math.sin(SP*.95)*(R-4),8,.3); star(CX+Math.cos(-SP*.95)*(R-4),Math.sin(-SP*.95)*(R-4),8,-.3); star(CX+R+2,0,12,0); }) }
 /* 세렌풍 검기: 검은 배경 이펙트 그림을 맵 색으로 물들여 빛 더하기로 그려요 (맵마다 한 번만 만들어 둬요)
    밝은 맵에서도 보이게, 같은 모양의 어두운 그림자(밝기를 투명도로 바꾼 것)를 먼저 깔아요 */
+const WAX=.9;   // 검기 그림에서 판정 위치(초승달 날)의 가로 위치
+const WSCR={}; function waveScratch(TX){ const k=TX.width; if(WSCR[k]) return WSCR[k]; const cv=document.createElement("canvas"); cv.width=Math.round(TX.width*.6); cv.height=Math.round(TX.height*.6); return WSCR[k]={cv,x:cv.getContext("2d")} }
 const WTEX={}; function waveTex(m,key){ key=key||"slashwave"; const id=key+m; if(WTEX[id]) return WTEX[id]; const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG[key]; if(!im) return null;
   const C=WAVE_PAL[m]||WAVE_PAL[5], mk=()=>{ const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; return cv };
   // 빛 그림(투명 배경)을 맵 색으로 물들이고, 그림 모양 밖은 다시 투명하게 잘라요
   const cv=mk(), x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="multiply"; x.fillStyle=C[1]; x.fillRect(0,0,cv.width,cv.height);
-  x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); x.globalCompositeOperation="lighter"; x.globalAlpha=.35; x.drawImage(im,0,0);
+  x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); x.globalCompositeOperation="lighter"; x.globalAlpha=key==="slashwave"?.5:.35; x.drawImage(im,0,0);
+  if(key==="slashwave"){ // 황금 검기처럼: 맵 색 빛 번짐(블룸)을 뒤에 넓게 깔아요
+    const gl=mk(), gx=gl.getContext("2d"); gx.drawImage(im,0,0); gx.globalCompositeOperation="source-in"; gx.fillStyle=C[1]; gx.fillRect(0,0,gl.width,gl.height);
+    const bl=mk(), bx=bl.getContext("2d"); bx.filter="blur(9px)"; bx.globalAlpha=.32; bx.drawImage(gl,0,0); bx.filter="none"; bx.globalAlpha=1; bx.globalCompositeOperation="lighter"; bx.drawImage(cv,0,0);
+    WTEX[id]={cv:bl,sh:null,width:bl.width,height:bl.height} }
   // 밝은 맵에서도 보이게 깔아 두는 어두운 그림자 (같은 모양)
+  if(WTEX[id]){ const sh=mk(), y=sh.getContext("2d"); y.drawImage(im,0,0); y.globalCompositeOperation="source-in"; y.fillStyle=C[2]; y.fillRect(0,0,sh.width,sh.height); WTEX[id].sh=sh; return WTEX[id] }
   const sh=mk(), y=sh.getContext("2d"); y.drawImage(im,0,0); y.globalCompositeOperation="source-in"; y.fillStyle=C[2]; y.fillRect(0,0,sh.width,sh.height);
   return WTEX[id]={cv,sh,width:cv.width,height:cv.height} }
 function drawBurst(c,x,y,m,size,al,rot){ const TX=waveTex(m,"hitburst"); if(!TX||al<=0) return false; c.save(); c.translate(x,y); if(rot) c.rotate(rot); c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-size/2,-size/2,size,size); c.restore(); return true }
 function drawWave(c,b,t){ const TX=waveTex(b.map||5); if(TX){ const m=b.map||5, age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), Hd=175*sc, Wd=Hd*TX.width/TX.height, fl=1+Math.sin(t*30+b.x)*.05;
     if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
-    c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.scale(1,fl); const SHA={7:1,8:1,3:.7,9:.75,1:.6,6:.65}[m]||.5; c.globalAlpha=al*SHA; c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); if(SHA>=1){ c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd) }
-    c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-Wd*.76,-Hd/2,Wd,Hd); c.restore(); return }
+    c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.scale(1,fl); const SHA={7:1,8:1,3:.7,9:.75,1:.6,6:.65}[m]||.5; c.globalAlpha=al*SHA; c.drawImage(TX.sh,-Wd*WAX,-Hd/2,Wd,Hd); if(SHA>=1){ c.drawImage(TX.sh,-Wd*WAX,-Hd/2,Wd,Hd); c.drawImage(TX.sh,-Wd*WAX,-Hd/2,Wd,Hd) }
+    c.globalCompositeOperation="lighter"; c.globalAlpha=al;
+    // 펄럭임: 앞날(초승달)은 그대로, 뒤쪽 리본 꼬리는 조각마다 물결처럼 위아래로 일렁여요
+    if(window.__fxLow) c.drawImage(TX.cv,-Wd*WAX,-Hd/2,Wd,Hd);
+    else { // 조각을 작은 캔버스에 먼저 모아 그린 뒤 한 번에 빛으로 얹어요 (조각 이음새가 겹쳐 밝아지지 않게)
+      const S=waveScratch(TX), N=18, TW=TX.width*.6, sw=TW/N, ph=t*11+b.x*.01, sx=S.cv.width/TX.width; S.x.clearRect(0,0,S.cv.width,S.cv.height);
+      for(let i=0;i<N;i++){ const k2=1-i/N, dy=Math.sin(ph-i*.42)*TX.height*.04*k2; S.x.drawImage(TX.cv,i*sw,0,sw+1,TX.height,i*sw*sx,dy*sx,(sw+1)*sx,TX.height*sx) }
+      S.x.drawImage(TX.cv,TW,0,TX.width-TW,TX.height,TW*sx,0,(TX.width-TW)*sx,TX.height*sx);
+      c.drawImage(S.cv,-Wd*WAX,-Hd/2,Wd,Hd) }
+    c.restore(); return }
   const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), key="slash3_"+m; slashSprite(m); const P_=PFX[key];
   if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
   const fl=1+Math.sin(t*34+b.x)*.04, ca=Math.cos(b.a), sa=Math.sin(b.a), off=-62*sc;   // 칼날 앞쪽 가장자리가 탄 위치에 오게
@@ -906,28 +965,36 @@ function pfxInitTheme(){ if(PFX._okT) return; PFX._okT=1; const ol=(c,w,col)=>{ 
     c.strokeStyle="rgba(40,25,10,.6)"; c.lineWidth=1.2; c.beginPath(); c.moveTo(-4,-2); c.lineTo(2,3); c.lineTo(6,0); c.stroke() });
 }
 const TH_SPIN={snow:1,star:1,flower:1,rock:1,planet:0,void:0,bolt:0,poison:0};
-function drawThemeShot(c,b,t){ if(!PFX._okT) return false; const th=b.th, key=th==="snow"?"snowball":th==="ice"?"ice":th==="fire"?"fire"+(Math.floor(t*14)&3):"th_"+th; if(!PFX[key]) return false;
+function drawThemeShot(c,b,t){ if(b.th==="fire"&&typeof drawFireballFx==="function"&&drawFireballFx(c,b.x,b.y,Math.atan2(b.vy,b.vx),Math.max(70,(b.r||10)*7.5),t)) return true;
+  if(drawArtShot(c,b,t)) return true;
+  if(!PFX._okT) return false; const th=b.th, key=th==="snow"?"snowball":th==="ice"?"ice":th==="fire"?"fire"+(Math.floor(t*14)&3):"th_"+th; if(!PFX[key]) return false;
   const P=TH_PAL[th]||TH_PAL.fire, a=Math.atan2(b.vy,b.vx), sc=Math.max(.8,(b.r||10)/11), rot=TH_SPIN[th]?t*7+(b.x*.01):(th==="planet"||th==="void"||th==="bolt"||th==="poison")?0:a;
   c.save(); c.globalCompositeOperation="lighter"; jGlow(c,b.x,b.y,(b.r||10)*2.3,hexRgb(P[1]),.5); c.restore();
   if(th==="star"||th==="light"||th==="bolt"){ for(let j=2;j>=1;j--) pfxDraw(c,key,b.x-b.vx*.02*j,b.y-b.vy*.02*j,rot,sc*(1-j*.15),.25/j) }
-  pfxDraw(c,key,b.x,b.y,rot,sc*(th==="fire"?.85:1)); return true }
+  pfxDraw(c,key,b.x,b.y,rot,sc*(th==="fire"?.85:1));
+  if(th==="bolt"&&!window.__fxLow){ const fr=Math.floor(t*14), rr=(b.r||10); c.save(); c.translate(b.x,b.y); c.rotate(((fr*2.399)+(b.x*.013))%6.283); c.translate(-rr*1.6,0); drawBoltStrand(c,rr*3.2,rr*1.6,.85); c.restore() }
+  return true }
 /* 테마 폭발: 테마 조각이 사방으로 튀고, 가운데 빛 */
 function drawThemeBoom(c,f,k,t){ if(!PFX._okT) return false; const th=f.th, P=TH_PAL[th]; if(!P) return false; const q=1-k, R=f.r||60;
+  if(th!=="bolt"&&!window.__fxLow){ const age=(1-k)*(f.max||.4), dur=f.max||.4, sd=((f.x*3+f.y*7)|0)%97; eruptColumn(c,f.x,f.y,Math.max(36,R*.8),age*(1.4/dur),1.4,hexRgb(P[1]),sd); if(age<.25) drawImpactBoom(c,f,Math.max(k,.6),t,th==="star"?["#fff","#ffd36a"]:P); return true }
   c.save(); c.globalCompositeOperation="lighter"; const fr=R*(.4+q*.9)*(q>.6?1.4-q*.8:1), g=c.createRadialGradient(f.x,f.y,0,f.x,f.y,fr); g.addColorStop(0,P[0]); g.addColorStop(.4,P[1]+"cc"); g.addColorStop(1,P[1]+"00"); c.globalAlpha=Math.min(1,k*1.8); c.fillStyle=g; c.beginPath(); c.arc(f.x,f.y,fr,0,7); c.fill(); c.restore();
   c.save(); c.globalAlpha=Math.min(1,k*2); c.strokeStyle=P[1]; c.lineWidth=3*k+1; c.beginPath(); c.ellipse(f.x,f.y,R*(.3+q*.9),R*(.3+q*.9)*.75,0,0,7); c.stroke(); c.restore();
   const key=th==="snow"?"snowball":th==="ice"?"ice":th==="fire"?"fire0":"th_"+th, n=th==="bolt"?0:8, s=jSeed(f);
   if(PFX[key]) for(let i=0;i<n;i++){ const an=i/n*6.283+jr(s,i), d=R*(.15+q*.95)*(.7+jr(s,i+9)*.5); pfxDraw(c,key,f.x+Math.cos(an)*d,f.y+Math.sin(an)*d*.8-Math.sin(q*Math.PI)*14,th==="star"||th==="flower"?t*6+i:an,.55*(1-q*.5),Math.min(1,k*2)) }
-  if(th==="bolt"&&k>.4){ c.save(); c.strokeStyle="#ffffff"; c.lineWidth=3; c.shadowColor="#ffe84a"; c.shadowBlur=12; for(let j=0;j<3;j++){ c.beginPath(); let x=f.x+(jr(s,j)-.5)*R*.6, y=f.y-420; c.moveTo(x,y); while(y<f.y){ y+=40; x+=(jr(s,j*9+y)-.5)*40; c.lineTo(x,Math.min(y,f.y)) } c.stroke() } c.restore() }
+  if(th==="bolt"&&k>.4&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.boltfx){ const im=SKILL_IMG.boltfx, Hd=Math.max(160,R*3.2), Wd=Hd*im.width/im.height; c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,(k-.4)*2.5)*(.8+Math.random()*.3); for(let jj=0;jj<2;jj++){ const ox=(jr(s,jj)-.5)*R*.8; c.drawImage(im,f.x+ox-Wd*.5,f.y+16-Hd,Wd,Hd) } c.restore() }
+  else if(th==="bolt"&&k>.4){ c.save(); c.strokeStyle="#ffffff"; c.lineWidth=3; c.shadowColor="#ffe84a"; c.shadowBlur=12; for(let j=0;j<3;j++){ c.beginPath(); let x=f.x+(jr(s,j)-.5)*R*.6, y=f.y-420; c.moveTo(x,y); while(y<f.y){ y+=40; x+=(jr(s,j*9+y)-.5)*40; c.lineTo(x,Math.min(y,f.y)) } c.stroke() } c.restore() }
   if(th==="star"){ c.save(); c.translate(f.x,f.y); c.rotate(q*2); c.globalCompositeOperation="lighter"; c.fillStyle=`rgba(255,250,220,${k})`; for(let i=0;i<4;i++){ c.rotate(Math.PI/4); c.fillRect(-R*1.2*(.5+q),-1.5,R*2.4*(.5+q),3) } c.restore() }
   if(th==="void"){ c.save(); c.globalAlpha=k; c.fillStyle="#000"; c.beginPath(); c.arc(f.x,f.y,R*.35*(1-q*.6),0,7); c.fill(); c.restore() }
   return true }
 /* 테마 낙하: 별똥별 · 낙뢰 · 고드름 · 뿌리 · 빛기둥 · 공허 구슬 · 수정 가시 · 낙석 */
 function drawThemeFall(c,f,k,t){ if(!PFX._okT||f.life>f.max) return false; const th=f.th, q=1-f.life/f.max, P=TH_PAL[th]; if(!P) return false;
+  if(th==="star"&&drawSpearFall(c,f,q,t,P)) return true;
+  if(th!=="fire"&&th!=="bolt"&&th!=="ice"&&th!=="snow"&&th!=="rock"&&pillarStrike(c,f,q,t,hexRgb(P[1]))) return true;
   if(th==="fire") return false;
   if(th==="bolt"){ c.save(); c.globalAlpha=q; c.strokeStyle="#fff"; c.lineWidth=2+q*3; c.shadowColor="#ffe84a"; c.shadowBlur=14; c.beginPath(); let x=f.x, y=f.y-460*q; c.moveTo(x+30,f.y-480); for(let i=0;i<8;i++){ c.lineTo(f.x+(Math.sin(i*7+t*30))*16,f.y-480+(480*q)*(i+1)/8) } c.stroke(); c.restore(); return true }
   if(th==="light"){ c.save(); c.globalCompositeOperation="lighter"; const w=16+q*22, g=c.createLinearGradient(f.x-w,0,f.x+w,0); g.addColorStop(0,"rgba(255,233,160,0)"); g.addColorStop(.5,`rgba(255,250,220,${.4+q*.5})`); g.addColorStop(1,"rgba(255,233,160,0)"); c.fillStyle=g; c.fillRect(f.x-w,f.y-500,w*2,500); c.restore(); return true }
   if(th==="leaf"||th==="crystal"){ if(q<.75) return true; const p=(q-.75)/.25, key=th==="leaf"?"th_leaf":"th_crystal"; for(let i=0;i<6;i++){ const a=-Math.PI/2+(i-2.5)*.28; pfxDraw(c,key,f.x+(i-2.5)*10,f.y-p*30*(1-Math.abs(i-2.5)/4),a,1.1*p) } return true }
-  if(th==="ice"&&PFX.icicle_big){ const y=f.y-460*(1-q); c.save(); c.fillStyle=`rgba(40,80,140,${.25*q})`; c.beginPath(); c.ellipse(f.x,f.y,22*q,8*q,0,0,7); c.fill(); c.restore(); pfxDraw(c,"icicle_big",f.x,y-52,0,1.3); return true }
+  if(th==="ice"&&PFX.icicle_big){ const y=f.y-460*(1-q); c.save(); c.fillStyle=`rgba(40,80,140,${.25*q})`; c.beginPath(); c.ellipse(f.x,f.y,22*q,8*q,0,0,7); c.fill(); c.restore(); pfxDraw(c,"icicle_big",f.x,y-38,0,.85); return true }
   const key=th==="snow"?"snowball":th==="ice"?"ice":"th_"+th; if(!PFX[key]) return false; const sx=f.x-200*(1-q), sy=f.y-420*(1-q), a=Math.atan2(420,200);
   c.save(); c.globalCompositeOperation="lighter"; const tg=c.createLinearGradient(sx-110,sy-230,sx,sy); tg.addColorStop(0,P[1]+"00"); tg.addColorStop(1,P[0]+"dd"); c.strokeStyle=tg; c.lineWidth=th==="star"?10:6; c.lineCap="round"; c.beginPath(); c.moveTo(sx-110,sy-230); c.lineTo(sx,sy); c.stroke(); jGlow(c,sx,sy,26,hexRgb(P[1]),.6); c.restore();
   pfxDraw(c,key,sx,sy,th==="star"?t*8:a,th==="planet"?1.4:1.5); return true }
@@ -969,11 +1036,13 @@ function drawNewShot(c,sh,a,t,GL){ const k=sh.k;
   if(k==="ink"){ const life=sh.life, al=Math.min(1,life/.15); c.save(); c.globalAlpha=al;
     for(let j=1;j<=4;j++){ c.fillStyle=`rgba(20,16,24,${.18/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j+Math.sin(j*7)*8,sh.y-sh.vy*.02*j+Math.cos(j*5)*8,4-j*.5,0,7); c.fill() }
     if(!nImg(c,"ink",sh.x,sh.y,70,false,a)){ c.translate(sh.x,sh.y); c.rotate(a); c.strokeStyle="#151018"; c.lineWidth=7; c.beginPath(); c.arc(-14,0,30,-1.1,1.1); c.stroke() } c.restore(); return true }
+  if(k==="charm"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.charmfx){ const im=SKILL_IMG.charmfx, L=78, H=L*im.height/im.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a+Math.sin(t*14+sh.x)*.08); c.scale(1,1+Math.sin(t*18+sh.y)*.08); c.globalCompositeOperation="lighter"; c.drawImage(im,-L*.82,-H/2,L,H); c.restore(); return true }
   if(k==="charm"){ c.save(); c.globalCompositeOperation=GL; jGlow(c,sh.x,sh.y,16,"255,220,120",.45); c.restore();
     c.save(); c.translate(sh.x,sh.y); c.rotate(a+Math.PI/2+Math.sin(t*14+sh.x)*.25);
     c.fillStyle="#2a1a10"; c.fillRect(-7,-11,14,22); c.fillStyle="#f6dc7a"; c.fillRect(-6,-10,12,20); c.fillStyle="#fff3b8"; c.fillRect(-6,-10,3,20);
     c.strokeStyle="#c0281e"; c.lineWidth=1.6; c.beginPath(); c.moveTo(-3,-6); c.lineTo(3,-6); c.moveTo(0,-8); c.lineTo(0,6); c.moveTo(-3,0); c.quadraticCurveTo(0,3,3,0); c.stroke(); c.fillStyle="#c0281e"; c.beginPath(); c.arc(0,6,2.2,0,7); c.fill();
     c.fillStyle="#f6c544"; c.beginPath(); c.arc(0,13,3,0,7); c.fill(); c.strokeStyle="#7a5a10"; c.lineWidth=1; c.stroke(); c.restore(); return true }
+  if(k==="fist"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.rocketfist){ const im=SKILL_IMG.rocketfist, L=(sh.big?2.6:1)*82, H=L*im.height/im.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.drawImage(im,-L*.78,-H/2,L,H); c.globalCompositeOperation="lighter"; c.globalAlpha=.25+.15*Math.sin(t*40); c.drawImage(im,-L*.78,-H/2,L,H); c.restore(); return true }
   if(k==="fist"){ c.save(); c.translate(sh.x,sh.y); c.rotate(a); if(sh.big) c.scale(2.6,2.6); c.globalCompositeOperation=GL;
     const fg=c.createLinearGradient(-60,0,10,0); fg.addColorStop(0,"rgba(80,170,255,0)"); fg.addColorStop(1,"rgba(170,225,255,.85)"); c.fillStyle=fg; c.beginPath(); c.moveTo(-60,0); c.quadraticCurveTo(-20,-16,8,-12); c.lineTo(8,12); c.quadraticCurveTo(-20,16,-60,0); c.fill();
     jGlow(c,6,0,22,"150,210,255",.6); c.globalCompositeOperation="source-over";
@@ -982,6 +1051,7 @@ function drawNewShot(c,sh,a,t,GL){ const k=sh.k;
   if(k==="missile"){ c.save(); for(let j=1;j<=5;j++){ c.fillStyle=`rgba(200,200,210,${.3-j*.05})`; c.beginPath(); c.arc(sh.x-sh.vx*.022*j,sh.y-sh.vy*.022*j,3+j*1.2,0,7); c.fill() }
     c.globalCompositeOperation=GL; jGlow(c,sh.x-Math.cos(a)*14,sh.y-Math.sin(a)*14,12,"255,170,60",.8); c.restore();
     if(!nImg(c,"missile",sh.x,sh.y,22,false,a)){ c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.fillStyle="#c49a3a"; c.fillRect(-10,-4,20,8); c.fillStyle="#6ad0ff"; c.beginPath(); c.moveTo(16,0); c.lineTo(10,-4); c.lineTo(10,4); c.fill(); c.restore() } return true }
+  if(k==="dball"&&typeof drawFireballFx==="function"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.fireballfx&&!window.__noArt){ const T=warnTex("fireballfx","#4aa8ff"); if(T){ const L=150, H=L*T.height/T.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.globalCompositeOperation="lighter"; if(typeof drawFlameImg==="function") drawFlameImg(c,T,L,H,.782,.537,t,sh.x*.013,false,.1); else c.drawImage(T,-L*.78,-H/2,L,H); jGlow(c,0,0,26,"150,210,255",.7); c.restore(); return true } }
   if(k==="dball"){ c.save(); c.globalCompositeOperation=GL; for(let j=1;j<=4;j++){ c.fillStyle=`rgba(80,170,255,${.25/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j,sh.y-sh.vy*.02*j,14-j*2,0,7); c.fill() }
     const gg=c.createRadialGradient(sh.x,sh.y,0,sh.x,sh.y,18); gg.addColorStop(0,"#ffffff"); gg.addColorStop(.35,"#9ae0ff"); gg.addColorStop(.75,"rgba(40,120,255,.7)"); gg.addColorStop(1,"rgba(20,60,200,0)"); c.fillStyle=gg; c.beginPath(); c.arc(sh.x,sh.y,18,0,7); c.fill(); c.restore(); return true }
   if(k==="laser"){ c.save(); c.globalCompositeOperation=GL; c.strokeStyle="rgba(120,220,255,.85)"; c.lineWidth=4; c.lineCap="round"; c.beginPath(); c.moveTo(sh.x-sh.vx*.03,sh.y-sh.vy*.03); c.lineTo(sh.x,sh.y); c.stroke(); c.strokeStyle="#ffffff"; c.lineWidth=1.5; c.stroke(); c.restore(); return true }
@@ -993,12 +1063,13 @@ function drawNewSum(c,m,t,GL){ const K=m.kind;
     nImg(c,"rat",m.x,m.y-2+w,32+(m.bite>0?4:0),(m.face||1)<0); return true }
   if(K==="ox"){ c.save(); c.fillStyle="rgba(0,0,0,.2)"; c.beginPath(); c.ellipse(m.x,m.y+26,24,6,0,0,7); c.fill();
     if(m.ch>0){ for(let i=0;i<5;i++){ const ph=(t*6+i/5)%1; c.fillStyle=`rgba(200,180,150,${.5*(1-ph)})`; c.beginPath(); c.arc(m.x-(m.cvx>0?1:-1)*(20+ph*40),m.y+22-ph*8,4+ph*6,0,7); c.fill() } } c.restore();
+    if(drawLegged(c,"ox",m.x,m.y-4+(m.ch>0?Math.sin(t*40)*1.5:Math.sin(t*3)),64,(m.face||1)<0,m.ch>0?(m.face||1)*.12:0,t*(m.ch>0?22:9),m.ch>0?1.1:.35)) return true;
     nImg(c,"ox",m.x,m.y-4+(m.ch>0?Math.sin(t*40)*2:Math.sin(t*3)),64,(m.face||1)<0,m.ch>0?(m.face||1)*.12:0); return true }
   if(K==="tiger"){ c.save(); c.fillStyle="rgba(0,0,0,.2)"; c.beginPath(); c.ellipse(m.x,m.y+24,20,5,0,0,7); c.fill(); if(m.pz>0){ c.globalCompositeOperation=GL; jGlow(c,m.x,m.y,40,"150,200,255",.5) } c.restore();
-    m.pz2=Math.max(0,(m.pz2||0)-.016); const bob=m.run?Math.abs(Math.sin(t*16))*5:Math.sin(t*3)*1.5, tilt=m.pz>0?(m.face||1)*.25:m.pz2>0?(m.face||1)*.18:m.run?(m.face||1)*.08*Math.sin(t*16):0; nImg(c,"tiger",m.x,m.y-2-bob,m.pz>0?64:56,(m.face||1)<0,tilt); return true }
+    m.pz2=Math.max(0,(m.pz2||0)-.016); const bob=m.run?Math.abs(Math.sin(t*16))*5:Math.sin(t*3)*1.5, tilt=m.pz>0?(m.face||1)*.25:m.pz2>0?(m.face||1)*.18:m.run?(m.face||1)*.08*Math.sin(t*16):0; if(drawLegged(c,"tiger",m.x,m.y-2-bob*.4,m.pz>0?64:56,(m.face||1)<0,tilt,t*16,m.run||m.pz>0?1:.15)) return true; nImg(c,"tiger",m.x,m.y-2-bob,m.pz>0?64:56,(m.face||1)<0,tilt); return true }
   if(K==="qdragon"){ const k=Math.min(1,(m.max-m.t)/.5,m.t/.5); c.save(); c.globalAlpha=k; c.globalCompositeOperation=GL; jGlow(c,m.x,m.y,90,"90,170,255",.45);
     for(let i=0;i<6;i++){ const ph=(t*.8+i/6)%1; c.fillStyle=`rgba(255,255,255,${.35*(1-ph)})`; c.beginPath(); c.ellipse(m.x-(m.face||1)*(30+ph*80),m.y+40+Math.sin(i)*10,18+ph*14,8+ph*5,0,0,7); c.fill() } c.restore();
-    c.save(); c.globalAlpha=k; nImg(c,"dragon",m.x,m.y+Math.sin(t*3)*6,130,(m.face||1)<0,Math.sin(t*2)*.08); c.restore(); return true }
+    c.save(); c.globalAlpha=k; if(!drawBlueDragon(c,m,t)) nImg(c,"dragon",m.x,m.y+Math.sin(t*3)*6,130,(m.face||1)<0,Math.sin(t*2)*.08); c.restore(); return true }
   if(K==="drone"){ c.save(); c.globalCompositeOperation=GL; jGlow(c,m.x,m.y,22,"120,210,255",.35); c.restore(); nImg(c,"drone",m.x,m.y+Math.sin(t*6)*2,30,Math.cos(m.aim||0)<0);
     c.save(); c.strokeStyle="rgba(255,255,255,.55)"; c.lineWidth=1.5; c.beginPath(); c.ellipse(m.x,m.y-14,12*Math.abs(Math.sin(t*40)),2,0,0,7); c.stroke(); c.restore(); return true }
   return false }
@@ -1010,6 +1081,9 @@ function drawGlyphChar(c,ch,x,y,sz,al,gold,p){ c.save(); c.globalAlpha*=al; c.fo
   const g=c.createLinearGradient(x,y-sz*.5,x,y+sz*.5); g.addColorStop(0,"#2a2230"); g.addColorStop(.5,"#0e0a12"); g.addColorStop(1,"#1e1824"); c.fillStyle=g; c.fillText(ch,x,y); c.restore() }
 function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-k, K=f.k;
   if(f.k==="wburst"){ const q=1-k; drawBurst(c,f.x,f.y,f.m||5,(70+q*120)*(f.s||1),Math.min(1,k*1.6),q*.5); return true }
+  if(K==="mzone"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.mooncircle){ const fin=Math.min(1,p*f.max/.35,k*f.max/.4), R=f.r, im=SKILL_IMG.mooncircle, Wd=R*2.15*(.8+.2*fin), Hd=Wd*im.height/im.width;
+    c.save(); c.globalCompositeOperation=GL; c.globalAlpha=fin*(.8+.1*Math.sin(t*3)); c.translate(f.x,f.y); c.drawImage(im,-Wd/2,-Hd/2,Wd,Hd);
+    for(let i=0;i<10;i++){ const ph=(t*.6+i/10)%1, an=i*2.4; c.fillStyle=`rgba(210,230,255,${(1-ph)*fin*.8})`; c.fillRect(Math.cos(an)*R*.85-1.5,Math.sin(an)*R*.42-ph*90-1.5,3,3) } c.restore(); return true }
   if(K==="mzone"){ const fin=Math.min(1,p*f.max/.35,k*f.max/.4), R=f.r; c.save(); c.globalCompositeOperation=GL;
     const gg=c.createRadialGradient(f.x,f.y,R*.1,f.x,f.y,R); gg.addColorStop(0,`rgba(200,215,255,${.22*fin})`); gg.addColorStop(.85,`rgba(150,175,255,${.16*fin})`); gg.addColorStop(1,`rgba(220,230,255,${.45*fin})`); c.fillStyle=gg; c.beginPath(); c.ellipse(f.x,f.y,R,R*.62,0,0,7); c.fill();
     c.strokeStyle=`rgba(235,240,255,${.8*fin})`; c.lineWidth=3; c.beginPath(); c.ellipse(f.x,f.y,R,R*.62,0,0,7); c.stroke();
@@ -1018,10 +1092,32 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     for(let i=0;i<10;i++){ const ph=(t*.6+i/10)%1, a=i*2.39; c.fillStyle=`rgba(230,240,255,${(1-ph)*fin})`; c.fillRect(f.x+Math.cos(a)*R*.7*((i%3+1)/3)-1.5,f.y+Math.sin(a)*R*.4*((i%3+1)/3)-ph*50-1.5,3,3) } c.restore(); return true }
   if(K==="healp"){ c.save(); c.globalCompositeOperation=GL; c.strokeStyle=`rgba(180,255,210,${k*.5})`; c.lineWidth=2.5; c.beginPath(); c.ellipse(f.x,f.y+10,f.r*p*.9+10,(f.r*p*.9+10)*.55,0,0,7); c.stroke();
     for(let i=0;i<6;i++){ const a=i*1.05+f.x, d=20+p*40; c.fillStyle=`rgba(200,255,220,${k})`; c.font='bold 14px sans-serif'; c.fillText("+",f.x+Math.cos(a)*d,f.y-p*30+Math.sin(a)*d*.4) } c.restore(); return true }
+  if(K==="fullmoon"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.fullmoonfx){ const el=p*f.max, up=1-Math.pow(1-Math.min(1,el/.7),3), fade=Math.min(1,k*f.max/.5), x=P.x+140, y=P.y-170+(1-up)*140, S=300*(.6+.4*up), flash=el>.75&&el<1.15?Math.sin((el-.75)/.4*Math.PI):0, im=SKILL_IMG.fullmoonfx;
+    c.save(); c.fillStyle=`rgba(8,12,36,${.4*fade*up})`; c.fillRect(P.x-2000,P.y-2000,4000,4000); c.globalAlpha=fade*Math.min(1,el/.25); c.drawImage(im,x-S/2,y-S/2,S,S); c.globalCompositeOperation=GL;
+    if(flash>0){ c.globalAlpha=flash*.45; c.drawImage(im,x-S*.6,y-S*.6,S*1.2,S*1.2); jGlow(c,x,y,S*.9,"230,240,255",flash*.7) } c.restore(); return true }
   if(K==="fullmoon"){ const up=Math.min(1,p*2.2), fade=Math.min(1,k*3), x=P.x, y=P.y-200+ (1-up)*-120; c.save();
     c.fillStyle=`rgba(10,15,40,${.32*fade*up})`; c.fillRect(P.x-2000,P.y-2000,4000,4000); c.globalCompositeOperation=GL; jGlow(c,x,y,170,"200,215,255",.6*fade);
     c.globalCompositeOperation="source-over"; c.globalAlpha=fade; if(!nImg(c,"moonorb",x,y,230*up+40,false,t*.3)){ c.fillStyle="#f0f4ff"; c.beginPath(); c.arc(x,y,100*up,0,7); c.fill() } c.restore(); return true }
-  if(K==="moonbeam"){ c.save(); const w=f.r*.38*(.6+k*.4), gg=c.createLinearGradient(f.x-w,0,f.x+w,0); gg.addColorStop(0,"rgba(180,200,255,0)"); gg.addColorStop(.5,`rgba(245,248,255,${.75*k})`); gg.addColorStop(1,"rgba(180,200,255,0)");
+  if(K==="moonbeam"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.moonpillar){
+    // 0) 조준: 떨어지기 전 가는 푸른 빛줄기가 내려와 땅에 닿고, 땅에서 푸른 불꽃이 튀어요 (보내 준 영상처럼)
+    if(f.life>f.max){ const w=f.life-f.max; if(w>.6) return true; const a=1-w/.6; c.save(); c.globalCompositeOperation=GL;
+      const lg=c.createLinearGradient(0,f.y-520,0,f.y); lg.addColorStop(0,"rgba(120,200,255,0)"); lg.addColorStop(1,`rgba(140,220,255,${.85*a})`); c.fillStyle=lg; const bw=3+a*5; c.fillRect(f.x-bw/2,f.y-520,bw,520);
+      jGlow(c,f.x,f.y,30+a*30,"90,200,255",.8*a); c.strokeStyle=`rgba(150,140,255,${.8*a})`; c.lineWidth=2;
+      for(let n=0;n<12;n++){ const an=Math.PI+n/11*Math.PI+Math.sin(t*20+n)*.08, L=(10+a*28)*(.6+.4*Math.sin(n*3.1+t*14)); c.beginPath(); c.moveTo(f.x,f.y); c.lineTo(f.x+Math.cos(an)*L,f.y+Math.sin(an)*L*.7); c.stroke() }
+      c.restore(); return true }
+    const im=SKILL_IMG.moonpillar, q=1-k, el=q*f.max, H=560, Wd0=H*im.width/im.height*(f.r/110), drop=Math.min(1,el/.12), dE=1-Math.pow(1-drop,2), hy=f.y-H*.94+H*.94*dE;
+    // 1) 굵은 달빛 기둥이 쾅 내리꽂히고 → 2) 점점 가늘어지며 빛줄기로 흩어져요
+    const thin=el<.3?1:Math.max(.12,1-(el-.3)/(f.max-.3)), Wd=Wd0*thin;
+    c.save(); c.globalCompositeOperation=GL; c.globalAlpha=Math.min(1,k*2.5); c.beginPath(); c.rect(f.x-Wd0,f.y-H,Wd0*2,hy-(f.y-H)+4); c.clip(); c.drawImage(im,f.x-Wd/2,f.y-H*.942,Wd,H); c.restore();
+    c.save(); c.globalCompositeOperation=GL; if(drop<1) jGlow(c,f.x,hy,50,"200,235,255",1);
+    if(drop>=1){ const b=(el-.12)/(f.max-.12), R=f.r*(.45+b*1.2);
+      jGlow(c,f.x,f.y-10,f.r*1.1*(1-b*.5),"120,200,255",(1-b)*.5);
+      c.strokeStyle=`rgba(110,190,255,${(1-b)*.95})`; c.lineWidth=7*(1-b)+1; c.beginPath(); c.ellipse(f.x,f.y,R,R*.38,0,0,7); c.stroke();
+      c.strokeStyle=`rgba(170,140,255,${(1-b)*.7})`; c.lineWidth=3; c.beginPath(); c.ellipse(f.x,f.y,R*.7,R*.27,0,0,7); c.stroke();
+      // 물보라처럼 위로 튀는 빛 조각
+      for(let n=0;n<12;n++){ const an=Math.PI+n/11*Math.PI, d=f.r*(.2+b*.9); c.fillStyle=`rgba(170,230,255,${1-b})`; c.fillRect(f.x+Math.cos(an)*d-2,f.y+Math.sin(an)*d*.6-Math.sin(b*Math.PI)*36-2,4,4) } }
+    c.restore(); return true }
+  if(K==="moonbeam"){ if(f.life>f.max) return true; c.save(); const w=f.r*.38*(.6+k*.4), gg=c.createLinearGradient(f.x-w,0,f.x+w,0); gg.addColorStop(0,"rgba(180,200,255,0)"); gg.addColorStop(.5,`rgba(245,248,255,${.75*k})`); gg.addColorStop(1,"rgba(180,200,255,0)");
     c.fillStyle=gg; c.fillRect(f.x-w,f.y-520,w*2,520); c.fillStyle=`rgba(230,238,255,${.35*k})`; c.beginPath(); c.ellipse(f.x,f.y,f.r*.7,f.r*.4,0,0,7); c.fill(); c.restore(); return true }
   if(K==="glyph"){ const sc=f.sky?1:Math.min(1,p*4), al=Math.min(1,k*3), sz=(f.sky?120:f.r*1.1)*(1.3-.3*sc); c.save();
     if(!f.sky){ c.globalCompositeOperation=GL; jGlow(c,f.x,f.y,f.r*1.2,"255,215,110",.35*al); c.globalCompositeOperation="source-over"; c.fillStyle=`rgba(20,16,24,${.25*al})`; c.beginPath(); c.ellipse(f.x,f.y,f.r,f.r*.55,0,0,7); c.fill() }
@@ -1034,7 +1130,8 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     c.save();
     // 땅 갈라짐 (먹선) + 그림자
     const cr=Math.min(1,T/.15); c.globalAlpha=al; c.fillStyle="rgba(10,8,14,.28)"; c.beginPath(); c.ellipse(f.x,gy,Wm*.5*cr,Wm*.12*cr,0,0,7); c.fill();
-    c.strokeStyle="rgba(15,12,20,.8)"; c.lineWidth=3; c.lineCap="round"; for(let i=0;i<9;i++){ const a=i*.7+.3, L=Wm*(.35+pfxR(i,4)*.25)*cr; c.beginPath(); c.moveTo(f.x,gy); let px=f.x, py=gy; for(let k2=1;k2<=4;k2++){ px+=Math.cos(a+(pfxR(i,k2)-.5)*.6)*L/4; py+=Math.sin(a+(pfxR(i,k2+5)-.5)*.6)*L/4*.35; c.lineTo(px,py) } c.stroke() }
+    const CK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.inkcrack; if(CK){ const cw=Wm*1.45*(.55+.45*(1-Math.pow(1-cr,3))), ch=cw*CK.height/CK.width; c.globalAlpha=al*Math.min(1,T/.08); c.drawImage(CK,f.x-cw/2,gy-ch*.55,cw,ch); c.globalAlpha=al }
+    else { c.strokeStyle="rgba(15,12,20,.8)"; c.lineWidth=3; c.lineCap="round"; for(let i=0;i<9;i++){ const a=i*.7+.3, L=Wm*(.35+pfxR(i,4)*.25)*cr; c.beginPath(); c.moveTo(f.x,gy); let px=f.x, py=gy; for(let k2=1;k2<=4;k2++){ px+=Math.cos(a+(pfxR(i,k2)-.5)*.6)*L/4; py+=Math.sin(a+(pfxR(i,k2+5)-.5)*.6)*L/4*.35; c.lineTo(px,py) } c.stroke() } }
     // 산: 땅선 위로만 보이게 잘라서 아래에서 솟아올라요
     c.save(); c.beginPath(); c.rect(f.x-Wm, gy-Hm*1.6, Wm*2, Hm*1.6+4); c.clip();
     const sc=1+over, y0=gy+(1-rise)*Hm*.95+sink*Hm*.25;
@@ -1042,6 +1139,8 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     // 솟는 순간 금빛 테두리 번쩍
     if(T>.18&&T<.6){ const q=1-Math.abs((T-.32)/.2); if(q>0&&typeof drawSil==="function"){ c.globalCompositeOperation="lighter"; c.translate(0,-Hm/2); drawSil(c,"mountain",Hm,false,q*.35,"#ffd98a") } }
     c.restore();
+    // 산 밑동이 땅에 박힌 느낌: 밑동 앞쪽에 먹빛 흙먼지 띠를 깔아요
+    { const dg=c.createRadialGradient(f.x,gy,4,f.x,gy,Wm*.55); dg.addColorStop(0,`rgba(40,34,44,${.55*al})`); dg.addColorStop(.6,`rgba(60,52,62,${.3*al})`); dg.addColorStop(1,"rgba(60,52,62,0)"); c.save(); c.globalAlpha=1; c.translate(f.x,gy); c.scale(1,.22); c.translate(-f.x,-gy); c.fillStyle=dg; c.beginPath(); c.arc(f.x,gy,Wm*.55,0,7); c.fill(); c.restore() }
     // 흙먼지 + 날아오르는 바위 조각 + 먹물 튀김
     if(T<.9){ const q=Math.min(1,T/.9); for(let i=0;i<14;i++){ const a=Math.PI+.15+pfxR(i,2)*(Math.PI-.3), sp=.5+pfxR(i,3)*.8, d=Wm*.55*q*sp, h=Math.sin(Math.min(1,q*1.4)*Math.PI)*(60+80*sp);
         const x=f.x+Math.cos(a)*d*(pfxR(i,6)<.5?1:-1), y=gy-h+Math.sin(a)*d*.2; c.globalAlpha=al*(1-q); c.fillStyle=i%3?"#2a2430":"#5a5262"; c.save(); c.translate(x,y); c.rotate(q*8+i); c.beginPath(); c.moveTo(-7,-4); c.lineTo(5,-7); c.lineTo(8,3); c.lineTo(-3,7); c.closePath(); c.fill(); c.restore() }
@@ -1151,18 +1250,26 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     // 휩쓸 때 뒤따르는 잔상 빛 (부채꼴)
     if(f.sweep){ const el=f.max-f.life, sw=el>.15&&el<.15+f.sweep; if(sw){ const tr=-Math.sign(f.w)*.55; c.fillStyle=`rgba(90,170,255,${.16*fade})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,L,Math.min(0,tr),Math.max(0,tr)); c.closePath(); c.fill();
         c.fillStyle=`rgba(170,225,255,${.14*fade})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,L,Math.min(0,tr*.4),Math.max(0,tr*.4)); c.closePath(); c.fill() } }
+    const PL=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.pulselaser;
+    if(PL){ const jit=1+Math.sin(p2*90)*.06, H2=w*3.2*jit; c.drawImage(PL,0,-H2/2,L+w,H2); c.globalAlpha=.35+.25*Math.sin(p2*70); c.drawImage(PL,0,-H2*.32,L+w,H2*.64); c.globalAlpha=1;
+      // 충전 섬광(포구) · 빔 끝 폭발 불티
+      jGlow(c,6,0,70*open*(1+.2*Math.sin(p2*60)),"170,220,255",.9*fade); jGlow(c,L,0,90,"120,190,255",.6*fade);
+      for(let i=0;i<8;i++){ const q=(p2*6+i/8)%1; c.fillStyle=`rgba(200,235,255,${(1-q)*fade})`; c.fillRect(L+Math.cos(i*2.4)*q*60,Math.sin(i*2.4)*q*40,3,3) } c.restore(); return true }
     band(w*1.8,"50,120,255",.16*fade); band(w,"90,180,255",.38*fade); band(w*.48,"190,235,255",.6*fade); band(w*.18,"255,255,255",.95*fade);
     // 흐르는 에너지 줄무늬 (가로로 지나가요)
     c.fillStyle=`rgba(255,255,255,${.8*fade})`; for(let i=0;i<18;i++){ const u=(i/18+p2*2.2)%1, yy=(pfxR(i,5)-.5)*w*1.5; c.fillRect(u*L,yy,20+pfxR(i,8)*26,1.8) }
     // 감기는 얇은 고리
     c.strokeStyle=`rgba(200,240,255,${.55*fade})`; c.lineWidth=2; for(let i=0;i<6;i++){ const u=((i/6)+p2*1.3)%1; if(u*f.len>L) continue; c.beginPath(); c.ellipse(u*L,0,6,w*1.15,0,0,7); c.stroke() }
     jGlow(c,8,0,55*open,"210,245,255",.75*fade); jGlow(c,L,0,120,"150,210,255",.5*fade); c.restore(); return true }
+  if(K==="robobeam"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.pulselaser){ const k2=f.life/f.max, p2=1-k2, L=f.len*Math.min(1,1-Math.pow(1-Math.min(1,p2/.12),3)), H2=(110+Math.sin(p2*80)*10)*Math.min(1,p2*8)*Math.min(1,k2*3+.2);
+    c.save(); c.translate(f.x,f.y); c.scale(f.dir,1); c.globalCompositeOperation=GL; c.drawImage(SKILL_IMG.pulselaser,0,-H2/2,L+20,H2); jGlow(c,6,0,90,"170,220,255",k2); jGlow(c,L,0,110,"120,190,255",.6*k2); c.restore(); return true }
   if(K==="robobeam"){ const k2=f.life/f.max, w=(70+Math.sin((1-k2)*40)*8)*Math.min(1,(1-k2)*6), x1=f.x+f.dir*f.len; c.save(); c.globalCompositeOperation=GL;
     const gg=c.createLinearGradient(0,f.y-w,0,f.y+w); gg.addColorStop(0,"rgba(60,140,255,0)"); gg.addColorStop(.3,`rgba(90,190,255,${.7*k2})`); gg.addColorStop(.5,`rgba(255,255,255,${k2})`); gg.addColorStop(.7,`rgba(90,190,255,${.7*k2})`); gg.addColorStop(1,"rgba(60,140,255,0)");
     c.fillStyle=gg; c.fillRect(Math.min(f.x,x1),f.y-w,Math.abs(x1-f.x),w*2); jGlow(c,f.x,f.y,90,"180,230,255",k2); jGlow(c,x1,f.y,120,"150,210,255",.6*k2);
     for(let i=0;i<14;i++){ const u=(i/14+(1-k2)*2)%1; c.fillStyle=`rgba(255,255,255,${k2})`; c.fillRect(f.x+f.dir*u*f.len,f.y+(pfxR(i,3)-.5)*w*1.4,10,2) } c.restore(); return true }
   if(K==="inksplash"){ c.save(); const R=f.r*(.45+p*.6); for(let i=0;i<14;i++){ const a=i*.449+f.x*.01, d=R*(.8+((i*7)%5)*.06); c.fillStyle=`rgba(18,14,22,${.75*k})`; c.beginPath(); c.arc(f.x+Math.cos(a)*d,f.y+Math.sin(a)*d*.62,(5+(i%3)*2.5)*(1-p*.4),0,7); c.fill() }
     c.strokeStyle=`rgba(18,14,22,${.45*k})`; c.lineWidth=5*k; c.beginPath(); c.ellipse(f.x,f.y,R,R*.62,0,0,7); c.stroke(); c.restore(); return true }
+  if(K==="claw") return drawClawFx(c,f,k);
   if(K==="claw"){ c.save(); c.strokeStyle=`rgba(255,255,255,${k})`; c.lineWidth=4; c.lineCap="round"; for(let i=-1;i<=1;i++){ c.beginPath(); c.moveTo(f.x-26+i*10,f.y-24); c.lineTo(f.x+18+i*10,f.y+24); c.stroke() } c.strokeStyle=`rgba(120,190,255,${k*.7})`; c.lineWidth=2; c.stroke(); c.restore(); return true }
   if(K==="roar"){ c.save(); c.strokeStyle=`rgba(220,235,255,${k})`; c.lineWidth=6*k+1; for(let i=0;i<2;i++){ const r=f.r*Math.min(1,p*1.3+i*.15); c.beginPath(); c.ellipse(f.x,f.y,r,r*.6,0,0,7); c.stroke() } c.restore(); return true }
   return false }
@@ -1183,9 +1290,33 @@ function drawSigShot(c,b,t){
     c.fillStyle="#6a4422"; c.beginPath(); c.ellipse(0,-r*.45,r*.95,r*.45,0,Math.PI,0); c.fill(); c.stroke(); c.strokeStyle="rgba(40,20,5,.6)"; c.lineWidth=1; for(let i=-3;i<=3;i++){ c.beginPath(); c.moveTo(i*5,-r*.55); c.lineTo(i*5+3,-r*.3); c.stroke() }
     c.fillStyle="#4a2a10"; c.fillRect(-2,-r*.95,4,7); c.fillStyle="rgba(255,255,255,.35)"; c.beginPath(); c.ellipse(-6,2,4,7,.3,0,7); c.fill(); c.restore(); return true }
   return false }
-function drawBossMound(c,e,t){ const r=e.r*1.1; c.save(); c.fillStyle="rgba(0,0,0,.2)"; c.beginPath(); c.ellipse(e.x,e.y+r*.4,r*1.1,r*.35,0,0,7); c.fill();
-  const g=c.createRadialGradient(e.x-r*.3,e.y-r*.2,2,e.x,e.y,r); g.addColorStop(0,"#f0d498"); g.addColorStop(1,"#a8783a"); c.fillStyle=g; c.beginPath(); c.ellipse(e.x,e.y,r,r*.5+Math.sin(t*12)*2,0,Math.PI,0); c.closePath(); c.fill(); c.strokeStyle="#6a4a20"; c.lineWidth=2; c.stroke();
-  for(let i=0;i<8;i++){ const ph=(t*2.5+i/8)%1, a=i*.8; c.fillStyle=`rgba(200,160,90,${1-ph})`; c.fillRect(e.x+Math.cos(a)*r*(.6+ph*.6)-2,e.y-ph*26-2,4,4) } c.restore() }
+function drawBossMound(c,e,t,ap){ ap=ap==null?1:ap; const r=e.r*1.15, mv=Math.hypot((e.x-(e._mx??e.x)),(e.y-(e._my??e.y)));
+  // 지나간 자리에 갈라진 모래 고랑을 남겨요 (내 화면에서만 그려서 같이하기 통신이 늘지 않아요)
+  e._trT=(e._trT||0); if(t-e._trT>.07){ e._trT=t; try{ (window.__fxPush||(()=>{}))({k:"sandtrail",x:e.x,y:e.y+r*.25,r:r*.75,life:1.4,max:1.4,a:Math.random()*6}) }catch(_){} }
+  e._mx=e.x; e._my=e.y;
+  c.save(); c.globalAlpha=ap; c.fillStyle="rgba(40,24,8,.28)"; c.beginPath(); c.ellipse(e.x,e.y+r*.42,r*1.25,r*.38,0,0,7); c.fill();
+  // 볼록 솟은 모래 둔덕 (제미나이 그림 · 출렁출렁 숨 쉬듯)
+  const SM=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.sandmound;
+  if(SM){ const Wd=r*2.7*(1+Math.sin(t*11)*.04), Hd=Wd*SM.height/SM.width*(1+Math.sin(t*14)*.08); c.drawImage(SM,e.x-Wd/2,e.y+r*.45-Hd,Wd,Hd);
+    for(let i=0;i<10;i++){ const ph=(t*2.8+i/10)%1, a=i*2.3, d=r*(.4+ph*.9); c.fillStyle=i%3?`rgba(220,180,110,${1-ph})`:`rgba(110,80,40,${1-ph})`; const s=i%3?3:5; c.fillRect(e.x+Math.cos(a)*d-s/2,e.y-r*.3-Math.sin(ph*Math.PI)*r*.9,s,s) }
+    c.restore(); return }
+  const hb=r*.55+Math.sin(t*14)*r*.05; const g=c.createRadialGradient(e.x-r*.3,e.y-hb*.6,2,e.x,e.y,r*1.1); g.addColorStop(0,"#f6dca0"); g.addColorStop(.6,"#c99a52"); g.addColorStop(1,"#8a5e28");
+  c.fillStyle=g; c.beginPath(); c.moveTo(e.x-r*1.1,e.y+r*.3); c.quadraticCurveTo(e.x-r*.6,e.y-hb,e.x,e.y-hb); c.quadraticCurveTo(e.x+r*.6,e.y-hb,e.x+r*1.1,e.y+r*.3); c.closePath(); c.fill();
+  c.strokeStyle="rgba(90,60,20,.7)"; c.lineWidth=2; c.beginPath(); for(let i=0;i<5;i++){ const x=e.x-r*.7+i*r*.35; c.moveTo(x,e.y+r*.2); c.lineTo(x+Math.sin(t*9+i)*6,e.y-hb*.5) } c.stroke();
+  // 튀어 오르는 모래 알갱이 + 작은 돌
+  for(let i=0;i<14;i++){ const ph=(t*2.8+i/14)%1, a=i*2.3, d=r*(.4+ph*.9); c.fillStyle=i%4?`rgba(220,180,110,${1-ph})`:`rgba(110,80,40,${1-ph})`; const s=i%4?3:5; c.fillRect(e.x+Math.cos(a)*d-s/2,e.y-hb*.6-Math.sin(ph*Math.PI)*r*.9+Math.sin(a)*d*.25,s,s) }
+  c.restore() }
+/* 땅속에서 튀어나올 때 · 숨을 때: 모래 분수 + 흙먼지 구름 + 돌 조각 */
+function drawSandFx(c,f,k,t){ const q=1-k, R=f.r;
+  if(f.k==="sandtrail"){ c.save(); c.globalAlpha=k*.55; c.fillStyle="#7a5426"; c.beginPath(); c.ellipse(f.x,f.y,R*.55,R*.16,f.a*.1,0,7); c.fill(); c.strokeStyle="#4a3010"; c.lineWidth=1.5; c.beginPath(); c.moveTo(f.x-R*.5,f.y); c.lineTo(f.x-R*.15,f.y-2); c.lineTo(f.x+R*.2,f.y+2); c.lineTo(f.x+R*.5,f.y); c.stroke(); c.restore(); return true }
+  if(f.k!=="sandburst") return false;
+  c.save(); const dg=c.createRadialGradient(f.x,f.y,2,f.x,f.y,R*(.5+q*1.1)); dg.addColorStop(0,`rgba(230,200,140,${.6*k})`); dg.addColorStop(1,"rgba(200,160,100,0)"); c.translate(f.x,f.y); c.scale(1,.45); c.translate(-f.x,-f.y); c.fillStyle=dg; c.beginPath(); c.arc(f.x,f.y,R*(.5+q*1.1),0,7); c.fill(); c.restore();
+  c.save(); const n=f.big?34:20, RK=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.ruinrock;
+  for(let i=0;i<n;i++){ const a=-Math.PI*(.1+.8*((i*.618)%1)), sp=(.5+((i*.37)%1)*.8)*(f.big?1.4:1), x=f.x+Math.cos(a)*R*q*sp*1.4, y=f.y+Math.sin(a)*R*sp*(q*2.2-q*q*2.6)*1.3;
+    if(i%6===0&&RK){ const s=(f.big?18:12)*(1-q*.3); c.save(); c.globalAlpha=k; c.translate(x,y); c.rotate(q*8+i); c.drawImage(RK,-s/2,-s/2,s,s); c.restore() }
+    else { c.fillStyle=`rgba(${i%3?"226,188,120":"150,110,60"},${k})`; c.fillRect(x-2.5,y-2.5,5,5) } }
+  c.restore(); return true }
+
 function drawDizzy(c,e,t){ const y=e.y-e.r*1.9; c.save(); for(let i=0;i<3;i++){ const a=t*5+i*2.09, x=e.x+Math.cos(a)*e.r*.7, yy=y+Math.sin(a)*e.r*.18; c.fillStyle="#ffe14a"; c.strokeStyle="#7a5a00"; c.lineWidth=1.5; c.beginPath();
     for(let k=0;k<10;k++){ const rr=k%2?4:9, b=k*Math.PI/5-Math.PI/2; c.lineTo(x+Math.cos(b)*rr,yy+Math.sin(b)*rr) } c.closePath(); c.fill(); c.stroke() } c.restore() }
 function drawSigFx(c,f,k,t){ const p=1-k, K=f.k;
@@ -1202,6 +1333,9 @@ function drawSigFx(c,f,k,t){ const p=1-k, K=f.k;
     c.lineWidth=2.5; c.strokeStyle="#3a2212"; c.beginPath(); c.moveTo(-6,-16); c.lineTo(6,-16); c.quadraticCurveTo(18,-6,14,8); c.quadraticCurveTo(0,18,-14,8); c.quadraticCurveTo(-18,-6,-6,-16); c.closePath(); c.stroke(); const g=c.createLinearGradient(-14,0,14,0); g.addColorStop(0,"#8a5a2a"); g.addColorStop(.5,"#d09a5a"); g.addColorStop(1,"#7a4a20"); c.fillStyle=g; c.fill();
     c.fillStyle="#6a2a8a"; c.fillRect(-7,-19,14,5); c.fillStyle="rgba(190,120,255,.8)"; c.beginPath(); c.arc(0,-2,4,0,7); c.fill(); c.restore(); return true }
   if(K==="slimepud"){ const al=Math.min(1,k*2)*.55; c.save(); c.fillStyle=`rgba(${f.col||"120,200,90"},${al})`; c.beginPath(); c.ellipse(f.x,f.y,f.r,f.r*.45,0,0,7); c.fill(); c.fillStyle=`rgba(255,255,255,${al*.6})`; c.beginPath(); c.ellipse(f.x-f.r*.3,f.y-f.r*.1,f.r*.25,f.r*.08,0,0,7); c.fill(); c.restore(); return true }
+  if(K==="donutwarn"&&warnTex("warndonut",dangerCol())){ const pul=.5+.5*Math.sin(t*12); c.save(); c.fillStyle=`rgba(255,50,40,${.1+.08*pul})`; c.beginPath(); c.arc(f.x,f.y,f.r2,0,TAU); c.moveTo(f.x+f.r1,f.y); c.arc(f.x,f.y,f.r1,0,TAU,true); c.fill("evenodd");
+    c.strokeStyle="rgba(120,255,140,.9)"; c.lineWidth=4; c.beginPath(); c.arc(f.x,f.y,f.r1*(1-p*.1),0,Math.PI*2*k); c.stroke(); c.restore();
+    drawWarnEllipse(c,"warndonut",dangerCol(),f.x,f.y,f.r2*1.03,f.r2*1.03,Math.min(1,p*5)*(.75+.25*pul)); return true }
   if(K==="donutwarn"){ const pul=.5+.5*Math.sin(t*12); c.save(); c.fillStyle=`rgba(255,70,50,${.16+.12*pul})`; c.beginPath(); c.arc(f.x,f.y,f.r2,0,TAU); c.moveTo(f.x+f.r1,f.y); c.arc(f.x,f.y,f.r1,0,TAU,true); c.fill("evenodd");
     c.strokeStyle=`rgba(255,80,60,${.7+.3*pul})`; c.lineWidth=3; c.setLineDash([12,8]); c.beginPath(); c.arc(f.x,f.y,f.r2,0,TAU); c.stroke(); c.beginPath(); c.arc(f.x,f.y,f.r1,0,TAU); c.stroke(); c.setLineDash([]);
     c.strokeStyle="rgba(120,255,140,.9)"; c.lineWidth=4; c.beginPath(); c.arc(f.x,f.y,f.r1*(1-p*.1),0,Math.PI*2*k); c.stroke(); c.restore(); return true }
@@ -1230,6 +1364,13 @@ function drawSig46Shot(c,b,t){ const K=b.kind;
     const g=c.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r); g.addColorStop(0,"#ffffff"); g.addColorStop(.35,"#bff0ff"); g.addColorStop(.75,"#3aa0e8"); g.addColorStop(1,"#14448a"); c.fillStyle=g; c.beginPath(); c.arc(0,0,r,0,7); c.fill();
     c.save(); c.rotate(t*3); c.strokeStyle="rgba(255,255,255,.55)"; c.lineWidth=3; c.beginPath(); c.arc(0,0,r*.62,0,2.2); c.stroke(); c.beginPath(); c.arc(0,0,r*.62,3.2,5.2); c.stroke(); c.restore();
     c.fillStyle="rgba(255,255,255,.9)"; c.beginPath(); c.ellipse(-r*.38,-r*.42,r*.2,r*.12,-.6,0,7); c.fill(); c.restore(); return true }
+  if(K==="wolfrun"&&typeof BOSS_ART!=="undefined"&&BOSS_ART.st8_0&&BOSS_ART.st8_0.im&&BOSS_ART.st8_0.im.naturalWidth){ const im=BOSS_ART.st8_0.im, dir=b.vx>=0?1:-1, H=96;
+    for(const [ox,oy,sc,ph0] of [[-dir*130,-30,.8,2.1],[-dir*72,24,.9,1.1],[0,0,1,0]]){ const ph=t*20+(b.ph||0)+ph0, s=Math.sin(ph), air=Math.max(0,s), x=b.x+ox, y=b.y+oy, h=H*sc;
+      c.save(); c.fillStyle="rgba(20,40,70,.28)"; c.beginPath(); c.ellipse(x,y+h*.45,h*.55*(1-air*.25),7*sc,0,0,7); c.fill();
+      for(let i=0;i<3;i++){ const u=((t*3.5+i/3+ph0)%1); c.fillStyle=`rgba(235,245,255,${.55*(1-u)})`; c.beginPath(); c.arc(x-dir*(h*.5+u*80),y+h*.38-u*12,(5+u*12)*sc,0,7); c.fill() } c.restore();
+      // 몸을 쭉 폈다 웅크리며 껑충 (머리는 달리는 쪽)
+      c.save(); c.translate(0,-air*16*sc); c.globalAlpha=.25; drawLegged(c,"wolfboss",x-dir*h*.12,y,h,dir<0,-dir*Math.cos(ph)*.1,ph,1.3,im); c.globalAlpha=1; drawLegged(c,"wolfboss",x,y,h*(1+.06*s),dir<0,-dir*Math.cos(ph)*.1,ph,1.3,im); c.restore() }
+    c.save(); c.globalCompositeOperation="lighter"; c.strokeStyle="rgba(200,235,255,.5)"; c.lineWidth=2; for(let i=0;i<5;i++){ const yy=b.y-30+i*15, L=70+pfxR(i,8)*90; c.beginPath(); c.moveTo(b.x-dir*(50+i*8),yy); c.lineTo(b.x-dir*(50+i*8+L),yy); c.stroke() } c.restore(); return true }
   if(K==="wolfrun"){ const A=typeof MOB_ART!=="undefined"&&(typeof loadMobArt==="function"&&loadMobArt(),MOB_ART["8:frostwolf"]); if(A&&A.im&&A.im.complete&&A.im.naturalWidth){ const im=A.im, dir=b.vx>=0?1:-1, H=78, W=H*im.width/im.height;
     // 늑대 세 마리가 무리 지어 전력 질주: 몸을 쭉 폈다 웅크렸다 하며 껑충껑충
     for(const [ox,oy,sc,ph0] of [[-dir*120,-26,.82,2.1],[-dir*70,22,.9,1.1],[0,0,1,0]]){ const ph=t*13+(b.ph||0)+ph0, s=Math.sin(ph), air=Math.max(0,s), x=b.x+ox, y=b.y+oy;
@@ -1278,23 +1419,28 @@ function drawSig46Shot(c,b,t){ const K=b.kind;
     c.beginPath(); c.moveTo(0,-w*.4); c.quadraticCurveTo(L*.5,-w*1.6,L,-w*1.3); c.lineTo(L,w*1.3); c.quadraticCurveTo(L*.5,w*1.6,0,w*.4); c.closePath(); c.fill();
     for(let i=0;i<14;i++){ const u=(i/14+t*1.6)%1, yy=(pfxR(i,4)-.5)*w*2.2*u; c.fillStyle=`rgba(255,255,255,${.85*(1-u)})`; c.save(); c.translate(u*L,yy); c.rotate(t*3+i); c.fillRect(-3,-3,6,6); c.restore() }
     if(PFX.ice) for(let i=0;i<5;i++){ const u=(i/5+t*1.1)%1; pfxDraw(c,"ice",u*L,(pfxR(i,6)-.5)*w*1.6*u,t*4+i,.6+u*.5,(1-u)*.9) } c.restore(); return true }
-  if(K==="beam"){ const L=b.len, w=b.r, fl=.85+Math.sin(t*60)*.15; c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.globalCompositeOperation="lighter";
+  if(K==="beam"){ const L=b.len*Math.min(1,1-Math.pow(1-Math.min(1,(b.ot||0)/.16),3)), w=b.r, fl=.85+Math.sin(t*60)*.15; c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.globalCompositeOperation="lighter";
     const g=c.createLinearGradient(0,-w*2.2,0,w*2.2); g.addColorStop(0,"rgba(90,140,255,0)"); g.addColorStop(.3,"rgba(120,170,255,.35)"); g.addColorStop(.5,"rgba(230,240,255,.95)"); g.addColorStop(.7,"rgba(120,170,255,.35)"); g.addColorStop(1,"rgba(90,140,255,0)");
     c.fillStyle=g; c.globalAlpha=fl; c.fillRect(0,-w*2.2,L,w*4.4);
-    c.strokeStyle="#ffffff"; c.lineWidth=2.5; c.beginPath(); let y=0; c.moveTo(0,0); for(let x=24;x<=L;x+=24){ y=(Math.random()-.5)*w*1.4; c.lineTo(x,y) } c.stroke();
+    if(!drawBoltStrand(c,L,Math.max(80,w*5),fl)){ c.strokeStyle="#ffffff"; c.lineWidth=2.5; c.beginPath(); let y=0; c.moveTo(0,0); for(let x=24;x<=L;x+=24){ y=(Math.random()-.5)*w*1.4; c.lineTo(x,y) } c.stroke() }
     const e=c.createRadialGradient(0,0,4,0,0,w*3); e.addColorStop(0,"rgba(255,255,255,.95)"); e.addColorStop(1,"rgba(120,170,255,0)"); c.fillStyle=e; c.beginPath(); c.arc(0,0,w*3,0,7); c.fill(); c.restore(); return true }
   return false }
-function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k;
+function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k; if(K==="erupt") return drawEruptFx(c,f,k,t); if(K==="seqboom") return drawSeqBoom(c,f,k,t); if(K==="sandburst"||K==="sandtrail") return drawSandFx(c,f,k,t);
   if(K==="crystalpillar"){ const up=Math.min(1,p*5), al=Math.min(1,k*4); c.save(); c.translate(f.x,f.y); c.globalAlpha=al;
     c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(0,4,26,8,0,0,7); c.fill(); const h=78*up;
     const CP=f.gold?["#a8741a","#fff6c8","#ffd86a","#7a5208"]:f.ice?["#4a8ad8","#f2fbff","#b8e6ff","#2a5aa8"]:["#2a6ab8","#bfeaff","#7ac8ff","#1a4a90"];
     for(const [ox,hh,ww] of [[-14,.6,9],[13,.7,8],[0,1,13]]){ const H=h*hh; const g=c.createLinearGradient(ox-ww,0,ox+ww,0); g.addColorStop(0,CP[0]); g.addColorStop(.45,CP[1]); g.addColorStop(.55,CP[2]); g.addColorStop(1,CP[3]); c.fillStyle=g;
       c.beginPath(); c.moveTo(ox-ww,2); c.lineTo(ox-ww*.8,-H*.8); c.lineTo(ox,-H); c.lineTo(ox+ww*.8,-H*.8); c.lineTo(ox+ww,2); c.closePath(); c.fill(); c.strokeStyle="rgba(255,255,255,.7)"; c.lineWidth=1.2; c.stroke() }
     c.globalCompositeOperation="lighter"; const pul=.5+.5*Math.sin(t*14); const gg=c.createRadialGradient(0,-h*.6,2,0,-h*.6,40); gg.addColorStop(0,f.gold?`rgba(255,240,180,${.5+pul*.4})`:`rgba(180,240,255,${.5+pul*.4})`); gg.addColorStop(1,f.gold?"rgba(255,200,80,0)":"rgba(80,160,255,0)"); c.fillStyle=gg; c.beginPath(); c.arc(0,-h*.6,40,0,7); c.fill(); c.restore(); return true }
-  if(K==="pbeam"){ const w=30*(.4+k*.8); c.save(); c.translate(f.x,f.y-40); c.rotate(f.a); c.globalCompositeOperation="lighter";
+  if(K==="pbeam"){ const w=30*(.4+k*.8), ag=(1-k)*f.max; f=Object.assign({},f,{len:f.len*Math.min(1,1-Math.pow(1-Math.min(1,ag/.13),3))}); c.save(); c.translate(f.x,f.y-40); c.rotate(f.a); c.globalCompositeOperation="lighter";
     const g=c.createLinearGradient(0,-w,0,w); g.addColorStop(0,`rgba(${f.col},0)`); g.addColorStop(.35,`rgba(${f.col},${.5*k})`); g.addColorStop(.5,`rgba(255,255,255,${k})`); g.addColorStop(.65,`rgba(${f.col},${.5*k})`); g.addColorStop(1,`rgba(${f.col},0)`);
-    c.fillStyle=g; c.fillRect(0,-w,f.len,w*2); for(let i=0;i<8;i++){ const x=((i*97+t*900)%f.len); c.fillStyle=`rgba(255,255,255,${.7*k})`; c.beginPath(); c.moveTo(x-14,0); c.lineTo(x,-4); c.lineTo(x+14,0); c.lineTo(x,4); c.fill() } c.restore(); return true }
-  if(K==="conewarn"){ const safe=f.safe; c.save(); c.translate(f.x,f.y); c.rotate(f.a);
+    c.fillStyle=g; c.fillRect(0,-w,f.len,w*2); if(f.col==="255,240,120"&&drawBoltStrand(c,f.len,90,k*1.3)){ c.restore(); return true } for(let i=0;i<8;i++){ const x=((i*97+t*900)%f.len); c.fillStyle=`rgba(255,255,255,${.7*k})`; c.beginPath(); c.moveTo(x-14,0); c.lineTo(x,-4); c.lineTo(x+14,0); c.lineTo(x,4); c.fill() } c.restore(); return true }
+  if(K==="conewarn"){ const safe=f.safe, T=warnTex("warncone",safe?SAFE_COL:dangerCol()); if(T){ c.save(); c.translate(f.x,f.y); c.rotate(f.a);
+      c.fillStyle=safe?`rgba(80,220,120,${.12+.08*Math.sin(t*10)})`:`rgba(233,40,50,${.08+.14*p})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.fill();
+      if(!safe){ c.fillStyle="rgba(255,70,70,.25)"; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r*p,-f.half,f.half); c.closePath(); c.fill() }
+      const s=f.r/600, sy=Math.sin(Math.min(1.45,f.half))/Math.sin(Math.PI/4); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,p*5)*(.8+.2*Math.sin(t*14)); c.scale(s,s*sy); c.drawImage(T,-10,-T.height/2,T.width,T.height); c.restore();
+      if(safe&&f.r>300){ c.save(); c.fillStyle="rgba(255,255,255,.95)"; c.font="bold 22px sans-serif"; c.textAlign="center"; c.fillText("안전!",f.x+Math.cos(f.a)*170,f.y+Math.sin(f.a)*170); c.restore() } return true }
+    c.save(); c.translate(f.x,f.y); c.rotate(f.a);
     c.fillStyle=safe?`rgba(80,220,120,${.18+.12*Math.sin(t*10)})`:`rgba(233,60,70,${.1+.22*p})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.fill();
     if(!safe){ c.fillStyle="rgba(255,90,90,.35)"; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r*p,-f.half,f.half); c.closePath(); c.fill() }
     c.strokeStyle=safe?"rgba(120,255,150,.9)":`rgba(255,${200+Math.round(55*Math.sin(t*14))},200,.9)`; c.lineWidth=safe?4:3.2; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.stroke();
@@ -1303,6 +1449,8 @@ function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k;
     const end=sw*Math.min(1,p*3.2); for(let i=0;i<3;i++){ const rr=R*(.62+i*.17), lw=(22-i*6)*k; const g=c.createLinearGradient(0,0,R,0);
       c.strokeStyle=i===2?`rgba(255,255,255,${k})`:i?`rgba(200,120,255,${.8*k})`:`rgba(90,30,160,${.7*k})`; c.lineWidth=Math.max(1,lw); c.lineCap="round"; c.beginPath(); c.arc(0,0,rr,Math.max(0,end-1.3),end); c.stroke() }
     c.fillStyle=`rgba(160,80,255,${.18*k})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,R,0,end); c.closePath(); c.fill(); c.restore(); return true }
+  if(K==="tilewarn"&&warnTex("warntile",dangerCol())){ const s=f.s*.96, h=s/2, T=warnTex("warntile",dangerCol()); c.save(); c.translate(f.x,f.y); c.fillStyle=`rgba(30,0,0,${.18+.12*p})`; c.fillRect(-h,-h,s,s); c.fillStyle=`rgba(255,80,50,${.15+.3*p})`; c.fillRect(-h*p,-h*p,s*p,s*p);
+    c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,p*5)*(.75+.25*Math.sin(t*16)); c.drawImage(T,-h*1.04,-h*1.04,s*1.08,s*1.08); c.restore(); return true }
   if(K==="tilewarn"){ const s=f.s*.92, h=s/2; c.save(); c.translate(f.x,f.y); c.fillStyle=`rgba(20,0,0,${.25+.15*p})`; c.fillRect(-h,-h,s,s);
     c.fillStyle=`rgba(255,200,80,${.25+.35*p})`; c.fillRect(-h*p,-h*p,s*p,s*p); c.strokeStyle=`rgba(255,${230+Math.round(25*Math.sin(t*16))},140,${.75+.25*Math.sin(t*16)})`; c.lineWidth=3.5; c.strokeRect(-h,-h,s,s);
     c.lineWidth=1.5; c.beginPath(); c.moveTo(-h*.35,-h*.35); c.lineTo(h*.35,h*.35); c.moveTo(h*.35,-h*.35); c.lineTo(-h*.35,h*.35); c.stroke(); c.restore(); return true }
@@ -1310,7 +1458,7 @@ function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k;
     const g=c.createLinearGradient(0,-H,0,10); g.addColorStop(0,"rgba(255,80,20,0)"); g.addColorStop(.4,`rgba(255,120,30,${.7*k})`); g.addColorStop(.85,`rgba(255,230,140,${k})`); g.addColorStop(1,"rgba(255,255,220,0)");
     c.fillStyle=g; c.beginPath(); c.moveTo(-r*.8,6); c.quadraticCurveTo(-r*.6,-H*.5,Math.sin(t*20)*8,-H); c.quadraticCurveTo(r*.6,-H*.5,r*.8,6); c.closePath(); c.fill();
     c.fillStyle=`rgba(255,140,40,${.4*k})`; c.beginPath(); c.ellipse(0,0,r,r*.4,0,0,7); c.fill(); c.restore(); return true }
-  if(K==="cloudwarn"){ c.save(); c.translate(f.x,f.y); c.fillStyle=`rgba(20,20,40,${.2+.35*p})`; c.beginPath(); c.ellipse(0,0,f.r,f.r*.55,0,0,7); c.fill();
+  if(K==="cloudwarn"){ drawWarnEllipse(c,"warncircle",dangerCol(),f.x,f.y,f.r*1.05,f.r*.58,Math.min(1,p*5)*(.7+.3*Math.sin(t*16))); c.save(); c.translate(f.x,f.y); c.fillStyle=`rgba(20,20,40,${.2+.35*p})`; c.beginPath(); c.ellipse(0,0,f.r,f.r*.55,0,0,7); c.fill();
     c.strokeStyle=`rgba(255,240,120,${.4+.5*p})`; c.lineWidth=2; c.setLineDash([8,6]); c.beginPath(); c.ellipse(0,0,f.r,f.r*.55,0,0,7); c.stroke(); c.setLineDash([]);
     c.translate(0,-170); c.globalAlpha=Math.min(1,p*3); for(const [x,y,r] of [[-38,6,30],[0,-8,40],[40,4,32],[-12,14,28],[18,14,30]]){ const g=c.createRadialGradient(x,y-r*.4,2,x,y,r); g.addColorStop(0,"#6a6a88"); g.addColorStop(1,"#22223a"); c.fillStyle=g; c.beginPath(); c.arc(x,y,r,0,7); c.fill() }
     if(Math.sin(t*30)>.85){ c.globalCompositeOperation="lighter"; c.fillStyle="rgba(255,250,180,.4)"; c.beginPath(); c.arc(0,0,46,0,7); c.fill() } c.restore(); return true }
@@ -1354,16 +1502,32 @@ const ARTTX={}; function artTint(key,col){ const id=key+"|"+(col||""); if(ARTTX[
   x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); x.globalCompositeOperation="lighter"; x.globalAlpha=.25; x.drawImage(im,0,0); return ARTTX[id]=cv }
 const FIREISH=c=>{ if(!c) return true; c=c.toLowerCase(); return c.includes("ff8a2a")||c.includes("ffd36a")||c.includes("ff7a3a")||c.includes("ff6a")||c.includes("ffb")||c.includes("ffe066")||c.includes("ff9") };
 function drawArtFx(c,f,k,t){ if(window.__noArt) return false; const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{}, K=f.k;
+  // 조련사 부적 폭발: 부적 조각이 흩날리며 문양 고리가 빙글
+  if(K==="boom"&&f.charm&&S.charmboom){ const q=1-k, R=(f.r||48)*2.6*(.55+.45*Math.sqrt(q)); c.save(); c.translate(f.x,f.y); c.rotate(q*1.2); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(.95,k*1.6); c.drawImage(S.charmboom,-R/2,-R/2,R,R); c.restore(); return true }
   // 불타는 운석: 하늘에서 비스듬히 떨어져요
-  if(K==="meteor"&&S.meteorfx&&(!f.th||f.th==="fire"||f.th==="rock"||f.th==="flame")){ if(f.life>f.max) return false; const q=1-f.life/f.max, im=S.meteorfx, sx=f.x-200*(1-q), sy=f.y-420*(1-q), Wd=150*(f.big?1.4:1), Hd=Wd*im.height/im.width;
+  // 유적 맵 낙석: 고대 유적 돌덩이가 대기 마찰로 불붙으며 떨어져요
+  if(K==="meteor"&&f.th==="rock"&&S.ruinrock&&typeof drawFireballFx==="function"){ if(f.life>f.max) return false; const q=1-f.life/f.max, sx=f.x-200*(1-q), sy=f.y-420*(1-q), fa=Math.atan2(420,200), S2=72*(f.big?1.4:1);
+    c.save(); c.fillStyle=`rgba(40,20,0,${.28*q})`; c.beginPath(); c.ellipse(f.x,f.y,30*q,10*q,0,0,7); c.fill(); c.restore();
+    drawFireballFx(c,sx-Math.cos(fa)*8,sy-Math.sin(fa)*8,fa,S2*3,t,Math.min(1,q*4)*.95);
+    c.save(); c.translate(sx,sy); c.rotate(q*5+f.x*.01); c.globalAlpha=Math.min(1,q*5); const im=S.ruinrock, h=S2*im.height/im.width; c.drawImage(im,-S2/2,-h/2,S2,h);
+    c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*5)*(.25+.1*Math.sin(t*30)); c.drawImage(im,-S2/2,-h/2,S2,h); c.restore(); return true }
+  if(K==="meteor"&&S.meteorfx&&(!f.th||f.th==="fire"||f.th==="rock"||f.th==="flame")){ if(f.life>f.max) return false; const q=1-f.life/f.max, im=S.meteorfx, sx=f.x-200*(1-q), sy=f.y-420*(1-q), Wd=170*(f.big?1.4:1)*(1+Math.sin(t*30)*.03), Hd=Wd*im.height/im.width;
     c.save(); c.fillStyle=`rgba(40,10,0,${.25*q})`; c.beginPath(); c.ellipse(f.x,f.y,30*q,10*q,0,0,7); c.fill();
-    c.translate(sx,sy); c.rotate(Math.atan2(420,200)-Math.PI*.75); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*4); c.drawImage(im,-Wd*.3,-Hd*.66,Wd,Hd); c.restore(); return true }
+    c.translate(sx,sy); c.rotate(Math.atan2(420,200)-.746); c.globalAlpha=Math.min(1,q*4); c.drawImage(im,-Wd*.733,-Hd*.749,Wd,Hd); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*4)*(.25+Math.sin(t*25)*.1); c.drawImage(im,-Wd*.733,-Hd*.749,Wd,Hd); c.restore(); return true }
   // 폭발: 불빛 폭발은 그대로, 다른 색 폭발은 그 색으로 물들여요
   if(K==="boom"&&S.explodefx&&!f.th&&!window.__fxLow){ const col=f.col, tx=artTint("explodefx",FIREISH(col)?null:col); if(!tx) return false; const q=1-k, R=(f.r||60)*2.5*(.55+.55*Math.sqrt(q)), a=((f.x*7+f.y*13)%628)/100;
     c.save(); c.translate(f.x,f.y); c.rotate(a+q*.4); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(.9,k*1.5); c.drawImage(tx,-R/2,-R/2,R,R); c.restore(); return true }
   // 번개 낙뢰: 하늘에서 땅까지 내리꽂혀요
-  if(K==="bolt"&&S.boltfx){ const im=S.boltfx, Hd=480, Wd=Hd*im.width/im.height, fl=.75+Math.random()*.35;
-    c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,k*1.8)*fl; c.drawImage(im,f.x-Wd*.5,f.y+24-Hd,Wd,Hd); c.restore(); return true }
+  if(K==="bolt"&&S.boltfx){ const im=S.boltfx, bt=f.bt, fl=.75+Math.random()*.35;
+    // 번개 4단계: 카드(작고 은은) · 서예 도령 雷(크고 화려) · 맵 날씨(푸른빛) · 보스(붉은 자줏빛 + 빨간 테두리)
+    const TC=bt==="boss"?"#ff5a9a":bt==="map"?"#9ad8ff":bt==="hero"?"#ffe6a0":bt==="dragon"?"#5ab0ff":null, T=TC&&typeof warnTex==="function"?(warnTex("boltfx",TC)||im):im;
+    const Hd=bt==="card"?300:bt==="hero"||bt==="dragon"?560:480, Wd=Hd*im.width/im.height;
+    c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,k*1.8)*fl*(bt==="card"?.75:1); c.drawImage(T,f.x-Wd*.5,f.y+24-Hd,Wd,Hd);
+    if(bt==="hero"||bt==="dragon"){ // 곁가지 번개 + 금빛·먹빛 섬광
+      for(const s of [-1,1]){ c.save(); c.translate(f.x,f.y-Hd*.55); c.rotate(Math.PI/2+s*(.5+Math.random()*.25)); if(typeof drawBoltStrand==="function") drawBoltStrand(c,Hd*.38,60,k*1.2); c.restore() }
+      const q=1-k, r=60+q*140; c.globalAlpha=k; c.strokeStyle=`rgba(255,220,140,${k})`; c.lineWidth=5*k+1; c.beginPath(); c.ellipse(f.x,f.y,r,r*.4,0,0,7); c.stroke(); jGlow(c,f.x,f.y,90,"255,230,160",.7*k) }
+    if(bt==="boss"){ const q=1-k, r=50+q*70; c.globalAlpha=k; c.strokeStyle=`rgba(255,60,90,${k})`; c.lineWidth=4; c.beginPath(); c.ellipse(f.x,f.y,r,r*.4,0,0,7); c.stroke() }
+    c.restore(); return true }
   // 블랙홀: 빙글빙글 돌며 빨아들여요
   if(K==="blackhole"&&S.holefx){ const p=1-k, R=(f.r||150)*2*(1-p*.25); c.save(); c.translate(f.x,f.y); c.scale(1,.75); c.rotate(-t*1.6);
     c.globalAlpha=Math.min(1,k*2); holeCore(c,R); c.drawImage(S.holefx,-R/2,-R/2,R,R); c.restore(); return true }
@@ -1377,5 +1541,195 @@ function holeCore(c,R){ const g=c.createRadialGradient(0,0,0,0,0,R*.5); g.addCol
 function drawHoleShot(c,b,t){ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.holefx; if(!im) return false; const R=b.pr*1.15, al=Math.min(1,b.life*1.5,(b.ot||9));
   c.save(); c.translate(b.x,b.y); c.scale(1,.72); c.rotate(-t*1.3); c.globalAlpha=al*.95; holeCore(c,R); c.drawImage(im,-R/2,-R/2,R,R); c.restore(); return true }
 /* 불꽃 숨결 (이프리트) */
-function drawFireBreath(c,x,y,a,len,al,t){ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.firebreath; if(!im) return false; const sc=len/(im.width*.98), H=im.height*sc*.7, fl=1+Math.sin(t*25)*.05;
-  c.save(); c.translate(x,y); c.rotate(a); c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(im,-im.width*.02*sc,-H*.51*fl,len,H*fl); c.globalAlpha=al*.35; c.drawImage(im,-im.width*.02*sc+Math.sin(t*11)*8,-H*.56,len*1.04,H*1.1); c.restore(); return true }
+function drawFireBreath(c,x,y,a,len,al,t){ /* 불길이 앞으로 확 퍼지며 일렁여요 */ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.firebreath; if(!im) return false;
+  const puff=1+Math.sin(t*9)*.06+Math.sin(t*23)*.03, L=len*puff, sc=L/(im.width*.98), H=im.height*sc*.7*(1+Math.sin(t*13)*.06);
+  c.save(); c.translate(x,y); c.rotate(a); c.globalCompositeOperation="lighter"; c.globalAlpha=al; drawFlameImg(c,im,L,H,.01,.52,t,1.3,true,.09);
+  c.globalAlpha=al*.3; c.translate(Math.sin(t*11)*8,0); drawFlameImg(c,im,L*1.05,H*1.12,.01,.53,t+.37,4.1,true,.12); c.restore(); return true }
+
+/* ===== 제미나이 번개 그림을 '번개 줄기'로 눕혀서 모든 번개(빛줄기·돌진·구슬·작은 낙뢰)에 써요 ===== */
+let _bStr=null;
+function boltStrand(){ if(_bStr) return _bStr; const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.boltfx; if(!im||!im.width) return null;
+  const W=im.width, H=Math.round(im.height*.8), cv=document.createElement("canvas"); cv.width=H; cv.height=W; const x=cv.getContext("2d");
+  x.translate(0,W); x.rotate(-Math.PI/2); x.drawImage(im,0,0,W,H,0,0,W,H);
+  // 끝부분은 부드럽게 사라지게
+  x.setTransform(1,0,0,1,0,0); x.globalCompositeOperation="destination-in"; const g=x.createLinearGradient(0,0,H,0); g.addColorStop(0,"rgba(0,0,0,.6)"); g.addColorStop(.06,"#000"); g.addColorStop(.94,"#000"); g.addColorStop(1,"rgba(0,0,0,.5)"); x.fillStyle=g; x.fillRect(0,0,H,W);
+  return _bStr=cv }
+/* c는 번개가 +x 방향으로 뻗도록 이미 돌려 놓은 상태. L=길이, T=두께, al=투명도 */
+function drawBoltStrand(c,L,T,al){ const S=boltStrand(); if(!S||L<4) return false; const seg=T*S.width/S.height, n=Math.max(1,Math.round(L/seg)), sl=L/n, fr=Math.floor(performance.now()/75);
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.max(0,Math.min(1,al)); if(fr&1) c.scale(1,-1);
+  for(let i=0;i<n;i++) c.drawImage(S,i*sl-1,-T/2,sl+2,T);
+  c.restore(); return true }
+
+/* ===== 바람 궁수 (제미나이 그림): 바람 화살 · 화살비 · 바람의 활 ===== */
+function drawWindArrow(c,x,y,a,L,al,glow){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windarrow; if(!im) return false; const H=L*im.height/im.width;
+  c.save(); c.translate(x,y); c.rotate(a); c.globalAlpha=al==null?1:al; c.drawImage(im,-L*.9,-H/2,L,H); if(glow){ c.globalCompositeOperation="lighter"; c.globalAlpha*=.5; c.drawImage(im,-L*.9,-H/2,L,H) } c.restore(); return true }
+
+/* ===== 일렁이는 불꽃: 그림을 세로 조각으로 나눠, 꼬리 쪽일수록 위아래로 출렁이고 두께가 숨 쉬듯 바뀌어요 ===== */
+const FLSCR={}; function flameScratch(w,h){ const k=w+"x"+h; if(FLSCR[k]) return FLSCR[k]; const cv=document.createElement("canvas"); cv.width=w; cv.height=h; return FLSCR[k]={cv,x:cv.getContext("2d")} }
+/* 지금 좌표계(+x 방향)에 그려요. L·H=그릴 크기, ax·ay=고정점(그림 비율), tr=true면 오른쪽 끝이 꼬리(불숨결) */
+/* 렉 줄이기: 일렁이는 모양 12장을 한 번만 만들어 두고 시간에 따라 넘겨 보여요 (탄이 많아도 가벼워요) */
+const FLFR=new Map(); const FLN=12;
+function flameFrames(im,tr,amp){ let M=FLFR.get(im); if(!M){ M={}; FLFR.set(im,M) } const key=(tr?1:0)+"_"+amp; if(M[key]) return M[key];
+  const N=34, sc=Math.min(1,260/im.height), W=Math.round(im.width*sc), Hh=Math.round(im.height*sc*1.4), pad=im.height*sc*.2, sw=im.width/N, out=[];
+  for(let f=0;f<FLN;f++){ const ph=f/FLN*TAU, cv=document.createElement("canvas"); cv.width=W; cv.height=Hh; const X=cv.getContext("2d");
+    for(let i=0;i<N;i++){ const u=(i+.5)/N, tail=tr?u:1-u, w=Math.pow(tail,1.3), dy=Math.sin(ph-i*.36)*im.height*amp*w, hs=1+Math.sin(2*ph+1.3-i*.5)*.13*w;
+      const hh=im.height*sc*hs, d0=Math.round(i*sw*sc), d1=Math.round((i+1)*sw*sc); X.drawImage(im,d0/sc,0,(d1-d0)/sc,im.height,d0,pad+dy*sc+(im.height*sc-hh)/2,d1-d0,hh) }
+    out.push(cv) }
+  return M[key]=out }
+/* 지금 좌표계(+x 방향)에 그려요. L·H=그릴 크기, ax·ay=고정점(그림 비율), tr=true면 오른쪽 끝이 꼬리(불숨결) */
+function drawFlameImg(c,im,L,H,ax,ay,t,seed,tr,amp){ if(!im||!im.width) return false; amp=amp||.08;
+  if(window.__fxLow){ c.drawImage(im,-L*ax,-H*ay,L,H); return true }
+  const F=flameFrames(im,!!tr,amp), fi=((Math.floor(t*14+seed*3)%FLN)+FLN)%FLN; c.drawImage(F[fi],-L*ax,-H*ay-H*.2,L,H*1.4); return true }
+/* 날아가는 화염구 (캐릭터·보스 공통): 앞쪽 불꽃 핵을 탄 위치에 맞추고 꼬리가 일렁여요 */
+function drawFireballFx(c,x,y,a,L,t,al){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.fireballfx; if(!im) return false; const H=L*im.height/im.width, pul=1+Math.sin(t*20+x*.05)*.04;
+  c.save(); c.translate(x,y); c.rotate(a); c.scale(pul,pul); c.globalCompositeOperation="lighter"; c.globalAlpha=al==null?1:al; drawFlameImg(c,im,L,H,.782,.537,t,x*.013+y*.007,false,.1); c.restore(); return true }
+
+/* ===== 마법사: 독 안개 · 메테오 낙하 마법진 (제미나이 그림) ===== */
+function drawMistArt(c,z,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.poisonmist; if(!im) return false; const k=Math.min(1,z.t/.5,(z.max-z.t)/.4+.15), S=z.r*2.5;
+  c.save(); c.translate(z.x,z.y); c.scale(1,.5); c.globalCompositeOperation="lighter";
+  c.save(); c.rotate(-t*.35); c.globalAlpha=k*.85; c.drawImage(im,-S/2,-S/2,S,S); c.restore();
+  c.save(); c.rotate(t*.22+1.3); const s2=S*(.82+Math.sin(t*1.7)*.05); c.globalAlpha=k*.4; c.drawImage(im,-s2/2,-s2/2,s2,s2); c.restore();
+  c.restore(); return true }
+function drawFireCircle(c,f,k,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.firecircle; if(!im) return false; const q=1-k, W=f.r*2.3*(.85+.15*Math.min(1,q*4)), H=W*im.height/im.width;
+  c.save(); c.translate(f.x,f.y); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*5)*(.75+.25*Math.sin(t*14)); c.drawImage(im,-W/2,-H/2,W,H); c.restore(); return true }
+
+/* ===== 범위 표시 (제미나이 흰 문양 7장을 맵·보스 색으로 물들여요) ===== */
+const WTX2={}; function warnTex(key,col){ const id=key+col; if(WTX2[id]) return WTX2[id]; const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG[key]; if(!im) return null;
+  const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; const x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="multiply"; x.fillStyle=col; x.fillRect(0,0,cv.width,cv.height);
+  x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); x.globalCompositeOperation="lighter"; x.globalAlpha=.35; x.drawImage(im,0,0); return WTX2[id]=cv }
+function mixHex(a,b,t){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), A=p(a), B=p(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("") }
+/* 위험 색: 맵(보스) 색에 빨강을 섞어 '위험'이 바로 보이게 */
+/* 맵 분위기를 살린 위험 색 (테두리 깜빡임은 모든 맵 붉은빛으로 통일) */
+const DANGER_COL={1:"#ff4f8f",2:"#ff8a3a",3:"#e8923a",4:"#e04ad8",5:"#ff3a30",6:"#ff6a6a",7:"#ffa040",8:"#a87cff",9:"#ffb030",10:"#c060ff"};
+function dangerCol(th){ return DANGER_COL[window.__mapId]||"#ff4a4a" }
+const OWN_COL="#ffd36a", SAFE_COL="#5af08a";
+const WGEO={warncircle:[.5,.477,.495,.516],warndonut:[.499,.484,.496,.506],warnsafe:[.5,.538,.491,.448],warnown:[.5,.537,.487,.446]};
+/* 타원 문양을 (x,y)에 가로 반지름 rx, 세로 반지름 ry로 */
+function drawWarnEllipse(c,key,col,x,y,rx,ry,al){ const T=warnTex(key,col); if(!T) return false; const G=WGEO[key], Wd=rx/G[2], Hd=ry/G[3];
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.max(0,Math.min(1,al)); c.drawImage(T,x-Wd*G[0],y-Hd*G[1],Wd,Hd); c.restore(); return true }
+
+/* ===== 분출: 경고 모양 그대로 시작점에서 끝까지 0.15초 만에 확 뻗어 나가고, 조각이 흩어지며 사라져요 ===== */
+function drawEruptFx(c,f,k,t){ if(f.k!=="erupt") return false; const age=(1-k)*f.max, gr=Math.min(1,age/.15), ease=1-Math.pow(1-gr,3), fade=age<.15?1:Math.max(0,1-(age-.15)/(f.max-.15));
+  const col=dangerCol(), rgb=[1,3,5].map(i=>parseInt(col.slice(i,i+2),16)).join(","); c.save(); c.globalCompositeOperation="lighter";
+  if(f.s==="cone"){ const R=f.r*ease; c.translate(f.x,f.y); c.rotate(f.a);
+    const g=c.createRadialGradient(0,0,R*.05,0,0,Math.max(1,R)); g.addColorStop(0,`rgba(255,255,255,${.5*fade})`); g.addColorStop(.6,`rgba(${rgb},${.42*fade})`); g.addColorStop(.92,`rgba(${rgb},${.75*fade})`); g.addColorStop(1,`rgba(255,250,235,${.95*fade})`);
+    c.fillStyle=g; c.beginPath(); c.moveTo(0,0); c.arc(0,0,Math.max(1,R),-f.half,f.half); c.closePath(); c.fill();
+    c.strokeStyle=`rgba(255,255,240,${fade})`; c.lineWidth=6*fade+1; c.beginPath(); c.arc(0,0,Math.max(1,R),-f.half,f.half); c.stroke();
+    for(let i=0;i<14;i++){ const a=-f.half+f.half*2*((i*.618)%1), d=R*(.55+.45*((i*.37)%1))+age*260; c.fillStyle=`rgba(255,240,210,${fade*.9})`; c.fillRect(Math.cos(a)*d-2,Math.sin(a)*d-2,4,4) } }
+  else if(f.s==="line"){ const L=f.len*ease; c.translate(f.x,f.y); c.rotate(f.a);
+    const g=c.createLinearGradient(0,-30,0,30); g.addColorStop(0,`rgba(${rgb},0)`); g.addColorStop(.5,`rgba(255,255,245,${.9*fade})`); g.addColorStop(1,`rgba(${rgb},0)`); c.fillStyle=g; c.fillRect(0,-30*(.6+.4*fade),L,60*(.6+.4*fade));
+    c.fillStyle=`rgba(${rgb},${.55*fade})`; c.fillRect(0,-12,L,24); const hg=c.createRadialGradient(L,0,0,L,0,50); hg.addColorStop(0,`rgba(255,255,255,${fade})`); hg.addColorStop(1,`rgba(${rgb},0)`); c.fillStyle=hg; c.beginPath(); c.arc(L,0,50,0,7); c.fill() }
+  else if(f.s==="donut"){ c.translate(f.x,f.y); const r=f.r1+(f.r2-f.r1)*ease; c.strokeStyle=`rgba(${rgb},${.8*fade})`; c.lineWidth=(f.r2-f.r1)*.5*ease+4; c.beginPath(); c.arc(0,0,(f.r1+r)/2,0,TAU); c.stroke(); c.strokeStyle=`rgba(255,255,240,${fade})`; c.lineWidth=5; c.beginPath(); c.arc(0,0,r,0,TAU); c.stroke() }
+  else if(f.s==="tile"){ c.translate(f.x,f.y); const h=f.sz*.5*(.4+.6*ease); c.fillStyle=`rgba(${rgb},${.55*fade})`; c.fillRect(-h,-h,h*2,h*2); c.strokeStyle=`rgba(255,255,240,${fade})`; c.lineWidth=5; c.strokeRect(-h,-h,h*2,h*2);
+    const g=c.createLinearGradient(0,-140*ease,0,0); g.addColorStop(0,`rgba(${rgb},0)`); g.addColorStop(1,`rgba(255,250,230,${.7*fade})`); c.fillStyle=g; c.fillRect(-h*.6,-140*ease,h*1.2,140*ease) }
+  else { c.translate(f.x,f.y); c.scale(1,f.sq||.75); const r=f.r*(.3+.85*ease); const g=c.createRadialGradient(0,0,0,0,0,r); g.addColorStop(0,`rgba(255,255,245,${.3*fade})`); g.addColorStop(.7,`rgba(${rgb},${.22*fade})`); g.addColorStop(1,`rgba(${rgb},0)`); c.fillStyle=g; c.beginPath(); c.arc(0,0,r,0,TAU); c.fill();
+    c.strokeStyle=`rgba(255,250,235,${.45*fade})`; c.lineWidth=3*fade+1; c.beginPath(); c.arc(0,0,r,0,TAU); c.stroke() }
+  c.restore(); return true }
+
+/* ===== 카드 스킬 (제미나이 그림): 회오리 칼날 · 서리 파편 · 화염 고리 · 수호 바위 ===== */
+const SKI=k=>typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG[k];
+function drawCardWind(c,sh,t){ const im=SKI("cardwind"); if(!im) return false; const S=46; c.save(); c.globalCompositeOperation="lighter";
+  for(let j=2;j>=0;j--){ c.save(); c.translate(sh.x-sh.vx*.016*j,sh.y-sh.vy*.016*j); c.rotate(-t*14+j*.4); c.globalAlpha=j?.22/j:1; c.drawImage(im,-S/2,-S/2,S,S); c.restore() } c.restore(); return true }
+function drawCardIce(c,sh,a,t){ const im=SKI("cardice"); if(!im) return false; const L=62, H=L*im.height/im.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.drawImage(im,-L*.78,-H/2,L,H); c.globalCompositeOperation="lighter"; c.globalAlpha=.3+.15*Math.sin(t*20+sh.x); c.drawImage(im,-L*.78,-H/2,L,H); c.restore(); return true }
+function drawCardFireRing(c,P,R,t){ const im=SKI("cardfire"); if(!im) return false; const Wd=R/.38*(1+Math.sin(t*9)*.02), Hd=Wd*im.height/im.width*(1+Math.sin(t*13)*.05);
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=.9; c.drawImage(im,P.x-Wd/2,P.y-Hd*.56,Wd,Hd); c.globalAlpha=.3+.12*Math.sin(t*17); c.drawImage(im,P.x-Wd*.52,P.y-Hd*.6,Wd*1.04,Hd*1.08); c.restore(); return true }
+function drawCardStone(c,x,y,t,i){ const im=SKI("cardstone"); if(!im) return false; const S=38; c.save(); c.translate(x,y+Math.sin(t*3+i)*3); c.globalCompositeOperation="lighter"; jGlow(c,0,0,S*.8,"255,210,120",.3+.15*Math.sin(t*6+i)); c.globalCompositeOperation="source-over"; c.rotate(Math.sin(t*1.5+i)*.25); c.drawImage(im,-S/2,-S/2*im.height/im.width,S,S*im.height/im.width); c.restore(); return true }
+
+/* ===== 보스 폭격: 빛의 창이 내리꽂히고(맵 색) · 땅에서 충격 폭발 · 마지막 맵은 별똥별 ===== */
+function drawSpearFall(c,f,q,t,P){ if(f.th==="star"&&SKI("starfall")){ const im=SKI("starfall"), sx=f.x-220*(1-q), sy=f.y-420*(1-q), Wd=160, Hd=Wd*im.height/im.width;
+    c.save(); c.fillStyle=`rgba(40,10,60,${.22*q})`; c.beginPath(); c.ellipse(f.x,f.y,28*q,9*q,0,0,7); c.fill(); c.translate(sx,sy); c.rotate(Math.atan2(420,220)-.745); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*4);
+    if(typeof drawFlameImg==="function") drawFlameImg(c,im,Wd,Hd,.787,.763,t,f.x*.01,false,.05); else c.drawImage(im,-Wd*.787,-Hd*.763,Wd,Hd); c.restore(); return true }
+  const T=typeof warnTex==="function"&&warnTex("lightspear",P[1]); if(!T) return false; const L=230, W=L*T.width/T.height, y=f.y-470*(1-q);
+  c.save(); c.fillStyle=`rgba(0,0,0,${.22*q})`; c.beginPath(); c.ellipse(f.x,f.y,24*q,8*q,0,0,7); c.fill(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*4); c.drawImage(T,f.x-W/2,y-L*.97,W,L); c.restore(); return true }
+function drawImpactBoom(c,f,k,t,P){ const T=typeof warnTex==="function"&&warnTex("impactfx",P[1]); if(!T) return false; const q=1-k, R=(f.r||60), Wd=R*3*(.6+.4*Math.min(1,q*3.5)), Hd=Wd*T.height/T.width;
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(.8,k*2); c.drawImage(T,f.x-Wd*.496,f.y-Hd*.53,Wd,Hd); if(q<.2){ c.globalAlpha=(.2-q)*2; c.drawImage(T,f.x-Wd*.496,f.y-Hd*.53,Wd,Hd) } c.restore(); return true }
+
+/* ===== 서예 도령 뫼 산(山): 먹물 바닥 깨짐 위에서 산이 땅을 뚫고 솟아요 ===== */
+function drawInkCrack(c,x,y,r,al){ const im=SKI("inkcrack"); if(!im) return false; const Wd=r*2.5, Hd=Wd*im.height/im.width; c.save(); c.globalAlpha=Math.max(0,Math.min(1,al)); c.drawImage(im,x-Wd/2,y-Hd*.62,Wd,Hd); c.restore(); return true }
+
+/* ===== 해태 불꽃 갈기: 안쪽→바깥쪽으로 순서대로 빠르게 펑펑 터지는 폭발 (효과 하나에 모아 그려서 가벼워요) ===== */
+function drawSeqBoom(c,f,k,t){ const age=(1-k)*f.max, im=typeof artTint==="function"&&artTint("explodefx",null), R1=f.r1, R2=f.r2, rings=R1>0?3:3;
+  // 바닥 불빛
+  c.save(); c.globalCompositeOperation="lighter"; const gl=Math.max(0,1-age/f.max);
+  c.translate(f.x,f.y); c.scale(1,.55); const gg=c.createRadialGradient(0,0,R1*.9,0,0,R2*1.05); gg.addColorStop(0,"rgba(255,120,30,0)"); gg.addColorStop(R1>0?.55:.1,`rgba(255,140,40,${.35*gl})`); gg.addColorStop(1,"rgba(255,80,20,0)"); c.fillStyle=gg; c.beginPath(); c.arc(0,0,R2*1.05,0,7); c.fill(); c.restore();
+  for(let ri=0;ri<rings;ri++){ const rr=R1>0?R1+(R2-R1)*(ri+.5)/rings:R2*(ri===0?0:ri/(rings-.5)), n=ri===0&&R1===0?1:Math.max(6,Math.round(rr/26)), delay=ri*.09;
+    for(let i=0;i<n;i++){ const d0=delay+(i%2)*.03, a=age-d0, L=.42; if(a<0||a>L) continue; const q=a/L, an=i/n*6.283+ri*.4, x=f.x+Math.cos(an)*rr, y=f.y+Math.sin(an)*rr*.55, S=(R1>0?(R2-R1)/rings*1.9:R2/rings*1.6)*(.6+.6*Math.sqrt(q));
+      c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(.85,(1-q)*1.6); if(im){ const s2=S*.8; c.translate(x,y); c.rotate(an+q); c.drawImage(im,-s2/2,-s2/2,s2,s2) } else { c.fillStyle="#ffb040"; c.beginPath(); c.arc(x,y,S*.4,0,7); c.fill() } c.restore() } }
+  return true }
+
+/* ===== 보스 탄 (필살기 파편 포함): 보스 테마에 맞는 진짜 그림 한 장씩 (그림 1장이라 기존보다 가벼워요) ===== */
+const TRAIL_COL={flower:"255,150,200",leaf:"140,230,120",poison:"170,230,80",bolt:"255,245,180",ice:"200,240,255",crystal:"220,170,255",rock:"190,160,110",wind:"200,250,255",star:"255,225,140",void:"190,120,255",planet:"190,120,255",light:"255,230,150",fire:"255,160,60"};
+/* 날아가는 파편 뒤로 흩날리는 작은 조각 (점 몇 개라 가벼워요) */
+function shotTrail(c,b,t,r){ const col=TRAIL_COL[b.th]; if(!col||window.__fxLow) return; const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp, s0=(b.x*13+b.y*7)|0;
+  c.save(); c.globalCompositeOperation="lighter"; for(let i=0;i<6;i++){ const ph=((t*3+i/6+((s0+i*37)%100)/100))%1, back=r*(1.5+ph*5), side=Math.sin(s0+i*2.3+t*6)*r*(.4+ph*1.4), x=b.x-ux*back-uy*side, y=b.y-uy*back+ux*side, sz=(1-ph)*r*.35+1;
+    c.fillStyle=`rgba(${col},${(1-ph)*.75})`; c.fillRect(x-sz/2,y-sz/2,sz,sz) } c.restore() }
+function drawArtShot(c,b,t){ if(window.__noArt||typeof SKILL_IMG==="undefined") return false; const S=SKILL_IMG, th=b.th, a=Math.atan2(b.vy,b.vx), r=b.r||10; shotTrail(c,b,t,r);
+  const one=(im,w,h,rot,ax,add,tint)=>{ if(!im) return false; const T=tint&&typeof warnTex==="function"?warnTex(tint[0],tint[1]):im; if(!T) return false;
+    // 가시성: 어떤 바닥에서도 잘 보이게 어두운 테두리 그늘 + 붉은 위험 고리
+    c.save(); const hg=c.createRadialGradient(b.x,b.y,r*.3,b.x,b.y,r*2.1); hg.addColorStop(0,"rgba(20,0,10,.45)"); hg.addColorStop(.7,"rgba(120,0,30,.22)"); hg.addColorStop(1,"rgba(0,0,0,0)"); c.fillStyle=hg; c.beginPath(); c.arc(b.x,b.y,r*2.1,0,7); c.fill();
+    c.strokeStyle=`rgba(255,60,80,${.55+.3*Math.sin(t*14+b.x*.05)})`; c.lineWidth=2; c.beginPath(); c.arc(b.x,b.y,r*1.25,0,7); c.stroke(); c.restore();
+    c.save(); c.translate(b.x,b.y); c.rotate(rot); if(add) c.globalCompositeOperation="lighter"; c.drawImage(T,-w*ax,-h/2,w,h); c.restore(); return true };
+  { const SK2={flower:["shot_flower",.83],leaf:["shot_leaf",.76],poison:["shot_poison",.86],bolt:["shot_bolt",.78]}[th]; if(SK2&&S[SK2[0]]){ const im=S[SK2[0]], L=r*8.5, H=L*im.height/im.width; return one(im,L,H,a,SK2[1],true) } }
+  if(th==="ice"&&S.cardice){ const L=r*7, H=L*S.cardice.height/S.cardice.width; return one(S.cardice,L,H*1.4,a,.75) }
+  if(th==="crystal"&&S.cardice){ const L=r*6.5, H=L*S.cardice.height/S.cardice.width; return one(S.cardice,L,H*1.6,a,.75,false,["cardice","#d070ff"]) }
+  if(th==="rock"){ const im=window.__mapId===3&&S.ruinrock?S.ruinrock:S.cardstone; if(!im) return false; const s=r*3.4; c.save(); c.fillStyle="rgba(0,0,0,.18)"; c.beginPath(); c.ellipse(b.x,b.y+r*1.3,r*1.2,r*.4,0,0,7); c.fill(); c.restore(); return one(im,s,s*im.height/im.width,t*6+b.x*.01,.5) }
+  if(th==="wind"&&S.cardwind){ const s=r*4.2; return one(S.cardwind,s,s,-t*14,.5,true,["cardwind","#bff6ff"]) }
+  if(th==="star"&&S.starfall){ const L=r*8, H=L*S.starfall.height/S.starfall.width; return one(S.starfall,L,H,a+.75,.787,true) }
+  if((th==="void"||th==="planet")&&S.holefx){ const s=r*4.4; return one(S.holefx,s,s,-t*5,.5,true) }
+  if(th==="light"&&S.lightspear){ const L=r*9, W=L*S.lightspear.width/S.lightspear.height; return one(S.lightspear,W,L,a-Math.PI/2,.5,true,["lightspear","#ffe08a"]) }
+  return false }
+
+/* ===== 보스 폭격 두 가지 느낌 (보내 준 영상처럼) =====
+   A) 낙하: 가는 조준 빛줄기가 내려와 땅을 비추다가 → 굵은 빛기둥이 쾅 내리꽂혀요
+   B) 폭발: 땅의 빛 고리에서 가는 빛바늘이 솟고 → 넓은 빛기둥이 위로 터져 오르며 연기 고리가 퍼져요
+   맵 색으로 물들인 그림 조각을 미리 만들어 두고 늘였다 줄였다만 해서 가벼워요 */
+const COLTX={}; function colTex(col){ if(COLTX[col]) return COLTX[col]; const cv=document.createElement("canvas"); cv.width=32; cv.height=256; const x=cv.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,256); g.addColorStop(0,"rgba(255,255,255,0)"); g.addColorStop(.35,`rgba(${col},.55)`); g.addColorStop(.85,"rgba(255,255,240,.95)"); g.addColorStop(1,"rgba(255,255,255,1)"); x.fillStyle=g; x.fillRect(0,0,32,256);
+  x.globalCompositeOperation="destination-in"; const h=x.createLinearGradient(0,0,32,0); h.addColorStop(0,"rgba(0,0,0,0)"); h.addColorStop(.5,"#000"); h.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=h; x.fillRect(0,0,32,256); return COLTX[col]=cv }
+function eruptColumn(c,x,y,R,age,dur,col,seed){ const T=colTex(col), p=age/dur; if(p>=1) return; const fade=p<.55?1:1-(p-.55)/.45; c.save(); c.globalCompositeOperation="lighter";
+  // 바닥 빛 고리
+  c.save(); c.translate(x,y); c.scale(1,.36); const rg=c.createRadialGradient(0,0,R*.2,0,0,R*1.15); rg.addColorStop(0,`rgba(${col},${.5*fade})`); rg.addColorStop(.7,`rgba(${col},${.35*fade})`); rg.addColorStop(1,`rgba(${col},0)`); c.fillStyle=rg; c.beginPath(); c.arc(0,0,R*1.15,0,7); c.fill(); c.restore();
+  if(p<.18){ // 가는 빛바늘들이 하나씩 솟아요
+    const n=1+Math.floor(p/.18*6); for(let i=0;i<n;i++){ const ox=Math.sin(seed+i*2.7)*R*.55, h=R*(2.6+((seed*7+i*13)%10)/6); c.globalAlpha=.9; c.drawImage(T,x+ox-3,y-h,6,h) } }
+  else { const q=Math.min(1,(p-.18)/.12), H=R*(3.2+.6*q)*(.75+.25*q), W=R*1.6*(.5+.5*q);
+    for(let i=0;i<9;i++){ const u=(i-4)/4, h=H*(.6+.4*Math.abs(Math.sin(seed+i*1.9+age*18))), w=W*(.18+.12*((i*7)%3)); c.globalAlpha=fade*(.55+.35*(1-Math.abs(u))); c.drawImage(T,x+u*W*.45-w/2,y-h,w,h) }
+    // 반짝이는 마름모 빛 조각
+    c.fillStyle=`rgba(255,255,235,${fade})`; for(let i=0;i<5;i++){ const xx=x+Math.sin(seed+i*3.3)*W*.35, yy=y-H*(.25+((i*29+seed*3)%10)/14)-age*120; c.beginPath(); c.moveTo(xx,yy-9); c.lineTo(xx+3,yy); c.lineTo(xx,yy+9); c.lineTo(xx-3,yy); c.closePath(); c.fill() }
+    // 연기 고리
+    c.globalCompositeOperation="source-over"; for(let i=0;i<10;i++){ const an=i/10*6.283, d=R*(.8+p*.5); c.fillStyle=`rgba(60,45,40,${.35*fade})`; c.beginPath(); c.arc(x+Math.cos(an)*d,y+Math.sin(an)*d*.36,R*.16*(1+p),0,7); c.fill() } }
+  c.restore() }
+function pillarStrike(c,f,q,t,col){ const im=typeof warnTex==="function"&&warnTex("moonpillar",colHex(col)); if(!im) return false; const H=520;
+  if(q<.82){ const a=q/.82; c.save(); c.globalCompositeOperation="lighter"; const lg=c.createLinearGradient(0,f.y-H,0,f.y); lg.addColorStop(0,`rgba(${col},0)`); lg.addColorStop(1,`rgba(${col},${.8*a})`); c.fillStyle=lg; const bw=2+a*5; c.fillRect(f.x-bw/2,f.y-H,bw,H); jGlow(c,f.x,f.y,24+a*26,col,.7*a); c.restore(); return true }
+  const d=Math.min(1,(q-.82)/.18), hy=f.y-H+H*d, Wd=H*im.width/im.height*.8; c.save(); c.globalCompositeOperation="lighter"; c.beginPath(); c.rect(f.x-Wd,f.y-H,Wd*2,hy-(f.y-H)+2); c.clip(); c.drawImage(im,f.x-Wd/2,f.y-H*.942,Wd,H); c.restore(); return true }
+const colHex=rgb=>"#"+rgb.split(",").map(v=>(+v).toString(16).padStart(2,"0")).join("");
+
+/* ===== 네 발 정령(백호·황소): 그림 아랫부분을 앞다리·뒷다리로 나눠 번갈아 내딛어요 (조각 3개라 가벼워요) ===== */
+const LEGC={}; function legCut(key,img){ if(LEGC[key]!==undefined) return LEGC[key]; const im=img||(typeof SKILL_IMG!=="undefined"&&SKILL_IMG[key]); if(!im||!im.width) return null;
+  try{ const W=im.width, H=im.height, mk=(x0,y0,x1,y1)=>{ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const x=cv.getContext("2d"); x.beginPath(); x.rect(x0,y0,x1-x0,y1-y0); x.clip(); x.drawImage(im,0,0); return cv };
+    const hip=Math.round(H*.66); return LEGC[key]={W,H,hip,up:mk(0,0,W,hip+Math.round(H*.04)),back:mk(0,hip,W*.5,H),front:mk(W*.5,hip,W,H),full:im} }catch(e){ return LEGC[key]=null } }
+function drawLegged(c,key,x,y,h,flip,tilt,ph,mv,img){ const L=legCut(key,img); if(!L) return false; const s=h/L.H, sw=Math.sin(ph)*mv, lift=Math.max(0,Math.cos(ph))*mv;
+  c.save(); c.translate(x,y); if(tilt) c.rotate(tilt); if(flip) c.scale(-1,1); c.scale(s,s); c.translate(-L.W/2,-L.H/2);
+  const leg=(cv,px,an,dy)=>{ c.save(); c.translate(px,L.hip+dy); c.rotate(an); c.drawImage(cv,-px,-L.hip); c.restore() };
+  leg(L.back,L.W*.3,-sw*.42,-lift*L.H*.03); leg(L.front,L.W*.7,sw*.42,-Math.max(0,-Math.cos(ph))*mv*L.H*.03); c.drawImage(L.up,0,0); c.restore(); return true }
+/* ===== 사실적인 발톱 할퀴기: 휙 그어지는 세 줄 칼자국 (끝이 가늘고 가운데 흰 심 · 푸른 빛) ===== */
+function drawClawFx(c,f,k){ const p=1-k, sw=Math.min(1,p/.35), fade=p<.35?1:Math.max(0,1-(p-.35)/.65), A=-.9;
+  c.save(); c.translate(f.x,f.y); c.rotate(A); c.globalCompositeOperation="lighter";
+  for(let i=-1;i<=1;i++){ const L=(64-Math.abs(i)*10), x0=-L/2, len=L*sw, oy=i*13;
+    const g=c.createLinearGradient(x0,0,x0+L,0); g.addColorStop(0,`rgba(140,200,255,0)`); g.addColorStop(.5,`rgba(170,220,255,${.85*fade})`); g.addColorStop(1,`rgba(255,255,255,${fade})`);
+    c.fillStyle=g; c.beginPath(); c.moveTo(x0,oy); c.quadraticCurveTo(x0+len*.5,oy-7*(1-Math.abs(i)*.3)-4,x0+len,oy-2); c.quadraticCurveTo(x0+len*.5,oy+3,x0,oy); c.closePath(); c.fill();
+    c.strokeStyle=`rgba(255,255,255,${fade})`; c.lineWidth=1.4; c.beginPath(); c.moveTo(x0+len*.15,oy-1); c.quadraticCurveTo(x0+len*.5,oy-5,x0+len,oy-2); c.stroke() }
+  jGlow(c,0,0,46,"150,210,255",.35*fade); c.restore(); return true }
+/* ===== 청룡: 서예 도령의 묵룡처럼 머리·몸통 마디·발·꼬리가 이어져 물결치며 날아요 (푸른빛) ===== */
+function drawBlueDragon(c,m,t){ const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{}; if(!S.dr_head||!S.dr_body||!S.dr_tail||typeof artTint!=="function") return false;
+  const TC="#3a8cff", H_=artTint("dr_head",TC), B_=artTint("dr_body",TC), T_=artTint("dr_tail",TC), F_=S.dr_front&&artTint("dr_front",TC), K_=S.dr_back&&artTint("dr_back",TC); if(!H_||!B_||!T_) return false;
+  const tr=m._tr||(m._tr=[]); tr.unshift([m.x,m.y]); if(tr.length>60) tr.length=60;
+  const N=11, sc=.62, step=4, pts=[]; for(let i=0;i<=N+1;i++){ const q=tr[Math.min(tr.length-1,i*step)]; pts.push([q[0]+Math.sin(t*7-i*.6)*4*(i/N),q[1]+Math.cos(t*7-i*.6)*4*(i/N)]) }
+  const angAt=i=>{ const a=pts[Math.max(0,i)], b=pts[Math.min(pts.length-1,i+1)]; const an=Math.atan2(a[1]-b[1],a[0]-b[0]); return isNaN(an)?0:an };
+  const part=(img,x,y,an,w,h,ox,oy,fy,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(fy) c.scale(1,-1); if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
+  const up=a=>Math.cos(a)<0, sp=34*sc*1.3, BH=70*sc;
+  if(K_){ const a=angAt(N-3), w=70*sc, h=w*K_.height/K_.width; part(K_,pts[N-3][0],pts[N-3][1],a+(up(a)?-1:1)*(.9+Math.sin(t*8)*.45),w,h,.25,.2,up(a)) }
+  { const a=angAt(N), w=120*sc, h=w*T_.height/T_.width; part(T_,pts[N][0],pts[N][1],a+(up(a)?-1:1)*Math.PI*1.5+Math.sin(t*7.5-N*.6)*.25,w,h,.86,.97,up(a)) }
+  for(let i=N;i>=1;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]), tp=1-(i/N)*.35; part(B_,mx,my,a,Math.max(sp,d*1.3),BH*tp,.5,.55,up(a),.32,.68) }
+  if(F_){ const a=angAt(2), w=80*sc, h=w*F_.height/F_.width; part(F_,pts[2][0],pts[2][1]+5*sc,a+(up(a)?-1:1)*(1.05+Math.sin(t*8)*.5),w,h,.22,.18,up(a)) }
+  { const a=angAt(0)+Math.sin(t*7.5+.8)*.08, w=140*sc, h=w*H_.height/H_.width; part(H_,pts[0][0],pts[0][1],a,w,h,.3,.55,up(a)) }
+  c.save(); c.globalCompositeOperation="lighter"; jGlow(c,pts[0][0],pts[0][1],70,"90,170,255",.35); c.restore(); return true }

@@ -453,9 +453,20 @@ loadBossArt();
 const artOf = e=>BOSS_ART[e.bid]||BOSS_ART[e.look];
 function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   // 단계별 최대 크기 (약한 185 · 중간 215 · 강한 250 · 최종 295 픽셀 높이) · 강할수록 위엄 있게
-  const tier=bossTier(e), MAXH=[225,260,300,350][Math.min(3,tier)], MAXW=MAXH*1.3;
-  const r=e.r, fs=e._pose?e._pose.face:(px<e.x?-1:1); let w=r*A.w*.85, h=w*A.im.height/A.im.width; const sc=Math.min(1,MAXH/h,MAXW/w); w*=sc; h*=sc; const y0=e.y+r*.95+A.dy*r; e._artTop=y0-h;
+  const tier=bossTier(e), MAXH=[225,260,300,350][Math.min(3,tier)]*1.1, MAXW=MAXH*1.3;
+  const r=e.r, fs=e._pose?e._pose.face:(px<e.x?-1:1); let w=r*A.w*.94, h=w*A.im.height/A.im.width; const sc=Math.min(1,MAXH/h,MAXW/w); w*=sc; h*=sc; const y0=e.y+r*.95+A.dy*r; e._artTop=y0-h;
   if(!A.rig&&!A.noRig){ const key=RIGS[e.bid]?e.bid:null; if(key) try{ buildRig(key,A) }catch(err){ A.noRig=1 } else A.noRig=1 }
+  // 달리기 그림(4장면)이 있는 보스: 움직일 때는 장면을 넘기며 진짜로 달려요
+  // 공격 그림(3~4장면)이 있는 보스: 기 모으기 → 내리치기 → 숨 고르기를 장면으로 보여 줘요
+  const ATK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&!e.spin&&e.atk&&e.atk.t0!==undefined&&SKILL_IMG["atk_"+e.bid];
+  if(ATK){ const wd=e.atk.wind||.45, dt=t-e.atk.t0, N=(e.bid==="st9_3"||e.bid==="st3_3")?3:4;
+    if(dt>=0&&dt<wd+.42){ const cw=ATK.width/N, ch=ATK.height, idx=dt<wd?(N===4&&dt>wd*.55?1:0):dt<wd+.2?N-2:N-1, rh=h*.86, rw=rh*cw/ch;
+      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
+      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
+  const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], FLY=RUN&&RIGS[e.bid]&&RIGS[e.bid].move==="fly", moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.wind||.4)+.3);
+  if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, rh=h*(FLY?.95:.82), rw=rh*cw/ch, idx=FLY?Math.floor(t*11+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
+    ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
+    if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true }
   ctx.save(); ctx.translate(e.x,y0); if(A.face) ctx.scale(Math.sign(fs*A.face)*Math.max(.15,Math.abs(fs)),1);
   const paint=()=>{ if(A.rig) drawRig(ctx,A,e,t,w,h); else ctx.drawImage(A.im,-w/2,-h,w,h) };
   paint();
@@ -558,7 +569,25 @@ function bossWarn(ctx,e,t){ const A=e.atk; if(!A||!A.sp) return; const u=t-A.t0;
   ctx.save(); ctx.globalAlpha=.35+.3*Math.sin(t*16); ctx.strokeStyle=ult?"#ffd36a":"#ff4a4a"; ctx.lineWidth=3; ctx.setLineDash([10,8]); ctx.lineDashOffset=-t*40;
   ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*(1.6+k*.6),e.r*(.5+k*.2),0,0,7); ctx.stroke(); ctx.restore() }
 function drawMonster(ctx,e,t,px,py){
-  if(e.type==="boss"&&e.hidden){ drawBossMound(ctx,e,t); return }
+  // 땅속 잠행: 숨을 땐 땅 아래로 쑥 꺼지고, 나올 땐 땅을 뚫고 튀어나와요 (모든 친구 화면에서 똑같이)
+  if(e.type==="boss"&&e.mapId===3&&!e._inner){ const hid=!!e.hidden; if(e._hidP===undefined) e._hidP=hid;
+    if(hid!==e._hidP){ e._hidP=hid; if(hid){ e._sinkS=t } else { e._riseS=t } if(typeof g==="undefined"||true){ try{ (window.__fxPush||(()=>{}))({k:"sandburst",x:e.x,y:e.y+e.r*.9,r:e.r*(hid?1.4:2.2),big:!hid,life:hid?.7:.9,max:hid?.7:.9}) }catch(_){} } } }
+  // 고대 거북 등껍질 돌진: 몸은 숨고 등껍질만 팽이처럼 돌아요 + 돌 조각 회오리 + 바닥 긁힌 자국 (그림 2장뿐이라 가벼워요)
+  if(e.type==="boss"&&e.spin&&e.mapId===3&&!e.hidden&&!e._inner&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.turtleshell){ const SH=SKILL_IMG.turtleshell, RW=SKILL_IMG.rockwhirl, fy=e.y+e.r*.95, mv=Math.hypot(e.x-(e._sx??e.x),e.y-(e._sy??e.y)); e._sx=e.x; e._sy=e.y;
+    if(mv>4&&(e._stT=(e._stT||0)+1)%3===0) try{ (window.__fxPush||(()=>{}))({k:"sandtrail",x:e.x,y:fy,r:e.r*1.1,life:1.4,max:1.4,a:Math.random()*6}) }catch(_){}
+    const Ws=e.r*3, Hs=Ws*SH.height/SH.width, Wr=e.r*4.2, Hr=Wr*RW.height/RW.width;
+    ctx.save(); ctx.fillStyle="rgba(40,30,20,.3)"; ctx.beginPath(); ctx.ellipse(e.x,fy,e.r*1.5,e.r*.42,0,0,7); ctx.fill();
+    // 뒤쪽 회오리 (위 절반)
+    ctx.save(); ctx.beginPath(); ctx.rect(e.x-Wr,fy-Hs*1.4,Wr*2,Hs*.9); ctx.clip(); ctx.translate(e.x,fy-Hs*.45); ctx.scale(1,1); ctx.rotate(Math.sin(t*2)*.05); ctx.drawImage(RW,-Wr/2,-Hr/2,Wr,Hr); ctx.restore();
+    // 등껍질: 옆으로 빙글빙글 (가로로 납작해졌다 펴지며 회전)
+    const ph=t*14, sx=.82+.18*Math.abs(Math.cos(ph)); ctx.save(); ctx.translate(e.x,fy); ctx.rotate(Math.sin(ph)*.12); ctx.scale(sx*(Math.cos(ph)>=0?1:-1),1); ctx.drawImage(SH,-Ws/2,-Hs*.98,Ws,Hs); ctx.restore();
+    // 앞쪽 회오리 (아래 절반)
+    ctx.save(); ctx.beginPath(); ctx.rect(e.x-Wr,fy-Hs*.5,Wr*2,Hs); ctx.clip(); ctx.translate(e.x,fy-Hs*.45); ctx.rotate(Math.sin(t*2)*.05); ctx.drawImage(RW,-Wr/2,-Hr/2,Wr,Hr); ctx.restore();
+    ctx.restore(); if(e.flash>0){} return }
+  if(e.type==="boss"&&e.hidden){ const sp=t-(e._sinkS??-9);
+    if(sp<.4){ const p=Math.min(1,sp/.35), fy=e.y+e.r*.95; ctx.save(); ctx.beginPath(); ctx.rect(e.x-e.r*6,fy-e.r*8,e.r*12,e.r*8); ctx.clip(); ctx.translate((Math.random()-.5)*4,p*p*e.r*3.4); e.hidden=false; e._inner=1; drawMonster(ctx,e,t,px,py); e._inner=0; e.hidden=true; ctx.restore() }
+    drawBossMound(ctx,e,t,Math.min(1,sp/.4)); return }
+  if(e.type==="boss"&&e._riseS!==undefined&&t-e._riseS<.32){ const p=(t-e._riseS)/.32, fy=e.y+e.r*.95, up=1-Math.pow(1-p,3); ctx.save(); ctx.beginPath(); ctx.rect(e.x-e.r*6,fy-e.r*8,e.r*12,e.r*8); ctx.clip(); ctx.translate(0,(1-up)*e.r*3.4-Math.sin(p*Math.PI)*e.r*.5); const R=e._riseS; e._riseS=undefined; e._inner=1; drawMonster(ctx,e,t,px,py); e._inner=0; e._riseS=R; ctx.restore(); return }
   if(e.type==="boss"&&(e.air||e.airH>0)){ const h=e.airH!==undefined&&e.airH>0?e.airH:70; ctx.save(); ctx.fillStyle="rgba(0,0,0,.28)"; ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*(1.1-h/400),e.r*.35*(1.1-h/400),0,0,7); ctx.fill(); ctx.restore(); ctx.save(); ctx.translate(0,-h); }
   if(e.type==="boss"){ const Q=bossPose(e,t,px); if(e.spin){ const cs=Math.cos(t*15); Q.sx*=Math.sign(cs||1)*Math.max(.25,Math.abs(cs)); Q.oy=(Q.oy||0)-Math.abs(Math.sin(t*15))*e.r*.12 } bossUnder(ctx,e,t);
     if(Q.glow>0){ const [cl]=BOSS_COL[e.mapId]||BOSS_COL[5]; ctx.save(); ctx.globalCompositeOperation="lighter"; const g=ctx.createRadialGradient(e.x,e.y,e.r*.2,e.x,e.y,e.r*2.2); g.addColorStop(0,`rgba(${cl},${.4*Q.glow})`); g.addColorStop(1,`rgba(${cl},0)`); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(e.x,e.y,e.r*2.2,0,7); ctx.fill(); ctx.restore() }
@@ -1346,11 +1375,15 @@ const RIGS = {
 /* 조각 만들기: 그림이 불러와지면 한 번만 (몸통에서 조각 부분을 지우고, 조각은 따로 잘라 둬요) */
 function buildRig(key,A){ const R=RIGS[key]; if(!R||A.rig) return; const im=A.im, W=im.width, H=im.height, sx=W/10, sy=H/10;
   // 두 발로 걷는 보스인데 다리 조각이 없으면: 그림 아래쪽을 왼발·오른발로 나눠 자동으로 다리를 만들어요
-  if((R.move==="walk"||R.move==="heavy")&&!R.noLeg&&!R.parts.some(p=>p.t==="leg")&&!R._auto){ R._auto=1;
+  // 네 발(말달리기·네 발 걷기)·뒤뚱·기어가기 보스도 아래쪽을 조각내 다리처럼 번갈아 내딛어요 (조각 몇 개라 렉 영향 거의 없음)
+  const GM={walk:1,heavy:1,quad:1,gallop:1,waddle:1,crawl:1};
+  if(GM[R.move]&&!R.noLeg&&!R.parts.some(p=>p.t==="leg")&&!R._auto){ R._auto=1;
     try{ const c=document.createElement("canvas"); c.width=W; c.height=H; const x=c.getContext("2d"); x.drawImage(im,0,0); const y0=Math.floor(H*.8), d=x.getImageData(0,y0,W,H-y0).data;
       let mn=W, mx=0, sw=0, sxw=0; for(let yy=0;yy<H-y0;yy++) for(let xx=0;xx<W;xx++){ const a=d[(yy*W+xx)*4+3]; if(a>120){ if(xx<mn) mn=xx; if(xx>mx) mx=xx; sw+=a; sxw+=a*xx } }
       if(sw>0&&mx-mn>W*.12){ const mid=sxw/sw/sx, l=Math.max(0,mn/sx-.1), r=Math.min(10,mx/sx+.1), hip=7.7;
-        R.parts.push({t:"leg",poly:R_(l,hip,mid,10),piv:[(l+mid)/2,hip],auto:1},{t:"leg",poly:R_(mid,hip,r,10),piv:[(mid+r)/2,hip],ph:1,auto:1}) } }catch(err){} }
+        if(R.move==="crawl"){ const n=4, w=(r-l)/n, h2=8.3; for(let i=0;i<n;i++) R.parts.push({t:"leg",poly:R_(l+w*i,h2,l+w*(i+1),10),piv:[l+w*(i+.5),h2],ph:i%2,auto:1,amp:.6}) }
+        else if(R.move==="quad"||R.move==="gallop"){ const hip2=7.9; R.parts.push({t:"leg",poly:R_(l,hip2,mid,10),piv:[(l+mid)/2,hip2],auto:1,amp:1.2},{t:"leg",poly:R_(mid,hip2,r,10),piv:[(mid+r)/2,hip2],ph:1,auto:1,amp:1.2}) }
+        else R.parts.push({t:"leg",poly:R_(l,hip,mid,10),piv:[(l+mid)/2,hip],auto:1,amp:R.move==="waddle"?.8:1},{t:"leg",poly:R_(mid,hip,r,10),piv:[(mid+r)/2,hip],ph:1,auto:1,amp:R.move==="waddle"?.8:1}) } }catch(err){} }
   const path=(c,poly)=>{ c.beginPath(); poly.forEach(([x,y],i)=>i?c.lineTo(x*sx,y*sy):c.moveTo(x*sx,y*sy)); c.closePath() };
   const base=document.createElement("canvas"); base.width=W; base.height=H; const bc=base.getContext("2d"); bc.drawImage(im,0,0);
   const used=document.createElement("canvas"); used.width=W; used.height=H; const uc=used.getContext("2d");
@@ -1379,19 +1412,19 @@ function partMotion(p,e,t,st){ const D=Math.PI/180, sd=p.side==="L"?1:-1, ph=(p.
   let rot=0, dx=0, dy=0, sc=1;
   if(p.t==="wing"){ const f=st.fly?3.2:2.2, amp=((st.fly?14:6)+mv*6)*am; rot=sd*amp*Math.sin(t*f*Math.PI*2+ph)*D*(on("wing")?1-W*.7:1);
     if(on("wing")) rot+=sd*(W*32-H*40)*D+tr }
-  else if(p.t==="leg"){ const amp=(st.gallop?26:p.auto?9:16)*Math.min(1,mv*1.2)*am, sw=Math.sin(st.walk+ph); rot=amp*sw*D; dy-=Math.max(0,Math.cos(st.walk+ph))*(p.auto?7:5)*Math.min(1,mv*1.2); if(p.auto) dx+=sw*4*Math.min(1,mv);
+  else if(p.t==="leg"){ const k=Math.min(1,mv*1.2), amp=(st.gallop?36:p.auto?15:22)*k*am, sw=Math.sin(st.walk+ph), lift=Math.max(0,Math.cos(st.walk+ph)); rot=amp*sw*D+(st.gallop?lift*8*D*k:0); dy-=lift*(p.auto?11:8)*k*(st.gallop?1.4:1); if(p.auto) dx+=sw*7*k;
     if(on("leg")) rot+=(-W*24+H*16)*D*am*(p.z===-1?.5:1) }
   else if(p.t==="tail"){ rot=8*Math.sin(t*2.4+ph)*D*am;
     if(on("tail")){ if(p.thrust) dy+=-W*12+H*30; else rot+=(p.strike?(-W*28+H*55):(W*22-H*38)*am)*D+tr } }
   else if(p.t==="head"){ rot=2.5*Math.sin(t*1.8)*D+(mv>.2?2*Math.sin(st.walk*2)*D:0);
     if(on("head")){ rot+=(-W*7+H*10)*D+tr; dx+=-W*3+H*8 } }
   else if(p.t==="cap"){ rot=3*Math.sin(t*1.5+ph)*D; dy=Math.sin(t*2)*2; if(on("cap")){ dy+=-W*7+H*5; rot+=H*5*D+tr; sc=1+W*.05 } }
-  else if(p.t==="arm"){ const amp=p.small?4:7; rot=sd*amp*Math.sin(st.walk+ph+(p.side==="L"?0:Math.PI))*D*Math.min(1,mv+.3)*am;
-    if(on("arm")){ if(p.punch||A.mel){ rot+=sd*(W*30-H*50)*D+tr; dx+=H*14*(p.side==="L"?-1:1); dy+=H*6 } else { rot+=sd*(W*42-H*12)*D+tr; dy+=-W*6 } } }
+  else if(p.t==="arm"){ const amp=p.small?6:12; rot=sd*amp*Math.sin(st.walk+ph+(p.side==="L"?0:Math.PI))*D*Math.min(1,mv+.3)*am;
+    if(on("arm")){ if(p.punch||A.mel){ rot+=sd*(W*48-H*78)*D+tr; dx+=(-W*6+H*20)*(p.side==="L"?-1:1); dy+=-W*8+H*8 } else { rot+=sd*(W*55-H*16)*D+tr; dy+=-W*10 } } }
   else if(p.t==="weapon"){ rot=sd*-3*Math.sin(t*1.6)*D;
     if(on("weapon")){ if(p.cast){ rot+=sd*(W*16-H*8)*D+tr; dy+=-W*12+H*4 }
-      else if(p.hammer){ rot+=sd*(W*70-H*90)*D+tr; dy+=-W*10+H*8 }
-      else if(A.mel){ rot+=sd*(W*55-H*95)*D+tr; dx+=-W*4+H*8 }
+      else if(p.hammer){ rot+=sd*(W*85-H*115)*D+tr; dy+=-W*14+H*12 }
+      else if(A.mel){ rot+=sd*(W*70-H*120)*D+tr; dx+=-W*8+H*14 }
       else { rot+=sd*(W*55-H*20)*D+tr; dy+=-W*8 } } }   // 마법: 무기를 하늘로 치켜들어요
   else if(p.t==="spear"){ rot=-2*Math.sin(t*1.6)*D; if(on("weapon")){ if(A.mel){ dx+=-W*20+H*44; rot+=-W*6*D } else { rot+=-W*14*D; dy+=-W*10 } } }
   else if(p.t==="float"){ dy=Math.sin(t*2.2+ph)*6; rot=3*Math.sin(t*1.3+ph)*D; if(on("float")){ dy+=-W*12+H*4; sc=1+W*.15+H*.08; rot+=t*W*2 } }
@@ -1487,11 +1520,14 @@ function heroRigOf(img){ const key=img.src.length+":"+img.src.slice(-40); if(HRI
     const mid=sw?sx/sw:W/2, ov=Math.round((bot-top)*.03);
     const cut=(x0,y0_,x1,y1)=>{ const cv=document.createElement("canvas"); cv.width=W; cv.height=H; const cx=cv.getContext("2d"); cx.save(); cx.beginPath(); cx.rect(x0,y0_,x1-x0,y1-y0_); cx.clip(); cx.drawImage(img,0,0); cx.restore(); return cv };
     const R={W,H,hip,mid,bot,lp:(mn+mid)/2,rp:(mid+mx)/2,upper:cut(0,0,W,hip+ov),legL:cut(0,hip,mid,H),legR:cut(mid,hip,W,H),full:c,rim};
+    // 발밑이 아주 넓은 그림(뒤에 기운·망토·원판이 붙은 그림)은 다리를 따로 흔들지 않고 몸 전체로 걸어요 (종이처럼 펄럭이지 않게)
+    R.noLeg=(mx-mn)>W*.66;
     // 다리를 돌려도 틈이 안 보이게: 허리 아래 그림을 흐리게 깔아 둬요
     const base=document.createElement("canvas"); base.width=W; base.height=H; const bx=base.getContext("2d"); bx.filter="blur(2px) brightness(.7)"; bx.drawImage(cut(0,hip-2,W,hip+(bot-hip)*.45),0,0); R.base=base;
     return HRIG[key]=R }catch(e){ return HRIG[key]=null } }
 const HERO_POSE={ // [준비 시간 비율, 준비: 각도·앞뒤·위아래·가로늘림, 공격: 각도·앞뒤·위아래·가로늘림]
-  sword:[.34,-11,-5,0,.94, 15,11,0,1.12], arrow:[.55,-5,-5,0,.97, 3,2,0,1.03], star:[.3,-13,-3,-1,.95, 17,8,0,1.1], fireball:[.45,-6,-2,-7,.95, 9,8,0,1.08], gun:[0,0,0,0,1, -9,-6,-1,.96], moon:[.4,-5,-2,-6,.96, 7,5,0,1.05], brush:[.3,-14,-5,0,.94, 18,10,0,1.12], charm:[.3,-12,-3,-1,.95, 15,7,0,1.08], punch:[.28,-4,-7,0,.95, 6,13,0,1.14] };
+  // 공격 동작을 더 크게: 크게 젖혔다가(준비) → 몸 전체로 휙 내지르기(공격)
+  sword:[.34,-16,-8,-1,.92, 21,15,0,1.15], arrow:[.55,-7,-7,0,.96, 4,3,0,1.04], star:[.3,-18,-5,-2,.93, 24,12,0,1.13], fireball:[.45,-9,-4,-9,.94, 13,12,0,1.1], gun:[0,0,0,0,1, -11,-8,-1,.95], moon:[.4,-8,-4,-8,.95, 10,8,0,1.07], brush:[.3,-19,-7,-1,.92, 24,14,0,1.15], charm:[.3,-16,-5,-2,.94, 20,10,0,1.1], punch:[.26,-6,-11,0,.93, 8,19,0,1.18] };
 function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
   const s=SZ/R.W, D=Math.PI/180, dt=Math.min(.05,st.dt||0);
   const S=st.S||(st.S={a:0,va:0,x:0,vx:0,y:0,vy:0,k:1,vk:0,l:0,vl:0,r:0,vr:0,ly:0,vly:0,ry:0,vry:0,h:[]});
@@ -1506,9 +1542,10 @@ function drawHeroRig(ctx,img,SZ,st){ const R=heroRigOf(img); if(!R){ ctx.drawIma
       S.vl+=(240*(tl-S.l)-C2*S.vl)*h; S.l+=S.vl*h; S.vr+=(240*(tr-S.r)-C2*S.vr)*h; S.r+=S.vr*h; S.vly+=(240*(tly-S.ly)-C2*S.vly)*h; S.ly+=S.vly*h; S.vry+=(240*(try_-S.ry)-C2*S.vry)*h; S.ry+=S.vry*h } }
   else if(st.dt===undefined){ S.a=ta; S.x=tx; S.y=ty; S.k=tk }
   const T=st.t||0, still=Math.max(0,1-mv*1.5), br=Math.sin(T*2.4)*.014*still, step=Math.abs(Math.cos(ph))*mv, bob=-step*2.2, sq=(1-step)*.02*mv;
-  const body=(a,x,y,k,alpha)=>{ ctx.save(); if(alpha<1) ctx.globalAlpha*=alpha; ctx.translate(x,4+y+bob); ctx.rotate(a*D+Math.sin(ph)*.035*mv); ctx.scale(k*(1-br*.5+sq),(1-(k-1)*.5)*(1+br-sq)); ctx.scale(s,s); ctx.translate(-R.W/2,-R.H);
+  const NL=R.noLeg||st.kind==="star";   // 도적(표창)은 몸 전체로 사뿐사뿐 걸어요
+  const body=(a,x,y,k,alpha)=>{ ctx.save(); if(alpha<1) ctx.globalAlpha*=alpha; ctx.translate(x,4+y+bob*(NL?1.6:1)); ctx.rotate(a*D+Math.sin(ph)*(NL?.012:.035)*mv); ctx.scale(k*(1-br*.5+sq),(1-(k-1)*.5)*(1+br-sq)); ctx.scale(s,s); ctx.translate(-R.W/2,-R.H);
     if(alpha>=1&&R.rim&&!window.__noRim){ ctx.save(); ctx.globalAlpha*=.55; ctx.globalCompositeOperation="lighter"; ctx.drawImage(R.rim,0,0); ctx.restore() }
-    if(Math.abs(S.l)+Math.abs(S.ly)<.3&&Math.abs(S.r)+Math.abs(S.ry)<.3) ctx.drawImage(R.full||img,0,0);
+    if(NL||(Math.abs(S.l)+Math.abs(S.ly)<.3&&Math.abs(S.r)+Math.abs(S.ry)<.3)) ctx.drawImage(R.full||img,0,0);
     else { ctx.drawImage(R.base,0,0); const leg=(cv,px,an,dy)=>{ ctx.save(); ctx.translate(px,R.hip+dy/s); ctx.rotate(an*D); ctx.drawImage(cv,-px,-R.hip); ctx.restore() };
       leg(R.legL,R.lp,S.l,S.ly); leg(R.legR,R.rp,S.r,S.ry); ctx.drawImage(R.upper,0,0) }
     ctx.restore() };
