@@ -348,7 +348,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .bdSel select{width:auto;min-width:110px}
 .bdMsg{margin:0;font-family:var(--f-ui);font-size:17px;color:#bfe8ff;display:flex;align-items:center;gap:8px}
 .bdMsg i{width:12px;height:12px;border-radius:50%;background:#3fcf8e;box-shadow:0 0 8px #3fcf8e;animation:gdBob 1.2s infinite}
-.bdSum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.bdSum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 .bdSum div{background:var(--bg2);border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-family:var(--f-ui)}
 .bdSum b{font-family:var(--f-title);font-weight:400;font-size:30px;color:var(--gold);line-height:1.1}
 .bdSum span{font-size:15px;color:var(--muted)}
@@ -854,16 +854,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10230734"></script>
-<script src="jobs.js?v=10230734"></script>
-<script src="maps.js?v=10230734"></script>
-<script src="art.js?v=10230734"></script>
-<script src="monsters.js?v=10230734"></script>
-<script src="jobfx.js?v=10230734"></script>
-<script src="words.js?v=10230734"></script>
-<script src="sfx.js?v=10230734"></script>
+<script src="sprites.js?v=10231013"></script>
+<script src="jobs.js?v=10231013"></script>
+<script src="maps.js?v=10231013"></script>
+<script src="art.js?v=10231013"></script>
+<script src="monsters.js?v=10231013"></script>
+<script src="jobfx.js?v=10231013"></script>
+<script src="words.js?v=10231013"></script>
+<script src="sayings.js?v=10231013"></script>
+<script src="sfx.js?v=10231013"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10230734"></script>
+<script src="mp.js?v=10231013"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -896,7 +897,7 @@ const RAW = [
 ];
 const WEEKS = RAW.map((s,i)=>s.split("|").map(t=>{const p=t.split(" ");return {h:p[0],hun:p[1],eum:p[2],w:i+1}}));
 const UNIQUE = [...new Map(WEEKS.flat().map(c=>[c.h,c])).values()];
-const label = c=>`${c.hun} ${c.eum}`;
+const label = c=>c.cat?c.k:`${c.hun} ${c.eum}`;
 
 /* ===== 규칙 (선생님이 바꾸고 싶으면 여기 숫자만) ===== */
 const DAILY_SETS = 30;    // 하루에 코인을 받을 수 있는 학습 세트 수
@@ -972,9 +973,9 @@ const $app = document.getElementById("app");
 const shuffle = a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pool = ()=>[...new Map([...P.set.sel].sort((a,b)=>a-b).flatMap(w=>WEEKS[w-1]).map(c=>[c.h,c])).values()];
-const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
+const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; if(/^[SP]:/.test(h)){ P.swrong=P.swrong||[]; if(!P.swrong.includes(h)) P.swrong.push(h); saveP(); return } if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
 /* 학습 기록: 주차별 정답률 + 익힌 날짜 */
-function trackAns(c,ok){ if(!P||!c) return; P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
+function trackAns(c,ok){ if(!P||!c) return; if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
   if(ok){ P.mt=P.mt||{}; if((P.mastery[c.h]||0)>=MASTER_N && !P.mt[c.h]) P.mt[c.h]=Date.now() } }
 /* 약한 한자 먼저: 많이 틀렸거나, 아직 덜 익혔거나, 처음 보는 한자일수록 자주 나와요 */
 function hanjaWeight(c){ const m=(P.mastery||{})[c.h]||0, wc=(P.wcnt||{})[c.h]||0, inW=(P.wrong||[]).includes(c.h);
@@ -1093,13 +1094,13 @@ function board(){
       <span class="meta">학생들 앱이 켜져 있으면 기록이 자동으로 들어와요 (30초마다)</span></div>
     <p class="bdMsg">${can?`<i></i>${esc(BOARD.msg||"")}`:"학생 현황은 새 주소(github.io)에서만 볼 수 있어요."}</p>
     <div class="bdSum"><div><b>${rows.length}</b><span>기록이 들어온 학생</span></div><div><b>${todayN}</b><span>오늘 공부·게임한 학생</span></div>
-      <div><b>${avg(acc)}%</b><span>평균 퀴즈 정답률</span></div><div><b>${avg(r=>r.mastered)}</b><span>평균 익힌 한자 (/${UNIQUE.length})</span></div></div>
-    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>오답</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
+      <div><b>${avg(acc)}%</b><span>평균 퀴즈 정답률</span></div><div><b>${avg(r=>r.mastered)}</b><span>평균 익힌 한자 (/${UNIQUE.length})</span></div><div><b>${avg(r=>(r.sws||0)+(r.swp||0))}</b><span>평균 외운 사자성어·속담 주차 (/21)</span></div></div>
+    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>사자성어 외운 주차</th><th>속담 외운 주차</th><th>오답</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
       ${rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}, a=acc(r);
         return `<tr><td>${r.n}</td><td class="nm"><span class="${live(r)?"on":"off"}"></span>${esc(r.name||"-")}</td>
         <td><span class="hero">${avaHtml(r.hero,28)}${esc(heroById(r.hero).cls)} Lv${r.lv}${r.tier?` · ${r.tier}차`:""}</span></td>
         <td class="${t.sets?"hi":""}">${t.sets}세트</td><td>${t.plays}판</td><td>${t.trace}</td>
-        <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td>${r.stamps}/26</td>
+        <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td>${r.sws||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S:11}</td><td>${r.swp||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.P:10}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td>${r.stamps}/26</td>
         <td>${r.sets}세트</td><td>${r.games}판</td><td>${r.best?`${fmtT(r.best.t)}${r.best.win?" 승리":""}`:"-"}</td><td>${r.coins} (${r.earned})</td><td>${ago(r.at)}</td></tr>` }).join("")}
     </tbody></table></div>`:`<p class="muted" style="text-align:center;margin:20px 0">아직 들어온 기록이 없어요. 학생들이 새 주소에서 앱을 켜 두면 30초 안에 들어와요.</p>`}
     <div class="bdBtns"><button class="btn ghost" id="bdCsv" ${rows.length?"":"disabled"}>엑셀용 파일(CSV) 받기</button><button class="btn ghost" id="bdClr" ${rows.length?"":"disabled"}>이 반 기록 지우기</button></div>
@@ -1108,8 +1109,8 @@ function board(){
   const chg=()=>{ LS.set("boardSel",{g:+document.getElementById("bdG").value,c:+document.getElementById("bdC").value}); board() };
   document.getElementById("bdG").onchange=chg; document.getElementById("bdC").onchange=chg;
   document.getElementById("bdClr").onclick=()=>{ const a=LS.get("board",{}); delete a[key]; LS.set("board",a); toast("이 반 기록을 지웠어요"); board() };
-  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","오답","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
-    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.wrong,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
+  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
+    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
     const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`한자탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
   if(typeof BOARD!=="undefined") BOARD.onUpdate=()=>{ if(document.getElementById("bdG")) board() };
@@ -1272,7 +1273,7 @@ function home(){
   const mastered=UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length;
   $app.innerHTML = `
   <div class="homeTop">
-    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}</small></span></button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
+    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}${typeof sayTitle==="function"&&sayTitle()?`<span class="sayTitleTag">${esc(sayTitle())}</span>`:""}</small></span></button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
     ${coinPill()}
   </div>
   ${titleBlock()}
@@ -1399,7 +1400,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10230734"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10231013"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -1500,8 +1501,9 @@ function jobExam(id,back){
 
 /* ===== 학습하기 ===== */
 function learn(){
+  if((P.set.tab==="S"||P.set.tab==="P")&&typeof sayLearn==="function") return sayLearn(P.set.tab);
   const p=pool(), d=day(), full=d.sets>=DAILY_SETS;
-  $app.innerHTML = topbar("학습하기") + `
+  $app.innerHTML = topbar("학습하기") + (typeof learnTabs==="function"?learnTabs("H"):"") + `
   <section class="panel">
     <div class="row"><h2>몇 주차를 공부할까요?</h2><div class="row" style="gap:8px"><button class="chip" id="selNone">모두 해제</button><button class="chip" id="selAll">전체 선택</button></div></div>
     <div class="weeks">${WEEKS.map((w,i)=>`<button class="wk" data-w="${i+1}" aria-pressed="${P.set.sel.includes(i+1)}"><span>${i+1}</span><small>주차</small>${P.done.includes(i+1)?'<span class="done" title="퀴즈 만점">★</span>':''}</button>`).join("")}</div>
@@ -1515,7 +1517,7 @@ function learn(){
     <button class="act" data-a="rain" ${p.length>=3?"":"disabled"}><span class="ai g">${ico("match")}</span><span><strong>한자 비</strong><small>떨어지는 뜻·소리 구름에 맞는 한자를 눌러 막아요!</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(RAIN_MAX)}</span></span></button>
     <button class="act" data-a="strokes" ${p.length?"":"disabled"}><span class="ai b">${ico("brush")}</span><span><strong>획순 쓰기</strong><small>획순을 보고 손가락으로 따라 쓰기</small><span class="rw">${ico("coin","ci")}한 글자 +${TRACE_COIN} (같은 글자는 하루 ${TRACE_PER_HZ}번 · 하루 ${TRACE_DAILY_MAX}까지)</span></span></button>
   </div>`;
-  bindBack();
+  bindBack(); if(typeof bindTabs==="function") bindTabs();
   $app.querySelectorAll(".wk").forEach(b=>b.onclick=()=>{const w=+b.dataset.w;P.set.sel=P.set.sel.includes(w)?P.set.sel.filter(x=>x!==w):[...P.set.sel,w];saveP();sfx("tap");learn()});
   document.getElementById("selAll").onclick=()=>{P.set.sel=WEEKS.map((_,i)=>i+1);saveP();learn()};
   document.getElementById("selNone").onclick=()=>{P.set.sel=[];saveP();learn()};
@@ -1527,7 +1529,7 @@ const quizMax = n=>{let s=0;for(let k=1;k<=n;k++)s+=comboGain(k);return s+10};
 const nowCoin = a=>{ const d=day(); return Math.max(1,Math.round(a*weekMul()*(d.sets>=DAILY_SETS?STAIR[STAIR.length-1]:stairMul(d.sets)))) };
 
 /* ===== 퀴즈 ===== */
-function makeQ(c,opt){ opt=opt||{};
+function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") return makeSayQ(c,opt);
   const others=shuffle(UNIQUE.filter(x=>x.h!==c.h));
   const pick=key=>{const seen=new Set([key(c)]),out=[];for(const o of others){const k=key(o);if(!seen.has(k)){seen.add(k);out.push(o)}if(out.length===3)break}return shuffle([c,...out])};
   const W=typeof wordsOf==="function"?wordsOf(c.h):[];
@@ -2057,4 +2059,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10230734"></script>
+<script src="game.js?v=10231013"></script>

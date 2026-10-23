@@ -804,7 +804,20 @@ function slashSprite(m){ const C=WAVE_PAL[m]||WAVE_PAL[5], rgb=h=>hexRgb(h); ret
   const star=(x,y,s,rot)=>{ c.save(); c.translate(x,y); c.rotate(rot); c.globalCompositeOperation="lighter"; const g2=c.createRadialGradient(0,0,0,0,0,s*1.4); g2.addColorStop(0,"rgba(255,255,255,1)"); g2.addColorStop(1,`rgba(${c1},0)`); c.fillStyle=g2; c.beginPath(); c.arc(0,0,s*1.4,0,7); c.fill();
     c.fillStyle="#ffffff"; for(const k of [0,Math.PI/2]){ c.save(); c.rotate(k); c.beginPath(); c.moveTo(-s*2.4,0); c.lineTo(0,-s*.18); c.lineTo(s*2.4,0); c.lineTo(0,s*.18); c.closePath(); c.fill(); c.restore() } c.restore() };
   star(CX+Math.cos(SP*.95)*(R-4),Math.sin(SP*.95)*(R-4),8,.3); star(CX+Math.cos(-SP*.95)*(R-4),Math.sin(-SP*.95)*(R-4),8,-.3); star(CX+R+2,0,12,0); }) }
-function drawWave(c,b,t){ const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), key="slash3_"+m; slashSprite(m); const P_=PFX[key];
+/* 세렌풍 검기: 검은 배경 이펙트 그림을 맵 색으로 물들여 빛 더하기로 그려요 (맵마다 한 번만 만들어 둬요)
+   밝은 맵에서도 보이게, 같은 모양의 어두운 그림자(밝기를 투명도로 바꾼 것)를 먼저 깔아요 */
+const WTEX={}; function waveTex(m,key){ key=key||"slashwave"; const id=key+m; if(WTEX[id]) return WTEX[id]; const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG[key]; if(!im) return null;
+  const C=WAVE_PAL[m]||WAVE_PAL[5], mk=()=>{ const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; return cv };
+  const cv=mk(), x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="multiply"; x.fillStyle=C[1]; x.fillRect(0,0,cv.width,cv.height); x.globalCompositeOperation="lighter"; x.globalAlpha=.3; x.drawImage(im,0,0);
+  const sh=mk(), y=sh.getContext("2d"); y.drawImage(im,0,0); try{ const d=y.getImageData(0,0,sh.width,sh.height), p=d.data, rgb=hexRgb(C[2]).split(",").map(Number);
+    for(let i=0;i<p.length;i+=4){ const L=Math.max(p[i],p[i+1],p[i+2]); p[i]=rgb[0]*.7; p[i+1]=rgb[1]*.7; p[i+2]=rgb[2]*.7; p[i+3]=Math.min(255,L*1.5) } y.putImageData(d,0,0) }catch(e){ y.clearRect(0,0,sh.width,sh.height) }
+  return WTEX[id]={cv,sh,width:cv.width,height:cv.height} }
+function drawBurst(c,x,y,m,size,al,rot){ const TX=waveTex(m,"hitburst"); if(!TX||al<=0) return false; c.save(); c.translate(x,y); if(rot) c.rotate(rot); c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-size/2,-size/2,size,size); c.restore(); return true }
+function drawWave(c,b,t){ const TX=waveTex(b.map||5); if(TX){ const m=b.map||5, age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), Hd=175*sc, Wd=Hd*TX.width/TX.height, fl=1+Math.sin(t*30+b.x)*.05;
+    if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
+    c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.scale(1,fl); const SHA={7:1,8:1,3:.7,9:.75,1:.6,6:.65}[m]||.5; c.globalAlpha=al*SHA; c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); if(SHA>=1){ c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd) }
+    c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-Wd*.76,-Hd/2,Wd,Hd); c.restore(); return }
+  const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), key="slash3_"+m; slashSprite(m); const P_=PFX[key];
   if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
   const fl=1+Math.sin(t*34+b.x)*.04, ca=Math.cos(b.a), sa=Math.sin(b.a), off=-62*sc;   // 칼날 앞쪽 가장자리가 탄 위치에 오게
   const one=(dx,a2,s2,mode)=>{ c.save(); c.translate(b.x+ca*(off+dx),b.y+sa*(off+dx)); c.rotate(b.a); c.scale(s2,s2*fl); c.globalAlpha=a2; if(mode) c.globalCompositeOperation=mode; c.drawImage(P_.cv,-P_.W/2,-P_.H/2,P_.W,P_.H); c.restore() };
@@ -990,6 +1003,7 @@ function drawGlyphChar(c,ch,x,y,sz,al,gold,p){ c.save(); c.globalAlpha*=al; c.fo
   c.lineWidth=sz*.025; c.strokeStyle="rgba(255,250,225,.9)"; c.strokeText(ch,x,y);
   const g=c.createLinearGradient(x,y-sz*.5,x,y+sz*.5); g.addColorStop(0,"#2a2230"); g.addColorStop(.5,"#0e0a12"); g.addColorStop(1,"#1e1824"); c.fillStyle=g; c.fillText(ch,x,y); c.restore() }
 function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-k, K=f.k;
+  if(f.k==="wburst"){ const q=1-k; drawBurst(c,f.x,f.y,f.m||5,(70+q*120)*(f.s||1),Math.min(1,k*1.6),q*.5); return true }
   if(K==="mzone"){ const fin=Math.min(1,p*f.max/.35,k*f.max/.4), R=f.r; c.save(); c.globalCompositeOperation=GL;
     const gg=c.createRadialGradient(f.x,f.y,R*.1,f.x,f.y,R); gg.addColorStop(0,`rgba(200,215,255,${.22*fin})`); gg.addColorStop(.85,`rgba(150,175,255,${.16*fin})`); gg.addColorStop(1,`rgba(220,230,255,${.45*fin})`); c.fillStyle=gg; c.beginPath(); c.ellipse(f.x,f.y,R,R*.62,0,0,7); c.fill();
     c.strokeStyle=`rgba(235,240,255,${.8*fin})`; c.lineWidth=3; c.beginPath(); c.ellipse(f.x,f.y,R,R*.62,0,0,7); c.stroke();
@@ -1008,10 +1022,39 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     else { c.globalCompositeOperation=GL; jGlow(c,f.x,f.y,110,"255,240,150",.5*al); c.globalCompositeOperation="source-over" }
     drawGlyphChar(c,f.ch,f.x,f.y-(f.sky?0:30),sz,al,true,p);
     for(let i=0;i<8;i++){ const a=i*.785+f.x, d=sz*.55+p*30; c.fillStyle=`rgba(20,16,24,${al*.7})`; c.beginPath(); c.arc(f.x+Math.cos(a)*d,f.y-(f.sky?0:30)+Math.sin(a)*d*.7,3+i%3,0,7); c.fill() } c.restore(); return true }
+  if(K==="rockup"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.mountain){ const T=f.max-f.life, im=SKILL_IMG.mountain, Wm=f.r*2.7, Hm=Wm*im.height/im.width, gy=f.y+f.r*.35;
+    const rise=T<.28?1-Math.pow(1-T/.28,3)*(1)+Math.sin(T/.28*Math.PI)*.0:1, over=T<.28?0:T<.42?Math.sin((T-.28)/.14*Math.PI)*.04:0, sink=f.life<.35?(1-f.life/.35):0, al=Math.min(1,f.life/.3);
+    const jit=T<.3?(Math.random()-.5)*6:0;
+    c.save();
+    // 땅 갈라짐 (먹선) + 그림자
+    const cr=Math.min(1,T/.15); c.globalAlpha=al; c.fillStyle="rgba(10,8,14,.28)"; c.beginPath(); c.ellipse(f.x,gy,Wm*.5*cr,Wm*.12*cr,0,0,7); c.fill();
+    c.strokeStyle="rgba(15,12,20,.8)"; c.lineWidth=3; c.lineCap="round"; for(let i=0;i<9;i++){ const a=i*.7+.3, L=Wm*(.35+pfxR(i,4)*.25)*cr; c.beginPath(); c.moveTo(f.x,gy); let px=f.x, py=gy; for(let k2=1;k2<=4;k2++){ px+=Math.cos(a+(pfxR(i,k2)-.5)*.6)*L/4; py+=Math.sin(a+(pfxR(i,k2+5)-.5)*.6)*L/4*.35; c.lineTo(px,py) } c.stroke() }
+    // 산: 땅선 위로만 보이게 잘라서 아래에서 솟아올라요
+    c.save(); c.beginPath(); c.rect(f.x-Wm, gy-Hm*1.6, Wm*2, Hm*1.6+4); c.clip();
+    const sc=1+over, y0=gy+(1-rise)*Hm*.95+sink*Hm*.25;
+    c.globalAlpha=al; c.translate(f.x+jit,y0); c.scale(sc,sc); c.drawImage(im,-Wm/2,-Hm,Wm,Hm);
+    // 솟는 순간 금빛 테두리 번쩍
+    if(T>.18&&T<.6){ const q=1-Math.abs((T-.32)/.2); if(q>0&&typeof drawSil==="function"){ c.globalCompositeOperation="lighter"; c.translate(0,-Hm/2); drawSil(c,"mountain",Hm,false,q*.35,"#ffd98a") } }
+    c.restore();
+    // 흙먼지 + 날아오르는 바위 조각 + 먹물 튀김
+    if(T<.9){ const q=Math.min(1,T/.9); for(let i=0;i<14;i++){ const a=Math.PI+.15+pfxR(i,2)*(Math.PI-.3), sp=.5+pfxR(i,3)*.8, d=Wm*.55*q*sp, h=Math.sin(Math.min(1,q*1.4)*Math.PI)*(60+80*sp);
+        const x=f.x+Math.cos(a)*d*(pfxR(i,6)<.5?1:-1), y=gy-h+Math.sin(a)*d*.2; c.globalAlpha=al*(1-q); c.fillStyle=i%3?"#2a2430":"#5a5262"; c.save(); c.translate(x,y); c.rotate(q*8+i); c.beginPath(); c.moveTo(-7,-4); c.lineTo(5,-7); c.lineTo(8,3); c.lineTo(-3,7); c.closePath(); c.fill(); c.restore() }
+      for(let i=0;i<10;i++){ const a=i*.63, r=Wm*.45*Math.min(1,T/.25); c.globalAlpha=al*Math.max(0,.6-q*.6); c.fillStyle="rgba(200,190,175,.8)"; c.beginPath(); c.arc(f.x+Math.cos(a)*r,gy+Math.sin(a)*r*.25-8,16+q*20,0,7); c.fill() } }
+    c.restore(); return true }
   if(K==="rockup"){ const up=Math.min(1,p*5), al=Math.min(1,k*2.5); c.save(); c.globalAlpha=al;
     for(let i=0;i<9;i++){ const a=i*.7+1, d=(i%3)*f.r*.28+f.r*.15, x=f.x+Math.cos(a)*d, y=f.y+Math.sin(a)*d*.55, h=(46+(i%4)*14)*up, w=16+(i%3)*5;
       c.fillStyle="#3a2a20"; c.beginPath(); c.moveTo(x-w-2,y+2); c.lineTo(x,y-h-3); c.lineTo(x+w+2,y+2); c.closePath(); c.fill();
       const gg=c.createLinearGradient(x-w,0,x+w,0); gg.addColorStop(0,"#a08a70"); gg.addColorStop(.5,"#7a6450"); gg.addColorStop(1,"#4a3a2c"); c.fillStyle=gg; c.beginPath(); c.moveTo(x-w,y); c.lineTo(x,y-h); c.lineTo(x+w,y); c.closePath(); c.fill() } c.restore(); return true }
+  if(K==="inkpath"){ const T=f.max-f.life, D0=f.d0||0, ca=Math.cos(f.a), sa=Math.sin(f.a), inA=Math.min(1,T/(D0*.8)), outA=Math.min(1,f.life/.6), A=inA*outA;   // 용이 지나갈 길: 금빛 먹 띠 (공격 범위)
+    const P_=v=>{ const w=Math.sin(v*9)*26; return [f.x+ca*f.len*v-sa*w, f.y+sa*f.len*v+ca*w] };
+    c.save(); c.lineCap="round"; c.lineJoin="round"; const path=()=>{ c.beginPath(); for(let i=0;i<=40;i++){ const [x,y]=P_(i/40); i?c.lineTo(x,y):c.moveTo(x,y) } };
+    path(); c.strokeStyle=`rgba(14,10,20,${.30*A})`; c.lineWidth=f.w*2.05; c.stroke();
+    c.globalCompositeOperation="lighter"; path(); c.strokeStyle=`rgba(255,205,110,${.16*A})`; c.lineWidth=f.w*2; c.stroke(); path(); c.strokeStyle=`rgba(255,225,150,${.12*A})`; c.lineWidth=f.w*1.1; c.stroke();
+    // 가장자리 금빛 붓선
+    for(const sd of [-1,1]){ c.beginPath(); for(let i=0;i<=40;i++){ const v=i/40, [x,y]=P_(v), [x2,y2]=P_(Math.min(1,v+.01)), an=Math.atan2(y2-y,x2-x), o=sd*f.w*(1+.06*Math.sin(i*1.7)); const X=x-Math.sin(an)*o, Y=y+Math.cos(an)*o; i?c.lineTo(X,Y):c.moveTo(X,Y) } c.strokeStyle=`rgba(255,220,140,${.75*A})`; c.lineWidth=3; c.setLineDash([34,8,8,8]); c.lineDashOffset=-T*160; c.stroke(); c.setLineDash([]) }
+    // 용이 나아갈 방향 화살표 (흘러가요)
+    c.fillStyle=`rgba(255,235,180,${.45*A})`; for(let i=0;i<10;i++){ const v=((i/10)+T*.5)%1, [x,y]=P_(v), [x2,y2]=P_(Math.min(1,v+.01)), an=Math.atan2(y2-y,x2-x); c.save(); c.translate(x,y); c.rotate(an); c.beginPath(); c.moveTo(12,0); c.lineTo(-6,-10); c.lineTo(-1,0); c.lineTo(-6,10); c.closePath(); c.fill(); c.restore() }
+    c.restore(); return true }
   if(K==="inkdragon"){ const T=f.max-f.life, D0=f.d0||0, u0=Math.max(0,(T-D0)/(f.max-D0)), u=u0<.5?2*u0*u0:1-2*(1-u0)*(1-u0), ca=Math.cos(f.a), sa=Math.sin(f.a);
     const P_=v=>{ const w=Math.sin(v*9)*26; return [f.x+ca*f.len*v-sa*w, f.y+sa*f.len*v+ca*w] };   // 살짝 굽이치는 길
     const [x,y]=P_(u), al=Math.min(1,f.life*3,T*3); c.save(); c.globalAlpha=al;
@@ -1024,18 +1067,38 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
       for(let i=0;i<12;i++){ const v=Math.max(0,u-.02-i*.03), [px,py]=P_(v), r=(9-i*.6)*(.6+pfxR(i,3)*.8); if(r<=0) continue; c.fillStyle=`rgba(18,14,22,${.7*(1-i/12)})`; c.beginPath(); c.arc(px+(pfxR(i,7)-.5)*36,py+(pfxR(i,9)-.5)*36,r,0,7); c.fill() }
       c.globalCompositeOperation=GL; for(let i=0;i<14;i++){ const ph=(T*2.6+i/14)%1, v=Math.max(0,u-ph*.12), [px,py]=P_(v); c.fillStyle=`rgba(255,215,110,${(1-ph)*.9})`; c.fillRect(px+(pfxR(i,5)-.5)*60-1.5,py+(pfxR(i,6)-.5)*60-1.5-ph*20,3,3) }
       jGlow(c,x,y,130,"255,210,110",.35); c.globalCompositeOperation="source-over" }
-    // 몸이 물결치며 나는 용: 그림을 머리→꼬리 여러 조각으로 나눠 따로 흔들어요
-    const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.inkdragon;
+    // 몸이 물결치며 나는 용: 머리·몸통 마디·발·꼬리를 뼈대처럼 이어 붙여 움직여요
+    const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{};
+    if(S.dr_head&&S.dr_body&&S.dr_tail){ const appear=Math.min(1,T/Math.max(.01,D0)), sc=.55+appear*.45, N=13, sp=46*sc, BH=70*sc;
+      // 머리에서 꼬리 쪽으로: 지나온 길 + 몸을 따라 흐르는 물결
+      const pts=[]; for(let i=0;i<=N+1;i++){ const v=u-i*sp/f.len, [px,py]=P_(Math.max(-.3,v)), [qx,qy]=P_(Math.max(-.3,v)+.002), an=Math.atan2(qy-py,qx-px), wv=Math.sin(T*7.5-i*.62)*(6+i*2.6)*sc; pts.push([px-Math.sin(an)*wv, py+Math.cos(an)*wv]) }
+      const angAt=i=>{ const a=pts[Math.max(0,i)], b=pts[Math.min(pts.length-1,i+1)]; return Math.atan2(a[1]-b[1],a[0]-b[0]) };
+      const part=(img,x,y,an,w,h,ox,oy,flipY,alpha,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(flipY) c.scale(1,-1); if(alpha!==undefined) c.globalAlpha*=alpha; if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
+      const up=a=>Math.cos(a)<0;   // 왼쪽으로 날 때는 등이 위로 오게 뒤집어요
+      const legs=[[2,"dr_front",0],[N-3,"dr_back",1.3]];
+      // 먼 쪽 발 (몸 뒤, 조금 어둡게)
+      for(const [i,key,ph] of legs){ const im2=S[key]; if(!im2) continue; const a=angAt(i), w=82*sc, h=w*im2.height/im2.width, sw=Math.sin(T*8+ph+1.6)*.45; part(im2,pts[i][0],pts[i][1],a+(up(a)?-1:1)*(.9+sw),w,h,.25,.2,up(a),.55) }
+      // 꼬리
+      { const i=N+1, a=angAt(N), im2=S.dr_tail, w=140*sc, h=w*im2.height/im2.width; part(im2,pts[N][0],pts[N][1],a+(up(a)?-1:1)*Math.PI*1.5+Math.sin(T*7.5-N*.62)*.25,w,h,.86,.97,up(a)) }
+      // 몸통 마디 (꼬리 쪽부터 그려서 머리 쪽이 위에 오게)
+      for(let i=N;i>=1;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, tp=1-(i/N)*.35, w=sp*1.25, h=BH*tp; part(S.dr_body,mx,my,a,w,h,.5,.55,up(a),undefined,.32,.68) }
+      // 가까운 쪽 발 (몸 앞, 헤엄치듯)
+      for(const [i,key,ph] of legs){ const im2=S[key]; if(!im2) continue; const a=angAt(i), w=92*sc, h=w*im2.height/im2.width, sw=Math.sin(T*8+ph)*.5; part(im2,pts[i][0],pts[i][1]+6*sc,a+(up(a)?-1:1)*(1.05+sw),w,h,.22,.18,up(a)) }
+      // 머리 (살짝 고개를 끄덕이며)
+      { const a=angAt(0)+Math.sin(T*7.5+.8)*.08, im2=S.dr_head, w=160*sc, h=w*im2.height/im2.width; part(im2,pts[0][0],pts[0][1],a,w,h,.3,.55,up(a)) }
+      // 눈빛 · 입김
+      c.globalCompositeOperation=GL; jGlow(c,pts[0][0]+Math.cos(angAt(0))*60*sc,pts[0][1]+Math.sin(angAt(0))*60*sc,40*sc,"255,215,120",.22); c.globalCompositeOperation="source-over" }
+    else { const im=S.inkdragon;
     if(im){ const H=270, Wd=H*im.width/im.height, N=34, sh=im.height/N, dh=H/N, right=ca>=0, [nx,ny]=P_(Math.min(1,u+.01)), dir=Math.atan2(ny-y,nx-x)||f.a, appear=Math.min(1,T/D0||1);
       c.translate(x,y); c.rotate(dir+Math.PI/2); if(!right) c.scale(-1,1); c.scale(appear*.9+.1,appear*.9+.1);
       c.rotate(Math.sin(T*5)*.07);
-      for(let i=0;i<N;i++){ const k2=i/(N-1), sw=Math.sin(T*9-i*.26)*(2+k2*15), tw=Math.sin(T*9-i*.26+1.2)*.03*k2; c.save(); c.translate(sw,-H/2+i*dh+dh/2); c.rotate(tw); c.drawImage(im,0,i*sh,im.width,sh+1,-Wd/2,-dh/2,Wd,dh+1); c.restore() } }
+      for(let i=0;i<N;i++){ const k2=i/(N-1), sw=Math.sin(T*9-i*.26)*(2+k2*15), tw=Math.sin(T*9-i*.26+1.2)*.03*k2; c.save(); c.translate(sw,-H/2+i*dh+dh/2); c.rotate(tw); c.drawImage(im,0,i*sh,im.width,sh+1,-Wd/2,-dh/2,Wd,dh+1); c.restore() } } }
     c.restore(); return true }
   if(K==="robot"){ const T=f.max-f.life, H=230, d=f.dir, fl=d<0, im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.robot;
     // 움직임 단계: 강하(0~.75) → 착지 출렁 → 미사일 반동(1.15~1.8) → 주먹 기울기(1.95~2.9) → 빔(3.0~3.5) → 상승(3.5~)
-    const FB=!!f.fb, UPT=FB?4.15:3.5, fall=Math.max(0,1-T/.75), land=T>.75&&T<1.05?Math.sin((T-.75)/.3*Math.PI):0, up=T>UPT?(T-UPT)/.4:0;
+    const FB=!!f.fb, UPT=FB?4.55:3.5, fall=Math.max(0,1-T/.75), land=T>.75&&T<1.05?Math.sin((T-.75)/.3*Math.PI):0, up=T>UPT?(T-UPT)/.4:0;
     let lean=0, dx=0, rec=0;
-    if(FB){ if(T>1.3&&T<3.25) rec=Math.sin(T*70)*2.6; if(T>2.75&&T<3.45) dx=-10-Math.sin((T-2.75)*34)*4; if(T>.85&&T<1.2) lean=-Math.sin((T-.85)/.35*Math.PI)*.05 }
+    if(FB){ if(T>1.3&&T<3.25) rec=Math.sin(T*70)*2.6; if(T>2.6&&T<3.95) dx=-6-Math.sin((T-2.6)*34)*3; if(T>.85&&T<1.2) lean=-Math.sin((T-.85)/.35*Math.PI)*.05 }
     else { if(T>1.95&&T<2.9){ const ph=((T-1.95)%.32)/.32; lean=Math.sin(ph*Math.PI)*.16; dx=Math.sin(ph*Math.PI)*24 }
       if(T>1.15&&T<1.8) rec=Math.sin((T-1.15)*40)*2.2; if(T>3&&T<3.5) dx=-6-Math.sin((T-3)*30)*3 }
     const bob=Math.sin(T*5)*3*(1-fall), y=f.y-fall*fall*700-up*up*620+land*8+bob, x=f.x+d*dx+rec, sq=1-land*.06, al=Math.min(1,f.life/.3);
@@ -1053,10 +1116,10 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     // 착지 충격 빛
     if(T>.72&&T<.95){ c.globalCompositeOperation=GL; jGlow(c,f.x,f.y+H*.3,200,"255,230,160",.8*(1-(T-.72)/.23)); c.globalCompositeOperation="source-over" }
     // 몸 (빠르게 움직일 땐 잔상)
-    const imF=FB&&SKILL_IMG.robotfb, armed=imF&&T>=1.0&&T<3.9;
-    if(im&&imF&&T>.8&&T<4.15){
+    const imF=FB&&SKILL_IMG.robotfb, armed=imF&&T>=1.0&&T<4.3;
+    if(im&&imF&&T>.8&&T<4.55){
       // 변신: 하얗게 달아올랐다가(.8~1.0) 번쩍! 무장한 모습으로 바뀌고(1.0) 빛이 빠져요(1.0~1.25). 해제도 같은 방식(3.75~4.1)
-      const wIn=T<1.0?(T-.8)/.2:T<1.25?1-(T-1.0)/.25:T>3.75&&T<3.9?(T-3.75)/.15:T>=3.9?Math.max(0,1-(T-3.9)/.25):0;
+      const wIn=T<1.0?(T-.8)/.2:T<1.25?1-(T-1.0)/.25:T>4.15&&T<4.3?(T-4.15)/.15:T>=4.3?Math.max(0,1-(T-4.3)/.25):0;
       const pop=T>=1.0&&T<1.18?Math.sin((T-1.0)/.18*Math.PI)*.06:0, key=armed?"robotfb":"robot", sc=1+pop;
       c.save(); c.globalAlpha=al; c.translate(x,y); c.rotate(d*lean); c.scale(sc,sq*sc); drawSkillImg(c,key,H,!fl); drawSil(c,key,H,!fl,Math.min(1,wIn)*.95,"#eaf6ff"); c.restore();
       if(wIn>0){ c.globalCompositeOperation=GL; jGlow(c,x,y-H*.1,H*(.5+wIn*.4),"170,215,255",.55*wIn); c.globalCompositeOperation="source-over" }
@@ -1065,7 +1128,7 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
         c.lineWidth=3*(1-q); c.beginPath(); c.ellipse(x,y+H*.2,40+q*150,(40+q*150)*.42,0,0,7); c.stroke();
         for(let i=0;i<12;i++){ const a=i*.5236+.2, r=40+q*160; c.fillStyle=`rgba(255,240,200,${1-q})`; c.save(); c.translate(x+Math.cos(a)*r,y-H*.15+Math.sin(a)*r*.7); c.rotate(a); c.fillRect(-9,-1.5,18,3); c.restore() } c.globalCompositeOperation="source-over" }
       // 과열: 하얗게 달아오르고 김이 나요
-      if(T>3.3&&T<3.9){ const q=Math.sin((T-3.3)/.6*Math.PI); c.globalCompositeOperation=GL; c.save(); c.globalAlpha=q*.35; c.translate(x,y); c.scale(1,sq); drawSkillImg(c,"robotfb",H,!fl); c.restore(); c.globalCompositeOperation="source-over";
+      if(T>3.7&&T<4.3){ const q=Math.sin((T-3.7)/.6*Math.PI); c.globalCompositeOperation=GL; c.save(); c.globalAlpha=q*.35; c.translate(x,y); c.scale(1,sq); drawSkillImg(c,"robotfb",H,!fl); c.restore(); c.globalCompositeOperation="source-over";
         for(let i=0;i<8;i++){ const ph=(T*1.6+i/8)%1, ox=(pfxR(i,7)-.5)*H*.7; c.fillStyle=`rgba(235,240,250,${.35*q*(1-ph)})`; c.beginPath(); c.arc(x+ox,y-H*.3-ph*90,10+ph*22,0,7); c.fill() } }
       roboPorts(c,f,T,x,y,H,d,sq,al) }
     else if(im){ const draw=(xx,yy,a2)=>{ c.save(); c.globalAlpha=al*a2; c.translate(xx,yy); c.rotate(d*lean); c.scale(1,sq); drawSkillImg(c,"robot",H,!fl); c.restore() };
@@ -1075,10 +1138,13 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
       c.globalCompositeOperation=GL; const pulse=.6+.4*Math.sin(T*10); jGlow(c,x+d*H*.02,y-H*.36,22,"120,220,255",.9*al); jGlow(c,x+d*H*.03,y-H*.2,30+(T>2.9&&T<3.5?40:0),"120,200,255",pulse*al);
       if(T>2.85&&T<3.0){ jGlow(c,x+d*H*.03,y-H*.2,90*(T-2.85)/.15,"200,240,255",.9) } c.globalCompositeOperation="source-over" }
     c.restore(); return true }
-  if(K==="robobeam"&&f.len>740){ const k2=f.life/f.max, p2=1-k2, open=Math.min(1,p2*8), fade=Math.min(1,k2*3), w=(34+Math.sin(p2*52)*4)*open*(.4+.6*fade), L=f.len*Math.min(1,p2*5);
-    c.save(); c.translate(f.x,f.y); c.scale(f.dir,1); c.globalCompositeOperation=GL;
+  if(K==="robobeam"&&(f.sweep||f.len>740)){ const k2=f.life/f.max, p2=1-k2, open=Math.min(1,p2*8), fade=f.sweep?Math.min(1,f.life/.3):Math.min(1,k2*3), w=(34+Math.sin(p2*52)*4)*open*(.4+.6*fade), L=f.len*Math.min(1,p2*5);
+    c.save(); c.translate(f.x,f.y); if(f.sweep){ const el=f.max-f.life; c.rotate(f.a0+f.w*Math.max(0,Math.min(f.sweep,el-.15))) } else c.scale(f.dir,1); c.globalCompositeOperation=GL;
     // 바깥 빛 → 안쪽 심: 뾰족하게 열리고 끝은 둥글게
     const band=(hw,col,a)=>{ c.fillStyle=`rgba(${col},${a})`; c.beginPath(); c.moveTo(0,-hw*.35); c.quadraticCurveTo(40,-hw,90,-hw); c.lineTo(L-hw*.6,-hw); c.quadraticCurveTo(L+hw*.5,0,L-hw*.6,hw); c.lineTo(90,hw); c.quadraticCurveTo(40,hw,0,hw*.35); c.closePath(); c.fill() };
+    // 휩쓸 때 뒤따르는 잔상 빛 (부채꼴)
+    if(f.sweep){ const el=f.max-f.life, sw=el>.15&&el<.15+f.sweep; if(sw){ const tr=-Math.sign(f.w)*.55; c.fillStyle=`rgba(90,170,255,${.16*fade})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,L,Math.min(0,tr),Math.max(0,tr)); c.closePath(); c.fill();
+        c.fillStyle=`rgba(170,225,255,${.14*fade})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,L,Math.min(0,tr*.4),Math.max(0,tr*.4)); c.closePath(); c.fill() } }
     band(w*1.8,"50,120,255",.16*fade); band(w,"90,180,255",.38*fade); band(w*.48,"190,235,255",.6*fade); band(w*.18,"255,255,255",.95*fade);
     // 흐르는 에너지 줄무늬 (가로로 지나가요)
     c.fillStyle=`rgba(255,255,255,${.8*fade})`; for(let i=0;i<18;i++){ const u=(i/18+p2*2.2)%1, yy=(pfxR(i,5)-.5)*w*1.5; c.fillRect(u*L,yy,20+pfxR(i,8)*26,1.8) }
@@ -1232,7 +1298,7 @@ const SIL={}; function silImg(k,col){ const key=k+(col||""); if(SIL[key]) return
 function drawSil(c,k,h,flip,a,col){ const s=silImg(k,col); if(!s||a<=0) return; const w=h*s.width/s.height; c.save(); c.globalAlpha*=a; if(flip) c.scale(-1,1); c.drawImage(s,-w/2,-h/2,w,h); c.restore() }
 // 전탄발사 포문 빛: 어깨 미사일 포드 · 개틀링 · 손바닥 · 가슴 수정
 function roboPorts(c,f,T,x,y,H,d,sq,al){ const P=(nx,ny)=>[x-d*nx*H,y+ny*H*sq], GL="lighter"; c.save(); c.globalCompositeOperation=GL;
-  const chg=T<1.0?0:T<1.3?(T-1.0)/.3:T<3.3?1:Math.max(0,1-(T-3.3)/.4);
+  const chg=T<1.0?0:T<1.3?(T-1.0)/.3:T<4.0?1:Math.max(0,1-(T-4.0)/.4);
   if(chg>0){ const fk=.75+.25*Math.sin(T*40);
     for(const [nx,ny] of [[-.172,-.303],[.247,-.309]]){ const [px,py]=P(nx,ny); jGlow(c,px,py,(30+(T>1.25&&T<3.2?14*Math.random():0))*chg,"255,150,60",.85*fk*al) }
     const [px,py]=P(.38,-.166); const pul=T>1.5&&T<3.1?Math.max(0,1-((T-1.55+.5)%.5)/.25):0; jGlow(c,px,py,(26+pul*30)*chg,"120,230,255",.9*al);
@@ -1240,8 +1306,8 @@ function roboPorts(c,f,T,x,y,H,d,sq,al){ const P=(nx,ny)=>[x-d*nx*H,y+ny*H*sq], 
     // 모여드는 빛 알갱이 (충전)
     if(T>1.0&&T<1.4) for(let i=0;i<14;i++){ const a=i*.449+T*3, r=(1-((T-1.0)/.4))*120+10; const [qx,qy]=P([-.172,.247,.38,.002][i%4],[-.303,-.309,-.166,-.154][i%4]); c.fillStyle="rgba(200,240,255,.85)"; c.fillRect(qx+Math.cos(a)*r,qy+Math.sin(a)*r,3,3) } }
   // 가슴 수정: 빔 직전 충전
-  { const [px,py]=P(.002,-.154); const q=T>2.35&&T<2.75?(T-2.35)/.4:T>=2.75&&T<3.45?1:0; jGlow(c,px,py,24+q*40,"120,210,255",(.5+.5*Math.sin(T*10))*.5*al+q*.2);
-    if(q>0&&T<2.75) for(let i=0;i<10;i++){ const a=i*.628-T*6, r=(1-q)*110+8; c.fillStyle="rgba(220,245,255,.9)"; c.beginPath(); c.arc(px+Math.cos(a)*r,py+Math.sin(a)*r*.8,2.6,0,7); c.fill() } }
+  { const [px,py]=P(.002,-.154); const q=T>2.2&&T<2.6?(T-2.2)/.4:T>=2.6&&T<3.95?1:0; jGlow(c,px,py,24+q*40,"120,210,255",(.5+.5*Math.sin(T*10))*.5*al+q*.2);
+    if(q>0&&T<2.6) for(let i=0;i<10;i++){ const a=i*.628-T*6, r=(1-q)*110+8; c.fillStyle="rgba(220,245,255,.9)"; c.beginPath(); c.arc(px+Math.cos(a)*r,py+Math.sin(a)*r*.8,2.6,0,7); c.fill() } }
   // 개틀링 총구 불꽃 + 탄피
   if(T>1.3&&T<3.25){ const [gx,gy]=P(-.49,-.09); const fw=d, s=.7+Math.random()*.6; jGlow(c,gx,gy,46*s,"255,210,110",.9);
     c.fillStyle="rgba(255,250,220,.95)"; c.beginPath(); c.moveTo(gx,gy-9*s); c.lineTo(gx+fw*52*s,gy); c.lineTo(gx,gy+9*s); c.closePath(); c.fill();
