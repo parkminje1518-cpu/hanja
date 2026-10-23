@@ -118,8 +118,10 @@ function jfAwakenAura(c,x,y,t,k,GL){
   c.restore();
   for(let i=0;i<6;i++){ const a=t*2.2+i*TAU/6, sx=x+Math.cos(a)*46, sy=y-24+Math.sin(a)*16, back=Math.sin(a)<0;
     c.save(); c.globalAlpha=k*(back?.55:.95); c.translate(sx,sy); c.rotate(Math.PI/2+Math.sin(t*3+i)*.1);
-    c.fillStyle="#fff4c8"; c.beginPath(); c.moveTo(-3,-20); c.lineTo(3,-20); c.lineTo(3,6); c.lineTo(0,12); c.lineTo(-3,6); c.closePath(); c.fill();
-    c.fillStyle="#f6c544"; c.fillRect(-7,-22,14,3); c.fillStyle="#b8871a"; c.fillRect(-2,-29,4,7); c.restore() }
+    const HS_=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holysword;
+    if(HS_){ c.rotate(-Math.PI/2); const h=40, w=h*HS_.width/HS_.height; c.drawImage(HS_,-w/2,-h*.55,w,h); c.globalCompositeOperation=GL; c.globalAlpha*=.35+.2*Math.sin(t*8+i); c.drawImage(HS_,-w/2,-h*.55,w,h) }   // 성검 그림 6자루가 칼끝을 아래로 빙글
+    else { c.fillStyle="#fff4c8"; c.beginPath(); c.moveTo(-3,-20); c.lineTo(3,-20); c.lineTo(3,6); c.lineTo(0,12); c.lineTo(-3,6); c.closePath(); c.fill();
+    c.fillStyle="#f6c544"; c.fillRect(-7,-22,14,3); c.fillStyle="#b8871a"; c.fillRect(-2,-29,4,7) } c.restore() }
   for(let i=0;i<10;i++){ const ph=(t*.9+i/10)%1, a=i*2.39; c.fillStyle=`rgba(255,236,150,${1-ph})`; c.fillRect(x+Math.cos(a)*30-2,y+16-ph*110-2,4,4) }
 }
 /* 각성 화면 베기: 하늘에서 거대한 검이 내려오고 화면을 X자로 가르기 */
@@ -1359,6 +1361,10 @@ function drawDizzy(c,e,t){ const y=e.y-e.r*1.9; c.save(); for(let i=0;i<3;i++){ 
     for(let k=0;k<10;k++){ const rr=k%2?4:9, b=k*Math.PI/5-Math.PI/2; c.lineTo(x+Math.cos(b)*rr,yy+Math.sin(b)*rr) } c.closePath(); c.fill(); c.stroke() } c.restore() }
 function drawSigFx(c,f,k,t){ const p=1-k, K=f.k;
   if(drawSig46Fx(c,f,k,t)) return true;
+  if(K==="mushsprout"&&typeof MOB_ART!=="undefined"&&(typeof loadMobArt==="function"&&loadMobArt(),MOB_ART["2:mushroom"])&&MOB_ART["2:mushroom"].im.naturalWidth){ const im=MOB_ART["2:mushroom"].im, gr=Math.min(1,p*1.5), sq=1+Math.sin(p*20)*.06*(1-gr), H=100*gr, W=H*im.width/im.height;   // 독버섯 그림이 땅을 뚫고 쑥 자라나요
+    c.save(); c.fillStyle=`rgba(40,20,10,${.35*gr})`; c.beginPath(); c.ellipse(f.x,f.y+4,26*gr,8*gr,0,0,7); c.fill();
+    for(let i=0;i<5;i++){ const a=i*1.26+f.x*.01, d=14+p*16; c.fillStyle=`rgba(90,60,30,${.6*(1-p)})`; c.fillRect(f.x+Math.cos(a)*d-2,f.y+Math.sin(a)*d*.4-p*10-2,4,4) }
+    c.translate(f.x,f.y+6); c.scale(1/sq,sq); c.drawImage(im,-W/2,-H,W,H); if(k<.25){ c.globalCompositeOperation="lighter"; c.globalAlpha=(.25-k)*3; c.drawImage(im,-W/2,-H,W,H) } c.restore(); return true }
   if(K==="mushsprout"){ const s=Math.min(1,p*1.6); c.save(); c.translate(f.x,f.y); c.scale(s,s); c.fillStyle="#f4ecd8"; c.strokeStyle="#5a3a20"; c.lineWidth=2; c.beginPath(); c.roundRect?c.roundRect(-7,-6,14,20,5):c.rect(-7,-6,14,20); c.fill(); c.stroke();
     const sh=1+Math.sin(t*20)*.05*(p>.7?1:0); c.scale(sh,sh); c.beginPath(); c.ellipse(0,-8,22,15,0,Math.PI,0); c.closePath(); const g=c.createLinearGradient(0,-24,0,-6); g.addColorStop(0,"#ff6a5a"); g.addColorStop(1,"#b8281e"); c.fillStyle=g; c.fill(); c.stroke();
     c.fillStyle="#fff"; for(const [x,y,r] of [[-9,-14,3.5],[4,-18,3],[11,-11,2.5],[-2,-10,2]]){ c.beginPath(); c.arc(x,y,r,0,7); c.fill() } c.restore(); return true }

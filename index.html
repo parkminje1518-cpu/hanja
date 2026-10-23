@@ -943,17 +943,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10240458"></script>
-<script src="jobs.js?v=10240458"></script>
-<script src="maps.js?v=10240458"></script>
-<script src="art.js?v=10240458"></script>
-<script src="monsters.js?v=10240458"></script>
-<script src="jobfx.js?v=10240458"></script>
-<script src="words.js?v=10240458"></script>
-<script src="sayings.js?v=10240458"></script>
-<script src="sfx.js?v=10240458"></script>
+<script src="sprites.js?v=10240529"></script>
+<script src="jobs.js?v=10240529"></script>
+<script src="maps.js?v=10240529"></script>
+<script src="art.js?v=10240529"></script>
+<script src="monsters.js?v=10240529"></script>
+<script src="jobfx.js?v=10240529"></script>
+<script src="words.js?v=10240529"></script>
+<script src="sayings.js?v=10240529"></script>
+<script src="sfx.js?v=10240529"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10240458"></script>
+<script src="mp.js?v=10240529"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1385,6 +1385,7 @@ function home(){
   <div class="menu4">
     <button data-go="hero"><span class="mi">${avaHtml(nextLockedOrCur(),34)}</span>용사<small>${P.heroes.length}/${HEROES.length} 해금</small></button>
     <button data-go="dex">${ico("dex","mic")}도감<small>익힌 한자 ${mastered}자${typeof SAJA!=="undefined"?` · 말 ${SAJA.concat(SOK).filter(sayMastered).length}개`:""}</small></button>
+    <button data-go="bcard">${ico("trophy","mic")}보스 카드<small>${Object.keys(P.bcard||{}).length}/40장 모음</small></button>
     <button data-go="notes">${ico("note","mic")}오답 노트<small>${P.wrong.length}자</small></button>
     <button data-go="rec">${ico("trophy","mic")}내 기록<small>도장 ${P.done.length+(typeof sayDoneWeeks==="function"?sayDoneWeeks():0)}/${26+(typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S+SAY_WEEKS.P:0)}</small></button>
     <button data-go="set">${ico("gear","mic")}설정<small>학생·소리</small></button>
@@ -1400,7 +1401,7 @@ function home(){
   document.getElementById("thGo").onclick=()=>{ sfx("tap"); openStroke(todayHanja(),{memo:true,today:true}) };
   if(!P.guideSeen && !isAdmin()) setTimeout(()=>{ if(modal.hidden) guide(0) },400);
   document.getElementById("goGame").onclick=()=>{sfx("tap");gameLobby()};
-  $app.querySelectorAll(".menu4 button").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),dex,notes,rec,set:settings,board:()=>board()})[b.dataset.go]()});
+  $app.querySelectorAll(".menu4 button").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board()})[b.dataset.go]()});
 }
 
 
@@ -1489,7 +1490,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240458"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240529"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -2155,4 +2156,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10240458"></script>
+<script src="game.js?v=10240529"></script>

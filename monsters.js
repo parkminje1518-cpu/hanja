@@ -658,6 +658,7 @@ function drawMobArt(ctx,e,t,px,py){ const A=mobArtOf(e); if(!A) return false;
     else if(an==="scuttle"){ const j=Math.sin(t*30)*.5+.5; ax=ux*r*.45*k*j; ay=uy*r*.3*k*j; rot+=sd*.08*k }         // 다다닥 집게·턱 찌르기
     else if(an==="trot"){ ax=ux*r*.9*k; ay=uy*r*.4*k; rot+=sd*.18*k; sx*=1+.1*Math.max(0,k) }                       // 머리 숙여 들이받기
     else if(an==="float"){ ax=ux*r*.9*k; ay=uy*r*.6*k; sx*=1+.2*Math.max(0,k); sy*=1-.12*Math.max(0,k) }            // 스르르 쭉 늘어나며 덮치기
+    else if(e.look==="acorn"){ ax=ux*r*(k<0?.35:1.1)*k; ay=uy*r*.5*k; rot+=sd*(k<0?-.12:.05)*Math.abs(k); e._thr=k>.6?k:0 }   // 도토리 병정: 창을 뒤로 당겼다가 앞으로 쭉 찌르기
     else { rot+=sd*(k<0?.35:-.55)*Math.abs(k); ax=ux*r*.4*k }                                                        // 무기 들었다가 내려치기
   }
   sx*=pop*(1+rec*.18); sy*=pop*(1-rec*.15);
@@ -666,7 +667,11 @@ function drawMobArt(ctx,e,t,px,py){ const A=mobArtOf(e); if(!A) return false;
   ctx.save(); ctx.imageSmoothingEnabled=true; ctx.translate(e.x+ax,gy-lift+ay); if(rot) ctx.rotate(rot); ctx.scale(sx*f,sy);
   { const S=mobScaled(A,MOB_RIM[e.mapId],H), k=W/A.im.width, p=(A.rimP||0)*k; ctx.drawImage(S,-W/2-p,-H-p,W+p*2,H+p*2) }
   if(e.flash>0){ ctx.globalAlpha=Math.min(.85,e.flash*7); ctx.drawImage(mobArtImg(A,0,1),-W/2,-H,W,H) }
-  ctx.restore(); return true }
+  ctx.restore();
+  if(e._thr>0){ const ux=(px-e.x), uy=((py===undefined?e.y:py)-e.y), d=Math.hypot(ux,uy)||1, sx=e.x+ux/d*r*1.4, sy=e.y-r*.4+uy/d*r*.9, al=(e._thr-.6)/.4;   // 창끝 섬광
+    ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.strokeStyle=`rgba(255,240,200,${al})`; ctx.lineWidth=3; ctx.lineCap="round"; ctx.beginPath(); ctx.moveTo(sx-ux/d*r*.9,sy-uy/d*r*.6); ctx.lineTo(sx+ux/d*r*.5,sy+uy/d*r*.3); ctx.stroke();
+    ctx.fillStyle=`rgba(255,255,230,${al})`; ctx.beginPath(); ctx.arc(sx+ux/d*r*.5,sy+uy/d*r*.3,4,0,7); ctx.fill(); ctx.restore() }
+  return true }
 function drawMonsterRaw(ctx,e,t,px,py,posed){
   if(e.type!=="boss" && drawMobArt(ctx,e,t,px,py)) return;
   if(e.type==="boss" && artOf(e)){ ctx.fillStyle="rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*1.2,e.r*.35,0,0,7); ctx.fill(); drawBossArt(ctx,e,t,px); return }
@@ -1545,7 +1550,7 @@ function drawHeroAtk(ctx,img,SZ,st){ const HK=st.hk&&typeof SKILL_IMG!=="undefin
 function drawHeroRig(ctx,img,SZ,st){ if(drawHeroAtk(ctx,img,SZ,st)) return; const R=heroRigOf(img); if(!R){ ctx.drawImage(img,-SZ/2,-SZ+4,SZ,SZ); return }
   const s=SZ/R.W, D=Math.PI/180, dt=Math.min(.05,st.dt||0);
   const S=st.S||(st.S={a:0,va:0,x:0,vx:0,y:0,vy:0,k:1,vk:0,l:0,vl:0,r:0,vr:0,ly:0,vly:0,ry:0,vry:0,h:[]});
-  const mv=st.mv||0, ph=st.ph||0, P=HERO_POSE[st.kind], aq=st.aq;
+  const SHT=st.hk&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG[st.hk], mv=st.mv||0, ph=st.ph||0, P=HERO_POSE[st.kind], aq=SHT?-1:st.aq;   // 공격 그림이 있으면 몸 비틀기·잔상은 쓰지 않아요
   // 걷기 목표: 다리를 번갈아 내딛고 발 들기
   const tl=Math.sin(ph)*11*mv, tr=-Math.sin(ph)*11*mv, tly=-Math.max(0,-Math.cos(ph))*6*mv, try_=-Math.max(0,Math.cos(ph))*6*mv;
   // 공격 목표: 준비(젖히기) → 공격(휙 내지르기) → 스프링으로 출렁이며 제자리
@@ -1564,7 +1569,7 @@ function drawHeroRig(ctx,img,SZ,st){ if(drawHeroAtk(ctx,img,SZ,st)) return; cons
       leg(R.legL,R.lp,S.l,S.ly); leg(R.legR,R.rp,S.r,S.ry); ctx.drawImage(R.upper,0,0) }
     ctx.restore() };
   // 휙 움직일 때 잔상
-  if(Math.abs(S.va)>120) S.h.forEach((q,i)=>body(q[0],q[1],q[2],q[3],.22*(1-i/3)));
+  if(!SHT&&Math.abs(S.va)>120) S.h.forEach((q,i)=>body(q[0],q[1],q[2],q[3],.22*(1-i/3)));
   body(S.a,S.x,S.y,S.k,1);
   S.h.unshift([S.a,S.x,S.y,S.k]); if(S.h.length>3) S.h.length=3 }
 
