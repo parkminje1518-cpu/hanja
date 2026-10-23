@@ -726,7 +726,7 @@ function startGame(opts){ opts=opts||{};
     }
     else if(k.type==="awaken"){
       g.buff={t:k.dur,max:k.dur,mul:k.mul}; P.inv=Math.max(P.inv,k.dur);
-      g.fx.push({k:"worldslash",life:1.45,max:1.45}); const AR=k.r||340, near_=()=>onScreenEnemies().filter(e=>(e.x-g.p.x)**2+(e.y-g.p.y)**2<(AR+e.r)**2), bm=e=>e.type==="boss"?.5:1;   // 밸런스: 내 주변만 · 보스는 절반
+      g.fx.push({k:"worldslash",life:1.45,max:1.45}); const AR=k.r||340, near_=()=>onScreenEnemies().filter(e=>(e.x-g.p.x)**2+(e.y-g.p.y)**2<(AR+e.r)**2), bm=e=>1;   // 밸런스: 내 주변만
       g.pending.push({t:.45,run:()=>{ near_().forEach(e=>hurt(e,dmg*.6*bm(e))); g.fx.push({k:"flash",col:"#fff4c8",life:.4,max:.4}); g.shake=.6; sfx("bigboom") }}); for(let i=0;i<5;i++) g.pending.push({t:.55+i*.11,run:()=>{ sfx("multislash1"); near_().forEach(e=>hurt(e,dmg*.1*bm(e))) }});
     }
     else if(k.type==="zone"){
@@ -772,7 +772,7 @@ function startGame(opts){ opts=opts||{};
         g.pending.push({t:delay,run:()=>{ if(delay) sfx("inkdragon"); g.fx.push({k:"inkpath",x:sx,y:sy,a,len:L*2,w:k.w,life:dur+1.1,max:dur+1.1,d0:D0}); g.fx.push({k:"inkdragon",x:sx,y:sy,a,len:L*2,life:dur,max:dur,d0:D0}); g.pending.push({t:D0+.2,run:()=>{ g.shake=Math.max(g.shake,.35) }});
           const pos=u=>u<.5?2*u*u:1-2*(1-u)*(1-u);   // 천천히 나타나 쭉 가속했다가 빠져나가요
           g.en.forEach(e=>{ const px=e.x-sx, py=e.y-sy, al=px*Math.cos(a)+py*Math.sin(a), ac=Math.abs(-px*Math.sin(a)+py*Math.cos(a)); if(ac<k.w+e.r&&al>0&&al<L*2){ const tgt=al/(L*2); let u=tgt; for(let i=0;i<6;i++){ u-=(pos(u)-tgt)/Math.max(.3,u<.5?4*u:4*(1-u)); u=Math.max(0,Math.min(1,u)) }
-            g.pending.push({t:D0+u*(dur-D0),run:()=>{ if(e.hp>0){ hurt(e,dmg*(e.type==="boss"?1.5:1)); ccS(e,k.stun); ccL(e,k.stun+1); g.fx.push({k:"inksplash",x:e.x,y:e.y,r:e.type==="boss"?90:46,life:.45,max:.45}) } }}) } }) }}) };
+            g.pending.push({t:D0+u*(dur-D0),run:()=>{ if(e.hp>0){ hurt(e,dmg*(e.type==="boss"?2:1)); ccS(e,k.stun); ccL(e,k.stun+1); g.fx.push({k:"inksplash",x:e.x,y:e.y,r:e.type==="boss"?90:46,life:.45,max:.45}) } }}) } }) }}) };
       const a1=Math.atan2(t1.y-P.y,t1.x-P.x)+(Math.random()-.5)*.3; pass(t1,a1,0);
       const a2=boss?Math.atan2(t2.y-P.y,t2.x-P.x)+(Math.random()<.5?1:-1)*1.2:a1+Math.PI+(Math.random()<.5?1:-1)*1.25; pass(t2,a2,1.15) }
     else if(k.type==="dragonsum"){ sfx("dragon"); g.sum.push({kind:"qdragon",x:P.x,y:P.y-200,t:k.dur,max:k.dur,acc:.4,rate:k.rate,dmg:dmg*(M.sum||1),a:0}) }
@@ -788,7 +788,7 @@ function startGame(opts){ opts=opts||{};
       // 어깨 미사일 32발: 두 발사구에서 번갈아 솟아올라 몬스터 무리에 쏟아져요
       const TG=smartTargets(70,16).pts;
       for(let i=0;i<32;i++) g.pending.push({t:1.25+i*.06,run:()=>{ const pd=PODS[i%2], b=-Math.PI/2+(i%2?1:-1)*dir*(.2+Math.random()*.55), tg=TG[i%Math.max(1,TG.length)], T0=tg&&near(tg.x,tg.y,1)[0];
-        if(i%4===0) sfx("missiles"); g.shots.push({k:"missile",x:pd.x,y:pd.y,vx:Math.cos(b)*480,vy:Math.sin(b)*480,dmg:dmg*.12,pierce:0,boom:74,boomMul:1,life:2.2,hit:new Set(),seek:T0||undefined,sd:.3});
+        if(i%4===0) sfx("missiles"); g.shots.push({k:"missile",x:pd.x,y:pd.y,vx:Math.cos(b)*480,vy:Math.sin(b)*480,dmg:dmg*.16,pierce:0,boom:74,boomMul:1,life:2.2,hit:new Set(),seek:T0||undefined,sd:.3});
         g.fx.push({k:"muzzle",x:pd.x,y:pd.y,life:.08,max:.08}) }});
       // 개틀링 연사 36발: 앞쪽을 부채꼴로 쓸어요
       for(let i=0;i<36;i++) g.pending.push({t:1.3+i*.053,run:()=>{ const a=(dir>0?0:Math.PI)+Math.sin(i*.35)*.5+(Math.random()-.5)*.12, sp=1150; if(i%3===0) sfx("gun");
@@ -798,12 +798,12 @@ function startGame(opts){ opts=opts||{};
       for(let i=0;i<3;i++) g.pending.push({t:1.55+i*.5,run:()=>{ const tg=TB[i%Math.max(1,TB.length)]||{x:PALM.x-dir*300,y:PALM.y}, a=Math.atan2(tg.y-PALM.y,tg.x-PALM.x); sfx("fireball");
         g.shots.push({k:"plasma",x:PALM.x,y:PALM.y,vx:Math.cos(a)*620,vy:Math.sin(a)*620,dmg:dmg*.18,pierce:0,boom:100,boomMul:1,life:1.2,hit:new Set(),rad:20}); g.fx.push({k:"muzzle",x:PALM.x,y:PALM.y,life:.1,max:.1}) }});
       // 가슴 수정 빔: 앞쪽에서 시작해 로봇 둘레를 한 바퀴 휩쓸어요 (빔이 지나가는 몬스터는 한 번씩 크게)
-      { const BL=680, BT=1.25, a0=dir>0?0:Math.PI, w=dir*Math.PI*2/BT, hitB=new Set();
+      { const BL=560, BT=1.25, SW=Math.PI*2, a0=dir>0?0:Math.PI, w=dir*SW/BT, hitB=new Set();
         g.pending.push({t:2.6,run:()=>{ sfx("robot"); g.shake=Math.max(g.shake,.45); g.fx.push({k:"robobeam",x:CH.x,y:CH.y,dir,len:BL,a0,w,sweep:BT,life:BT+.3,max:BT+.3}) }});
         for(let s=0;s<=26;s++) g.pending.push({t:2.75+s*BT/26,run:()=>{ const an=a0+w*(s/26)*BT, ca=Math.cos(an), sa=Math.sin(an); g.shake=Math.max(g.shake,.18);
-          g.en.forEach(e=>{ if(hitB.has(e)||e.hp<=0) return; const px=e.x-CH.x, py=e.y-CH.y, al=px*ca+py*sa, ac=Math.abs(-px*sa+py*ca); if(al>0&&al<BL&&ac<60+e.r){ hitB.add(e); hurt(e,dmg*(e.type==="boss"?.85:.3)); if(e.type!=="boss") ccP(e,ca*40,sa*40) } }) }}) }
+          g.en.forEach(e=>{ if(hitB.has(e)||e.hp<=0) return; const px=e.x-CH.x, py=e.y-CH.y, al=px*ca+py*sa, ac=Math.abs(-px*sa+py*ca); if(al>0&&al<BL&&ac<60+e.r){ hitB.add(e); hurt(e,dmg*(e.type==="boss"?.85:.42)); if(e.type!=="boss") ccP(e,ca*40,sa*40) } }) }}) }
       // 마무리: 모든 포문 과열 폭발
-      g.pending.push({t:4.1,run:()=>{ boomAt(t.x,t.y,k.r*1.5,dmg*.5,"#9fd8ff"); g.shake=.6; g.fx.push({k:"ring",x:t.x,y:t.y,life:.5,max:.5}); g.fx.push({k:"quake",x:t.x,y:t.y,r:k.r*1.5,life:.5,max:.5,th:"metal"}) }}) }
+      g.pending.push({t:4.1,run:()=>{ boomAt(t.x,t.y,k.r*1.3,dmg*.7,"#9fd8ff"); g.shake=.6; g.fx.push({k:"ring",x:t.x,y:t.y,life:.5,max:.5}); g.fx.push({k:"quake",x:t.x,y:t.y,r:k.r*1.3,life:.5,max:.5,th:"metal"}) }}) }
     else if(k.type==="battleship"){
       const dir=Math.random()<.5?1:-1, life=3.2, sc=Math.min(1.4,Math.max(.9,W/800));
       g.fx.push({k:"ship",dir,life,max:life}); g.fx.push({k:"flash",col:"#6ad0ff",life:.3,max:.3});
@@ -837,7 +837,8 @@ function startGame(opts){ opts=opts||{};
       g.stream.re=(g.stream.re||0)-dt; if(g.stream.re<=0){ g.stream.re=.4; g.stream.tg=smartTargets(140,1).pts[0]||null }
       while(g.stream.acc<=0){ g.stream.acc+=g.stream.rate; const t=g.stream.tg||near(P.x,P.y,1)[0];
         const a=t?Math.atan2(t.y-P.y,t.x-P.x):(g.stream.a||0), j=(Math.random()-.5)*.12; g.stream.a=a;
-        g.shots.push({k:"arrow",x:P.x,y:P.y,vx:Math.cos(a+j)*900,vy:Math.sin(a+j)*900,dmg:g.stream.dmg,pierce:3+pierceAdd,life:.9,hit:new Set(),glow:true}) }
+        g.stream.n=(g.stream.n||0)+1; const big=g.stream.n%4===0, fan=big?0:Math.sin(g.stream.n*1.7)*.38;   // 부채꼴로 쏟아지고, 네 발마다 폭풍 화살이 터져요
+        g.shots.push({k:"arrow",x:P.x,y:P.y,vx:Math.cos(a+j+fan)*900,vy:Math.sin(a+j+fan)*900,dmg:g.stream.dmg,pierce:3+pierceAdd,life:.9,hit:new Set(),glow:true,...(big?{boom:95,boomMul:.8}:{})}) }
       if(g.stream.t<=0) g.stream=null }
     // 표식
     for(const e of g.en){ if(e.mark>0){ e.mark-=dt; if(e.mark<=0){ e.mark=0; sfx("markpop"); burstStars(e.x,e.y,8,e.markD); g.fx.push({k:"boom",x:e.x,y:e.y,r:50,col:"#9a6bff",life:.35,max:.35}); hurt(e,e.markD*2) } }
@@ -860,18 +861,23 @@ function startGame(opts){ opts=opts||{};
         if(m.tg&&d<m.tg.r+14&&m.acc<=0){ m.acc=.28; hurt(m.tg,m.dmg*lvScale*sm); m.bite=.15 } m.bite=Math.max(0,(m.bite||0)-dt);
         if(Math.hypot(P.x-m.x,P.y-m.y)>520){ m.x=P.x; m.y=P.y } }
       else if(m.kind==="ox"){ const sm=M.sum||1;
-        if(m.ch>0){ m.ch-=dt; m.x+=m.cvx*dt; m.y+=m.cvy*dt; g.en.forEach(e=>{ if(e.hp>0&&!m.hitS.has(e)&&inR(m.x,m.y,30,e)){ m.hitS.add(e); hurt(e,m.dmg*lvScale*sm); if(e.type!=="boss"){ const d=Math.hypot(m.cvx,m.cvy)||1; ccP(e,m.cvx/d*60,m.cvy/d*60) } } }); if(m.ch<=0) m.acc=3*Math.max(.6,s.cd) }
+        if(m.ch>0){ m.ch-=dt; m.x+=m.cvx*dt; m.y+=m.cvy*dt; g.en.forEach(e=>{ if(e.hp>0&&!m.hitS.has(e)&&inR(m.x,m.y,50,e)){ m.hitS.add(e); hurt(e,m.dmg*lvScale*sm); if(e.type!=="boss"){ const d=Math.hypot(m.cvx,m.cvy)||1; ccP(e,m.cvx/d*60,m.cvy/d*60) } } }); if(m.ch<=0){ m.acc=2.2*Math.max(.6,s.cd); g.fx.push({k:"boom",x:m.x,y:m.y,r:70,col:"#ffd36a",life:.3,max:.3}); g.en.forEach(e=>{ if(e.hp>0&&inR(m.x,m.y,70,e)) hurt(e,m.dmg*lvScale*sm*.5) }) } }
         else { const bx=P.x+44, by=P.y+16; m.x+=(bx-m.x)*Math.min(1,dt*3); m.y+=(by-m.y)*Math.min(1,dt*3);
           if(m.acc<=0){ const t=smartTargets(120,1).pts[0]; if(t&&(t.x-P.x)**2+(t.y-P.y)**2<420*420){ const dx=t.x-m.x, dy=t.y-m.y, d=Math.hypot(dx,dy)||1; m.cvx=dx/d*700; m.cvy=dy/d*700; m.ch=Math.min(.7,(d+120)/700); m.hitS=new Set(); m.face=dx>=0?1:-1; sfx("ox") } else m.acc=.5 } } }
-      else if(m.kind==="tiger"){ const sm=M.sum||1, was=m.pz>0; m.pz=Math.max(0,(m.pz||0)-dt);
+      else if(m.kind==="tiger"){ const sm=M.sum||1, was=m.pz>0; m.pz=Math.max(0,(m.pz||0)-dt); m.run=0;
         if(was){ const k=1-m.pz/.3; m.x=m.sx+(m.ex-m.sx)*k; m.y=m.sy+(m.ey-m.sy)*k-Math.sin(k*Math.PI)*40;
-          if(m.pz<=0){ g.en.forEach(e=>{ if(inR(m.x,m.y,85,e)) hurt(e,m.dmg*lvScale*sm) }); g.fx.push({k:"claw",x:m.x,y:m.y,life:.3,max:.3}) } }
-        else { const t=near(m.x,m.y,1)[0];
-          if(t&&m.acc<=0&&(t.x-P.x)**2+(t.y-P.y)**2<380*380){ m.acc=1.1*Math.max(.6,s.cd); m.sx=m.x; m.sy=m.y; m.ex=t.x; m.ey=t.y; m.pz=.3; m.face=t.x>=m.x?1:-1 }
-          else if(!t||m.acc>.6){ const bx=P.x-48, by=P.y+20; m.x+=(bx-m.x)*Math.min(1,dt*3.5); m.y+=(by-m.y)*Math.min(1,dt*3.5) } }
+          if(m.pz<=0){ g.en.forEach(e=>{ if(inR(m.x,m.y,90,e)) hurt(e,m.dmg*lvScale*sm) }); g.fx.push({k:"claw",x:m.x,y:m.y,life:.3,max:.3}); sfx("hit") } }
+        else { // 내 곁 460 안의 몬스터 중 백호에게 가장 가까운 놈을 쫓아가 덮쳐요
+          let t=null, bd=1e18; for(const e of near(P.x,P.y,6)){ if((e.x-P.x)**2+(e.y-P.y)**2>460*460) continue; const d=(e.x-m.x)**2+(e.y-m.y)**2; if(d<bd){ bd=d; t=e } }
+          if(t){ const dx=t.x-m.x, dy=t.y-m.y, d=Math.hypot(dx,dy)||1; m.face=dx>=0?1:-1;
+            if(d<190&&m.acc<=0){ m.acc=.85*Math.max(.6,s.cd); m.sx=m.x; m.sy=m.y; m.ex=t.x; m.ey=t.y; m.pz=.3; sfx("ox") }
+            else if(d>t.r+34){ const st2=Math.min(d-t.r-30,380*dt); m.x+=dx/d*st2; m.y+=dy/d*st2; m.run=1 } }
+          else { const bx=P.x-48, by=P.y+20, dx=bx-m.x, dy=by-m.y, d=Math.hypot(dx,dy); if(d>8){ const st2=Math.min(d,Math.max(200,d*3.5)*dt); m.x+=dx/d*st2; m.y+=dy/d*st2; m.run=d>20?1:0; m.face=dx>=0?1:-1 } }
+          if(Math.hypot(P.x-m.x,P.y-m.y)>620){ m.x=P.x-48; m.y=P.y+20 } }
         m.rr=(m.rr??5)-dt; if(m.rr<=0){ m.rr=9; sfx("roar"); g.fx.push({k:"roar",x:m.x,y:m.y,r:220,life:.6,max:.6}); g.en.forEach(e=>{ if(inR(m.x,m.y,220,e)){ ccS(e,1); hurt(e,m.dmg*lvScale*sm*.5) } }) } }
       else if(m.kind==="qdragon"){ m.a+=dt*1.6; const tx=P.x+Math.cos(m.a)*150, ty=P.y-40+Math.sin(m.a)*70; m.x+=(tx-m.x)*Math.min(1,dt*4); m.y+=(ty-m.y)*Math.min(1,dt*4); m.face=-Math.sin(m.a)>=0?1:-1;
-        if(m.acc<=0&&m.t>.3){ const t=near(m.x,m.y,4)[Math.floor(Math.random()*4)]||near(m.x,m.y,1)[0]; if(t){ m.acc=m.rate; const a=Math.atan2(t.y-m.y,t.x-m.x); g.shots.push({k:"dball",x:m.x,y:m.y,vx:Math.cos(a)*560,vy:Math.sin(a)*560,dmg:m.dmg,pierce:0,boom:80,boomMul:.8,life:1.2,hit:new Set(),rad:16}) } } }
+        if(m.acc<=0&&m.t>.3){ const TG=smartTargets(110,3).pts, t0=TG[Math.floor(Math.random()*TG.length)], t=(t0&&near(t0.x,t0.y,1)[0])||near(m.x,m.y,1)[0]; if(t){ m.acc=m.rate; const a=Math.atan2(t.y-m.y,t.x-m.x); g.shots.push({k:"dball",x:m.x,y:m.y,vx:Math.cos(a)*600,vy:Math.sin(a)*600,dmg:m.dmg,pierce:0,boom:110,boomMul:1,life:1.2,hit:new Set(),rad:18,seek:t,sd:.05}) } }
+        m.br=(m.br??1.2)-dt; if(m.br<=0&&m.t>.5){ m.br=2.4; const T=smartTargets(150,1).pts[0]; if(T){ sfx("dragon"); g.fx.push({k:"boom",x:T.x,y:T.y,r:150,col:"#6ab0ff",life:.45,max:.45}); g.fx.push({k:"ring",x:T.x,y:T.y,life:.4,max:.4}); g.en.forEach(e=>{ if(inR(T.x,T.y,150,e)) hurt(e,m.dmg*1.3) }); g.shake=Math.max(g.shake,.2) } } }
       else if(m.kind==="drone"){ m.a+=dt*2.6; m.x=P.x+Math.cos(m.a)*52; m.y=P.y-44+Math.sin(m.a*2)*10;
         if(m.acc<=0){ const t=near(m.x,m.y,1)[0]; if(t&&(t.x-m.x)**2+(t.y-m.y)**2<420*420){ m.acc=.4*Math.max(.6,s.cd); const a=Math.atan2(t.y-m.y,t.x-m.x); m.aim=a; g.shots.push({k:"laser",x:m.x,y:m.y,vx:Math.cos(a)*900,vy:Math.sin(a)*900,dmg:m.dmg*lvScale,pierce:1,life:.5,hit:new Set()}) } }
         m.rp=(m.rp??4)-dt; if(m.rp<=0){ m.rp=4; healMe(st().maxHp*.025); g.fx.push({k:"ring",x:P.x,y:P.y,life:.3,max:.3}) } }
@@ -879,8 +885,8 @@ function startGame(opts){ opts=opts||{};
         const hx=P.x+46, hy=P.y-34+Math.sin(g.t*2.5)*6; m.x+=(hx-m.x)*Math.min(1,dt*5); m.y+=(hy-m.y)*Math.min(1,dt*5); m.a+=dt*8;
         const t=near(m.x,m.y,1)[0]; m.face=t?Math.atan2(t.y-m.y,t.x-m.x):(m.face||0);
         m.breath=Math.max(0,(m.breath||0)-dt);
-        if(t && (t.x-m.x)**2+(t.y-m.y)**2<300**2){
-          if(m.acc<=0){ m.acc=.25; m.breath=.25; const R=170, half=.45;
+        if(t && (t.x-m.x)**2+(t.y-m.y)**2<330**2){
+          if(m.acc<=0){ m.acc=.25; m.breath=.3; const R=250, half=.42;
             g.en.forEach(e=>{ const dx=e.x-m.x, dy=e.y-m.y, d=Math.hypot(dx,dy); if(d<R+e.r){ let a=Math.atan2(dy,dx)-m.face; a=Math.atan2(Math.sin(a),Math.cos(a)); if(Math.abs(a)<half) hurt(e,m.dmg*lvScale*.6) } }) }
           m.fb=(m.fb||0)-dt;
           if(m.fb<=0){ sfx("ifrit"); m.fb=1.6*Math.max(.6,s.cd); const dx=t.x-m.x, dy=t.y-m.y, d=Math.hypot(dx,dy)||1;
@@ -928,10 +934,10 @@ function startGame(opts){ opts=opts||{};
           const sq=1+Math.sin(g.t*4)*.03+rec*.08; ctx.translate((right?-1:1)*rec*5,-22-drop*160); ctx.scale(1/sq,sq); drawSkillImg(ctx,"octo",74,right); ctx.restore() } else jfOcto(ctx,m,g.t,GLOW) }
       else if(m.kind==="ifrit"){
         if(m.breath>0&&HDFX&&PFX.boom_fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); ctx.globalCompositeOperation="lighter";
-          for(let i=0;i<10;i++){ const ph=((g.t*2.6+i/10)%1), sp=(jr(i,3)-.5)*.62*ph, d=18+ph*150, fi=Math.min(5,Math.floor(ph*5.5)); pfxDraw(ctx,"boom_fire"+fi,Math.cos(sp)*d,Math.sin(sp)*d,i*1.3+g.t*2,.28+ph*.75,(1-ph*ph)*.75) }
+          for(let i=0;i<14;i++){ const ph=((g.t*2.4+i/14)%1), sp=(jr(i,3)-.5)*.66*ph, d=18+ph*225, fi=Math.min(5,Math.floor(ph*5.5)); pfxDraw(ctx,"boom_fire"+fi,Math.cos(sp)*d,Math.sin(sp)*d,i*1.3+g.t*2,.3+ph*.95,(1-ph*ph)*.8) }
           jGlow(ctx,20,0,46,"255,190,90",.7); ctx.restore() }
         else if(m.breath>0){ ctx.save(); ctx.globalCompositeOperation=GLOW; ctx.translate(m.x,m.y); ctx.rotate(m.face); const k=m.breath/.25;
-          const gr=ctx.createRadialGradient(0,0,10,0,0,175); gr.addColorStop(0,`rgba(255,250,200,${.85*k})`); gr.addColorStop(.35,`rgba(255,170,60,${.7*k})`); gr.addColorStop(.75,`rgba(230,70,40,${.45*k})`); gr.addColorStop(1,"rgba(150,20,20,0)");
+          const gr=ctx.createRadialGradient(0,0,10,0,0,250); gr.addColorStop(0,`rgba(255,250,200,${.85*k})`); gr.addColorStop(.35,`rgba(255,170,60,${.7*k})`); gr.addColorStop(.75,`rgba(230,70,40,${.45*k})`); gr.addColorStop(1,"rgba(150,20,20,0)");
           ctx.fillStyle=gr; ctx.beginPath(); ctx.moveTo(0,0); for(let i=0;i<=12;i++){ const b=-.45+i*.075, rr=150+Math.sin(g.t*30+i*2)*18; ctx.lineTo(Math.cos(b)*rr,Math.sin(b)*rr) } ctx.closePath(); ctx.fill();
           for(let i=0;i<8;i++){ const ph=(g.t*4+i/8)%1, b=(jr(i,7)-.5)*.8; ctx.fillStyle=`rgba(255,240,170,${1-ph})`; ctx.fillRect(Math.cos(b)*ph*170-2,Math.sin(b)*ph*170-2,4,4) } ctx.restore() }
         ctx.save(); ctx.globalCompositeOperation=GLOW; jGlow(ctx,m.x,m.y,56,"255,120,40",.5);

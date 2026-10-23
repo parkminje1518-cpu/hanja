@@ -608,7 +608,11 @@ function drawTreasure(c,x,y,t,GL){
 /* ===== 그림풍 공격 효과: 처음 한 번만 공들여 그려 두고(진한 테두리·명암·빛) 돌려서 붙여요 → 렉 거의 없음 ===== */
 const PFX={};
 function pfxMake(key,W,H,fn){ if(PFX[key]) return PFX[key]; const S=2, cv=document.createElement("canvas"); cv.width=W*S; cv.height=H*S; const c=cv.getContext("2d"); c.scale(S,S); c.translate(W/2,H/2); c.lineJoin="round"; c.lineCap="round"; fn(c); return PFX[key]={cv,W,H} }
-function pfxDraw(c,key,x,y,a,sc,alpha){ const P=PFX[key]; if(!P) return; c.save(); c.translate(x,y); if(a) c.rotate(a); if(sc&&sc!==1) c.scale(sc,sc); if(alpha!==undefined) c.globalAlpha*=alpha; c.drawImage(P.cv,-P.W/2,-P.H/2,P.W,P.H); c.restore() }
+/* 빙설맵 얼음 그림: 제미나이 그림이 읽히면 손으로 그린 얼음 대신 써요 */
+function iceArt(){ if(PFX._iceArt||typeof SKILL_IMG==="undefined") return; const I=SKILL_IMG.ice_icicle, S=SKILL_IMG.ice_spike, B=SKILL_IMG.ice_snowball; if(!I||!S||!B) return; PFX._iceArt=1;
+  const put=(key,img,W,H,align,fit)=>{ const sc=2, cv=document.createElement("canvas"); cv.width=W*sc; cv.height=H*sc; const c=cv.getContext("2d"), f=fit||1, r=Math.min(W/img.width,H/img.height)*f, w=img.width*r, h=img.height*r, x=(W-w)/2, y=align==="bottom"?H-h:align==="top"?0:(H-h)/2; c.drawImage(img,x*sc,y*sc,w*sc,h*sc); PFX[key]={cv,W,H} };
+  put("icicle_big",I,44,120,"top"); put("icespike",S,70,84,"bottom"); put("snowball",B,44,44,"center",.82) }
+function pfxDraw(c,key,x,y,a,sc,alpha){ if(!PFX._iceArt&&(key==="icespike"||key==="icicle_big"||key==="snowball")) iceArt(); const P=PFX[key]; if(!P) return; c.save(); c.translate(x,y); if(a) c.rotate(a); if(sc&&sc!==1) c.scale(sc,sc); if(alpha!==undefined) c.globalAlpha*=alpha; c.drawImage(P.cv,-P.W/2,-P.H/2,P.W,P.H); c.restore() }
 const pfxR=(i,j)=>{ const v=Math.sin(i*127.1+j*311.7)*43758.5453; return v-Math.floor(v) };
 function pfxFlame(c,x,y,len,wid,ang,cols,ol){ c.save(); c.translate(x,y); c.rotate(ang);
   const path=()=>{ c.beginPath(); c.moveTo(0,-wid); c.bezierCurveTo(len*.35,-wid*1.1,len*.6,-wid*.5,len,0); c.bezierCurveTo(len*.6,wid*.4,len*.3,wid*1.05,0,wid); c.closePath() };
@@ -808,14 +812,16 @@ function slashSprite(m){ const C=WAVE_PAL[m]||WAVE_PAL[5], rgb=h=>hexRgb(h); ret
    밝은 맵에서도 보이게, 같은 모양의 어두운 그림자(밝기를 투명도로 바꾼 것)를 먼저 깔아요 */
 const WTEX={}; function waveTex(m,key){ key=key||"slashwave"; const id=key+m; if(WTEX[id]) return WTEX[id]; const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG[key]; if(!im) return null;
   const C=WAVE_PAL[m]||WAVE_PAL[5], mk=()=>{ const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; return cv };
-  const cv=mk(), x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="multiply"; x.fillStyle=C[1]; x.fillRect(0,0,cv.width,cv.height); x.globalCompositeOperation="lighter"; x.globalAlpha=.3; x.drawImage(im,0,0);
-  const sh=mk(), y=sh.getContext("2d"); y.drawImage(im,0,0); try{ const d=y.getImageData(0,0,sh.width,sh.height), p=d.data, rgb=hexRgb(C[2]).split(",").map(Number);
-    for(let i=0;i<p.length;i+=4){ const L=Math.max(p[i],p[i+1],p[i+2]); p[i]=rgb[0]*.7; p[i+1]=rgb[1]*.7; p[i+2]=rgb[2]*.7; p[i+3]=Math.min(255,L*1.5) } y.putImageData(d,0,0) }catch(e){ y.clearRect(0,0,sh.width,sh.height) }
+  // 빛 그림(투명 배경)을 맵 색으로 물들이고, 그림 모양 밖은 다시 투명하게 잘라요
+  const cv=mk(), x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="multiply"; x.fillStyle=C[1]; x.fillRect(0,0,cv.width,cv.height);
+  x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); x.globalCompositeOperation="lighter"; x.globalAlpha=.35; x.drawImage(im,0,0);
+  // 밝은 맵에서도 보이게 깔아 두는 어두운 그림자 (같은 모양)
+  const sh=mk(), y=sh.getContext("2d"); y.drawImage(im,0,0); y.globalCompositeOperation="source-in"; y.fillStyle=C[2]; y.fillRect(0,0,sh.width,sh.height);
   return WTEX[id]={cv,sh,width:cv.width,height:cv.height} }
 function drawBurst(c,x,y,m,size,al,rot){ const TX=waveTex(m,"hitburst"); if(!TX||al<=0) return false; c.save(); c.translate(x,y); if(rot) c.rotate(rot); c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-size/2,-size/2,size,size); c.restore(); return true }
 function drawWave(c,b,t){ const TX=waveTex(b.map||5); if(TX){ const m=b.map||5, age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), Hd=175*sc, Wd=Hd*TX.width/TX.height, fl=1+Math.sin(t*30+b.x)*.05;
     if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
-    c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.scale(1,fl); const SHA={7:1,8:1,3:.7,9:.75,1:.6,6:.65}[m]||.5; c.globalAlpha=al*SHA; c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); if(SHA>=1){ c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd) }
+    c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.scale(1,fl); const SHA={7:1,8:1,3:.7,9:.75,1:.6,6:.65}[m]||.5; c.globalAlpha=al*SHA; c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); if(SHA>=1){ c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd); c.drawImage(TX.sh,-Wd*.76,-Hd/2,Wd,Hd) }
     c.globalCompositeOperation="lighter"; c.globalAlpha=al; c.drawImage(TX.cv,-Wd*.76,-Hd/2,Wd,Hd); c.restore(); return }
   const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], age=1.6-b.life, sc=(b.sz||1)*(.5+Math.min(.22,age*.5)), al=Math.min(1,b.life*3), key="slash3_"+m; slashSprite(m); const P_=PFX[key];
   if(m===8&&PFX.ice){ const sp=Math.hypot(b.vx,b.vy)||1, ux=b.vx/sp, uy=b.vy/sp; for(let i=0;i<5;i++){ const ph=(t*2.2+i/5+(b.x*.001))%1, side=(pfxR(i,m)-.5)*90*sc; pfxDraw(c,"ice",b.x-ux*(30+ph*110)*sc-uy*side,b.y-uy*(30+ph*110)*sc+ux*side,t*5+i,.32*(1-ph),al*(1-ph)) } }
@@ -989,7 +995,7 @@ function drawNewSum(c,m,t,GL){ const K=m.kind;
     if(m.ch>0){ for(let i=0;i<5;i++){ const ph=(t*6+i/5)%1; c.fillStyle=`rgba(200,180,150,${.5*(1-ph)})`; c.beginPath(); c.arc(m.x-(m.cvx>0?1:-1)*(20+ph*40),m.y+22-ph*8,4+ph*6,0,7); c.fill() } } c.restore();
     nImg(c,"ox",m.x,m.y-4+(m.ch>0?Math.sin(t*40)*2:Math.sin(t*3)),64,(m.face||1)<0,m.ch>0?(m.face||1)*.12:0); return true }
   if(K==="tiger"){ c.save(); c.fillStyle="rgba(0,0,0,.2)"; c.beginPath(); c.ellipse(m.x,m.y+24,20,5,0,0,7); c.fill(); if(m.pz>0){ c.globalCompositeOperation=GL; jGlow(c,m.x,m.y,40,"150,200,255",.5) } c.restore();
-    nImg(c,"tiger",m.x,m.y-2,m.pz>0?64:56,(m.face||1)<0,m.pz>0?(m.face||1)*.25:0); return true }
+    const bob=m.run?Math.abs(Math.sin(t*16))*5:0, tilt=m.pz>0?(m.face||1)*.25:m.run?(m.face||1)*.08*Math.sin(t*16):0; nImg(c,"tiger",m.x,m.y-2-bob,m.pz>0?64:56,(m.face||1)<0,tilt); return true }
   if(K==="qdragon"){ const k=Math.min(1,(m.max-m.t)/.5,m.t/.5); c.save(); c.globalAlpha=k; c.globalCompositeOperation=GL; jGlow(c,m.x,m.y,90,"90,170,255",.45);
     for(let i=0;i<6;i++){ const ph=(t*.8+i/6)%1; c.fillStyle=`rgba(255,255,255,${.35*(1-ph)})`; c.beginPath(); c.ellipse(m.x-(m.face||1)*(30+ph*80),m.y+40+Math.sin(i)*10,18+ph*14,8+ph*5,0,0,7); c.fill() } c.restore();
     c.save(); c.globalAlpha=k; nImg(c,"dragon",m.x,m.y+Math.sin(t*3)*6,130,(m.face||1)<0,Math.sin(t*2)*.08); c.restore(); return true }
@@ -1229,6 +1235,9 @@ function drawSig46Shot(c,b,t){ const K=b.kind;
     c.globalAlpha=.9; const g=c.createLinearGradient(-34,0,34,0); g.addColorStop(0,"rgba(80,200,255,0)"); g.addColorStop(.5,"rgba(140,240,255,.8)"); g.addColorStop(1,"#eaffff"); c.fillStyle=g;
     c.beginPath(); c.moveTo(38,0); c.lineTo(26,-10); c.lineTo(22,-18); c.lineTo(16,-9); c.lineTo(-6,-12); c.quadraticCurveTo(-30,-14,-40,-4); c.lineTo(-24,0); c.lineTo(-40,6); c.quadraticCurveTo(-24,12,-6,11); c.lineTo(16,9); c.lineTo(28,8); c.closePath(); c.fill();
     c.globalAlpha=1; c.fillStyle="#fff"; c.beginPath(); c.arc(26,-3,2.4,0,7); c.fill(); c.restore(); return true }
+  if(K==="snowball"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.ice_snowball){ const r=b.r; c.save(); c.fillStyle="rgba(30,50,90,.22)"; c.beginPath(); c.ellipse(b.x,b.y+r*.9,r*1.05,r*.32,0,0,7); c.fill();
+    c.translate(b.x,b.y); for(let i=1;i<=3;i++){ c.fillStyle=`rgba(235,245,255,${.16-i*.045})`; c.beginPath(); c.arc(-b.vx*.03*i,-b.vy*.03*i,r*(1-i*.12),0,7); c.fill() }
+    c.rotate((b.x+b.y)*.02); c.drawImage(SKILL_IMG.ice_snowball,-r*1.08,-r*1.08,r*2.16,r*2.16); c.restore(); return true }
   if(K==="snowball"){ const r=b.r; c.save(); c.fillStyle="rgba(30,50,90,.22)"; c.beginPath(); c.ellipse(b.x,b.y+r*.9,r*1.05,r*.32,0,0,7); c.fill();
     c.translate(b.x,b.y); for(let i=1;i<=3;i++){ c.fillStyle=`rgba(235,245,255,${.18-i*.05})`; c.beginPath(); c.arc(-b.vx*.03*i,-b.vy*.03*i,r*(1-i*.12),0,7); c.fill() }
     const g=c.createRadialGradient(-r*.35,-r*.4,r*.1,0,0,r); g.addColorStop(0,"#ffffff"); g.addColorStop(.6,"#e2eefa"); g.addColorStop(1,"#9ab8d8"); c.fillStyle=g; c.beginPath(); c.arc(0,0,r,0,7); c.fill(); c.strokeStyle="rgba(90,120,170,.6)"; c.lineWidth=2; c.stroke();
