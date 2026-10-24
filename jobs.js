@@ -18,7 +18,7 @@ const JOBS = {
   archer: { titles:["견습 궁수","바람 사냥꾼","바람 저격수","폭풍 명사수","바람의 신궁"], skills:[
     {name:"마법 화살통", desc:"화살이 1마리 더 꿰뚫고, 세 번째 화살마다 펑 터지는 폭발 화살이 나가요", type:"passive", p:{pierce:1}, flag:"quiver"},
     {name:"질풍의 바람새", desc:"초록 바람으로 된 신비한 새가 곁을 날며, 몬스터를 끝까지 쫓아가는 바람 구슬을 두 개씩 쏴요", type:"summon", what:"phoenix", dmg:35},
-    {name:"화살비", desc:"8초마다 몬스터 무리 위에 3초 동안 화살비를 퍼부어요", type:"zone", what:"rain", cd:8, r:130, dur:3, tick:0.2, dmg:28},
+    {name:"화살비", desc:"8초마다 몬스터 무리 위에 3초 동안 화살비를 퍼부어요", type:"zone", what:"rain", cd:8, r:175, dur:3, tick:0.2, dmg:28},
     {name:"폭풍 연사", desc:"13초마다 4초 동안 눈으로 따라갈 수 없을 만큼 빠르게 화살을 부채꼴로 쏟아내고, 네 발마다 폭풍 화살이 터져요", type:"stream", cd:13, dur:4, rate:0.05, dmg:38},
   ]},
   thief: { titles:["견습 도적","쇠별 자객","쇠별 암살자","그림자 닌자","금빛 표창왕"], skills:[
@@ -29,7 +29,7 @@ const JOBS = {
   ]},
   mage: { titles:["견습 마법사","불꽃 술사","독불꽃 마도사","화염 대마도사","불꽃의 현자"], skills:[
     {name:"독불꽃", desc:"내 공격에 맞은 몬스터는 3초 동안 보랏빛 독불꽃에 계속 타요", type:"passive", p:{}, flag:"poison"},
-    {name:"독 안개", desc:"7초마다 몬스터 무리에 5초 동안 독 안개를 퍼뜨려 느리게 하고 계속 피해를 줘요", type:"zone", what:"mist", cd:7, r:140, dur:5, tick:0.4, dmg:22, slow:true},
+    {name:"독 안개", desc:"7초마다 몬스터 무리에 5초 동안 독 안개를 퍼뜨려 느리게 하고 계속 피해를 줘요", type:"zone", what:"mist", cd:7, r:185, dur:5, tick:0.4, dmg:22, slow:true},
     {name:"이프리트 소환", desc:"뿔 달린 불의 정령 이프리트가 곁을 따라다니며, 앞쪽으로 활활 타는 불길을 내뿜고 가끔 커다란 화염탄을 던져 펑 터뜨려요", type:"summon", what:"ifrit", dmg:26},
     {name:"메테오 샤워", desc:"14초마다 하늘에서 거대한 운석 10개가 차례로 떨어져요", type:"meteors", cd:14, n:10, r:120, dmg:170, gap:0.18},
   ]},

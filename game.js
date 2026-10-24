@@ -70,7 +70,7 @@ function bossCardDex(){ const T=P.set.ctier||1; $app.innerHTML = topbar("도감"
   ${(T===4?[]:MAPS).map(m=>{ const ks=mapCardKeys(m.id), L=mapCardLv(m.id), n=ks.filter(k=>hasCard(k,T)).length;
     return `<div class="cardmap"><div class="cmh"><b>${m.id}. ${m.name}</b><span>${n}/4장 · ${L?`<em style="color:${CARD_COL[L]}">${CARD_TIER[L]} 완성!</em> `:""}${bonusTxt(m.id,L)}${L?"":" (4장 모으면)"}</span></div>
       <div class="cardrow">${ks.map(k=>cardHtml(k,hasCard(k,T)?T:0)).join("")}</div></div>` }).join("")}</section>`;
-  if(typeof bindDexTabs==="function") bindDexTabs();
+  if(typeof bindDexTabs==="function") bindDexTabs(); if(typeof bindBack==="function") bindBack();   // 메인으로 버튼
   document.querySelectorAll(".ctab").forEach(b=>b.onclick=()=>{ P.set.ctier=+b.dataset.ct; saveP(); bossCardDex() }) }
 const medalsOf=id=>((P.medal||{})[id])||[0,0,0];
 const medalCount=()=>Object.values(P.medal||{}).reduce((a,m)=>a+m.filter(Boolean).length,0);
@@ -98,7 +98,7 @@ const SK = {
 const SK_ICON = {};
 function skIcon(k){
   if(k==="main") return SPRITE_URLS[P.hero]||"";
-  { const AK={body:"ic_body",spd:"ic_spd",str:"ic_str",qi:"ic_qi",pull:"ic_pull",wind:"cardwind",fire:"cardfire",stone:"cardstone",ice:"ic_ice"}[k];   // 제미나이 아이콘 그림
+  { const AK={body:"ic_body",spd:"ic_spd",str:"ic_str",qi:"ic_qi",pull:"ic_pull",wind:"cardwind",fire:"cardfire",stone:"cardstone",ice:"ic_ice",elec:"ic_elec"}[k];   // 제미나이 아이콘 그림
     if(AK&&typeof SKILL_ART_FILES!=="undefined"&&SKILL_ART_FILES[AK]) return SKILL_ART_FILES[AK] }
   if(SK_ICON[k]) return SK_ICON[k];
   const cv=document.createElement("canvas"); cv.width=cv.height=64; const c=cv.getContext("2d");
@@ -200,7 +200,15 @@ function gameLobby(){
   $app.querySelectorAll(".mapc").forEach(b=>b.onclick=()=>{ if(typeof NET!=="undefined"&&NET.role==="client") return; P.set.map=+b.dataset.map; saveP(); sfx("tap"); if(typeof NET!=="undefined"&&NET.role==="host") netHostLobby(); else gameLobby() });
   if(!isAdmin() && (HS().lv<mapById(P.set.map||1).lv||(mapById(P.set.map||1).tier&&HS().tier<mapById(P.set.map||1).tier))){ P.set.map=1; saveP() }
   $app.querySelectorAll(".difb").forEach(b=>b.onclick=()=>{ if(typeof NET!=="undefined"&&NET.role==="client") return; const id=P.set.map||1, d=+b.dataset.dif; if(!difUnlocked(id,d)){ toast(d===1?"보통 단계를 클리어하면 열려요!":"어려움 단계를 클리어하면 열려요!"); return } P.set.difs=P.set.difs||{}; P.set.difs[id]=d; saveP(); sfx("tap"); if(typeof NET!=="undefined"&&NET.role==="host") netHostLobby(); else gameLobby() });
-  document.getElementById("go").onclick = ()=>{ if(payGame()) startGame(); };
+  // 입장 버튼: 바로 들어가지 않고 "이 용사로 출전할까요?" 창에서 용사를 한 번 더 고르고 들어가요
+  document.getElementById("go").onclick = ()=>{ const M=mapById(P.set.map||1);
+    const draw=()=>{ mcard.innerHTML=`<h3>어떤 용사로 출전할까요?</h3><p>${esc(M.name)} · ${DIFS[mapDif(M.id)].n}</p>
+      <div class="phl pickGrid">${HEROES.filter(h=>P.heroes.includes(h.id)||isAdmin()).map(h=>`<button class="ph ${P.hero===h.id?"on":""}" data-pk="${h.id}">${avaHtml(h.id,48)}<span>${h.name}</span><small>Lv ${HS(h.id).lv} · ${jobTitle(h.id)}</small></button>`).join("")}</div>
+      <div class="gbtns"><button class="big red" id="pkGo">⚔ 입장하기<small style="display:block;font-size:13px">코인 ${GAME_COST}개</small></button><button class="big alt" id="pkNo">취소</button></div>`;
+      mcard.querySelectorAll("[data-pk]").forEach(b=>b.onclick=()=>{ sfx("tap"); P.hero=b.dataset.pk; saveP(); draw() });
+      document.getElementById("pkNo").onclick=()=>{ modal.hidden=true; const y=window.scrollY; gameLobby(); window.scrollTo(0,y) };
+      document.getElementById("pkGo").onclick=()=>{ modal.hidden=true; if(payGame()) startGame(); else gameLobby() } };
+    draw(); modal.hidden=false };
   if(typeof mpBind==="function"){ mpBind(); if(netInRoom()) document.getElementById("go").style.display="none" }
 }
 
@@ -322,7 +330,7 @@ function startGame(opts){ opts=opts||{};
   // ===== 선생님 도구: 무적 · 레벨 올리기 · 시간 당기기 · 보스 바로 부르기 (선생님 계정에서만) =====
   if(typeof isAdmin==="function"&&isAdmin()){ const tb=$(".gtoolbox"), btn=$(".gtool"); btn.hidden=false;
     const acts=[["god",()=>g.god?"🛡 무적 끄기":"🛡 무적 켜기",()=>{ g.god=!g.god; showBanner(g.god?"🛡 무적이 켜졌어요 (선생님 모드)":"무적을 껐어요") }],
-      ["qs",()=>g.qskip?"📝 카드 문제 건너뛰기: 켜짐":"📝 카드 문제 건너뛰기: 꺼짐",()=>{ g.qskip=!g.qskip }],
+      ["qs",()=>g.qskip?"📝 카드·오리진 문제 건너뛰기: 켜짐":"📝 카드·오리진 문제 건너뛰기: 꺼짐",()=>{ g.qskip=!g.qskip }],
       ["lv1",()=>"⬆ 레벨 +1",()=>{ g.xp+=g.need }],
       ["lv5",()=>"⏫ 레벨 +5",()=>{ let n=0,L=g.lvl; for(let i=0;i<5;i++){ n+=needXP(L+i) } g.xp+=n }],
       ["lv10",()=>"🚀 레벨 +10",()=>{ let n=0,L=g.lvl; for(let i=0;i<10;i++){ n+=needXP(L+i) } g.xp+=n }],
@@ -332,9 +340,11 @@ function startGame(opts){ opts=opts||{};
         if(NM){ showBanner("같이하기에서는 쓸 수 없어요"); return } g.en=g.en.filter(e=>e.type!=="boss"); g.eshots=[]; g.stageN=i; g.bossWarn=i; g.bossUp=true; STAGE_PH=Math.min(3,i); spawnBoss(STAGE[MAP.id][i]); setVph(Math.min(3,i+1)) }])),
       ["ult",()=>"💢 보스 필살기 보기",()=>{ for(const e of g.en) if(e.type==="boss"&&e.hp>0){ e.hp=Math.min(e.hp,e.max*.49); e.ultDone=false; e.bt=0 } }],
       ["clear",()=>"🧹 몬스터 모두 없애기",()=>{ g.en=g.en.filter(e=>e.type==="boss"); }]];
-    const render=()=>{ tb.innerHTML=(NM?"":`<b class="tbh">🔄 용사 바꿔서 같은 맵 다시 시작</b><div class="tbheroes">${HEROES.map(h=>`<button data-hero="${h.id}" class="${h.id===HERO.id?"on":""}">${avaHtml(h.id,30)}<span>${h.name.replace(/^\S+ /,"")}</span></button>`).join("")}</div>`)+acts.map(([k,l])=>`<button data-k="${k}">${l()}</button>`).join("")+`<small>선생님 확인용 · 기록에는 그대로 남아요</small>`;
+    const render=()=>{ const sy=tb.scrollTop; tb.innerHTML=`<div class="tbjump"><button data-j="boss">👑 보스 부르기 ▾</button><button data-j="top">▲ 맨 위</button></div>`+(NM?"":`<b class="tbh">🔄 용사 바꿔서 같은 맵 다시 시작</b><div class="tbheroes">${HEROES.map(h=>`<button data-hero="${h.id}" class="${h.id===HERO.id?"on":""}">${avaHtml(h.id,30)}<span>${h.name.replace(/^\S+ /,"")}</span></button>`).join("")}</div>`)+acts.map(([k,l])=>`<button data-k="${k}">${l()}</button>`).join("")+`<small>선생님 확인용 · 기록에는 그대로 남아요</small>`;
       tb.querySelectorAll("[data-hero]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const id=b.dataset.hero; if(id===HERO.id) return; const cur=HS(); P.hero=id; const n=HS(id); n.tier=Math.max(n.tier||0,cur.tier||0); n.lv=Math.max(n.lv||1,cur.lv||1); saveP(); cleanup(); startGame() });
-      tb.querySelectorAll("button[data-k]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const a=acts.find(x=>x[0]===b.dataset.k); a[2](); render() }) };
+      tb.querySelectorAll("button[data-k]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const a=acts.find(x=>x[0]===b.dataset.k); a[2](); render() });
+      tb.querySelectorAll("[data-j]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); if(b.dataset.j==="top") tb.scrollTo({top:0,behavior:"smooth"}); else { const t=tb.querySelector('[data-k="sb0"]'); if(t) tb.scrollTo({top:t.offsetTop-50,behavior:"smooth"}) } });
+      tb.scrollTop=sy };
     btn.onclick=ev=>{ ev.stopPropagation(); tb.hidden=!tb.hidden; if(!tb.hidden) render() };
     g.god=true; g.qskip=true }
 
@@ -552,14 +562,15 @@ function startGame(opts){ opts=opts||{};
     wolflanes(e,P,TP){ const q=TP(), dir=Math.random()<.5?1:-1, gap=1+Math.floor(Math.random()*3); e.bt=3.2; sfx("roar");
       for(let l=0;l<5;l++){ if(l===gap) continue; const y=q.y+(l-2)*80, x0=q.x-dir*600; g.fx.push({k:"laserwarn",x:x0,y,a:dir>0?0:Math.PI,len:1200,life:1.15,max:1.15});
         g.pending.push({t:1.15+l*.06,run:()=>{ g.eshots.push({kind:"wolfrun",x:x0,y,vx:dir*1300,vy:0,a:dir>0?0:Math.PI,r:32,dmg:(e.dmg*0.83)*.9,life:1.1,pierce:1,ph:l*1.7}) }}) } },
-    snowroll(e,P,TP){ const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.bt=5.5; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:500,life:.9,max:.9}); g.pending.push({t:.9,run:()=>{ if(e.hp<=0) return;
-        g.eshots.push({kind:"snowball",bounce:1,grow:1,cx:q.x,cy:q.y,hw:W*.46,hh:H*.44,x:e.x,y:e.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330,r:30,dmg:e.dmg*.75,life:4.6,pierce:1,hitCD:0}); sfx("quake") }}) },
+    snowroll(e,P,TP){ const q=TP(), a0=Math.atan2(q.y-e.y,q.x-e.x); e.bt=5.8;   // 눈덩이 3개를 부채꼴로 차례차례, 더 빠르게 굴려요
+      [0,-.5,.5].forEach((o,i)=>{ const a=a0+o; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:500,life:.9+i*.25,max:.9+i*.25}); g.pending.push({t:.9+i*.25,run:()=>{ if(e.hp<=0) return;
+        g.eshots.push({kind:"snowball",bounce:1,grow:1,cx:q.x,cy:q.y,hw:W*.46,hh:H*.44,x:e.x,y:e.y,vx:Math.cos(a)*470,vy:Math.sin(a)*470,r:28,dmg:e.dmg*.6,life:3.6,pierce:1,hitCD:0}); sfx("quake") }}) }) },
     frostmine(e,P,TP){ const q=TP(); e.bt=3.6; const pts=[[0,0]]; for(let i=0;i<4;i++){ const a=i*Math.PI/2+Math.random()*.5; pts.push([Math.cos(a)*150,Math.sin(a)*120]) }
       pts.forEach(([dx,dy],i)=>{ const x=q.x+dx, y=q.y+dy; g.pending.push({t:i*.12,run:()=>{ g.fx.push({k:"crystalpillar",ice:1,x,y,life:1.6,max:1.6}); g.fx.push({k:"warn",x,y,r:52,life:1.4,max:1.4}); for(let d=0;d<4;d++) g.fx.push({k:"laserwarn",x,y,a:d*Math.PI/2,len:210,life:1.4,max:1.4}) }});
         g.pending.push({t:i*.12+1.4,run:()=>{ aoeC(x,y,52,(e.dmg*0.84)*.55); for(let d=0;d<4;d++){ aoeL(x,y,d*Math.PI/2,210,(e.dmg*0.84)*.45); g.fx.push({k:"pbeam",x,y:y+40,a:d*Math.PI/2,len:210,col:"170,225,255",life:.4,max:.4}) } g.fx.push({th:"ice",k:"boom",x,y,r:52,life:.4,max:.4}); if(i===0) sfx("bigboom") }}) }) },
     breathsweep(e,P,TP){ const q=TP(), aim=Math.atan2(q.y-e.y,q.x-e.x), dir=Math.random()<.5?1:-1, half=1.25, a0=aim-dir*half; e.bt=5;
       g.fx.push({k:"conewarn",x:e.x,y:e.y,a:aim,half,r:560,life:1.2,max:1.2}); say("❄ 얼음 숨결이 부채처럼 휩쓸어요! 보스 뒤로 돌아가거나 멀리 피해요!","alarm");
-      g.pending.push({t:1.2,run:()=>{ if(e.hp<=0) return; sfx("hurricane"); g.eshots.push({kind:"beam",style:"breath",x:e.x,y:e.y,vx:0,vy:0,a0,a:a0,w:dir*1.0,ot:0,len:560,r:44,dmg:(e.dmg*0.69)*.7,life:2.5,hitCD:0}) }}) },
+      g.pending.push({t:1.2,run:()=>{ if(e.hp<=0) return; sfx("hurricane"); g.eshots.push({kind:"beam",style:"breath",eid:e.id,x:e.x,y:e.y,vx:0,vy:0,a0,a:a0,w:dir*1.45,ot:0,len:560,r:44,dmg:(e.dmg*0.69)*.7,life:1.75,hitCD:0}) }}) },
     thunderdash(e,P,TP){ e.bt=5.2; for(let i=0;i<3;i++){ g.pending.push({t:i*1.15,run:()=>{ if(e.hp<=0) return; const q=TP(), a=Math.atan2(q.y-e.y,q.x-e.x); e.rollA=a; e.aimHold=.8; e.dsx=e.x; e.dsy=e.y; g.fx.push({k:"laserwarn",x:e.x,y:e.y,a,len:620,life:.8,max:.8}) }});
         g.pending.push({t:i*1.15+.8,run:()=>{ if(e.hp<=0) return; const a=e.rollA, sx=e.dsx, sy=e.dsy; e.dash=.62; e.dvx=Math.cos(a)*1000; e.dvy=Math.sin(a)*1000; sfx("thunder"); g.shake=Math.max(g.shake,.2);
           g.pending.push({t:.5,run:()=>{ const L=Math.hypot(e.x-sx,e.y-sy); g.fx.push({k:"laserwarn",x:sx,y:sy,a,len:L,life:.75,max:.75}); g.pending.push({t:.75,run:()=>{ aoeL(sx,sy,a,L,e.dmg*.5); g.fx.push({k:"pbeam",x:sx,y:sy+40,a,len:L,col:"255,240,120",life:.4,max:.4}); for(let k=0;k<3;k++) g.fx.push({k:"bolt",bt:"boss",x:sx+Math.cos(a)*L*(k+.5)/3,y:sy+Math.sin(a)*L*(k+.5)/3,life:.3,max:.3}); sfx("thunder") }}) }}) }}) }
@@ -1060,7 +1071,7 @@ function startGame(opts){ opts=opts||{};
           if(age<.55&&age>.25){ const p=(age-.25)/.3; ctx.strokeStyle=`rgba(200,240,255,${1-p})`; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(0,14,20+p*50,(20+p*50)*.4,0,0,7); ctx.stroke() }
           const sq=1+Math.sin(g.t*4)*.03+rec*.08; ctx.translate((right?-1:1)*rec*5,-22-drop*160); ctx.scale(1/sq,sq); drawSkillImg(ctx,"octo",74,right); ctx.restore() } else jfOcto(ctx,m,g.t,GLOW) }
       else if(m.kind==="ifrit"){
-        if(m.breath>0&&typeof drawFireBreath==="function"&&drawFireBreath(ctx,m.x,m.y,m.face,265,Math.min(1,m.breath/.12),g.t)){}
+        if(m.breath>0&&typeof drawFireBreath==="function"&&drawFireBreath(ctx,m.x+Math.cos(m.face)*18,m.y-26+Math.sin(m.face)*10,m.face,265,Math.min(1,m.breath/.12),g.t)){}
         else if(m.breath>0&&HDFX&&PFX.boom_fire0){ ctx.save(); ctx.translate(m.x,m.y); ctx.rotate(m.face); ctx.globalCompositeOperation="lighter";
           for(let i=0;i<14;i++){ const ph=((g.t*2.4+i/14)%1), sp=(jr(i,3)-.5)*.66*ph, d=18+ph*225, fi=Math.min(5,Math.floor(ph*5.5)); pfxDraw(ctx,"boom_fire"+fi,Math.cos(sp)*d,Math.sin(sp)*d,i*1.3+g.t*2,.3+ph*.95,(1-ph*ph)*.8) }
           jGlow(ctx,20,0,46,"255,190,90",.7); ctx.restore() }
@@ -1110,7 +1121,6 @@ function startGame(opts){ opts=opts||{};
       ctx.fillStyle="#03010a"; ctx.beginPath(); ctx.arc(f.x,f.y,30+p*20,0,7); ctx.fill(); ctx.strokeStyle="#ffc870"; ctx.lineWidth=3; ctx.stroke(); return true }
     if(f.k==="cboom"&&SKILL_IMG.cboom&&!window.__noArt){ const im=SKILL_IMG.cboom, q=1-k, S=(34+52*Math.sqrt(q)); ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.x*.01); ctx.globalCompositeOperation=GLOW; ctx.globalAlpha=Math.min(1,k*2); ctx.drawImage(im,-S/2,-S/2,S,S); ctx.restore(); return true }
     if(f.k==="cboom") return true;
-    if(f.k==="slash"&&HERO.id==="warrior"&&HSt.tier>=4&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.hatk_warrior&&!window.__noArt) return true;   // 4차는 공격 그림 속 검 궤적만 (따로 초승달 안 그려요)
     if(f.k==="slash"&&HERO.id==="warrior"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.wslash){ const im=SKILL_IMG.wslash, q=1-k, R=f.r*(.92+.13*Math.min(1,q*3)), sc=R/(im.width*.39), W2=im.width*sc;
       // 금빛 바위 검기 그림: 볼록한 쪽이 벤 방향을 향해요 (휘두르는 순간 확 펼쳐졌다가 사라짐)
       ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(f.a+Math.PI); if(f.flip) ctx.scale(1,-1); ctx.globalCompositeOperation=GLOW; ctx.globalAlpha=Math.min(1,k*1.8);
@@ -1320,6 +1330,7 @@ function startGame(opts){ opts=opts||{};
   function queueOrigin(id){ if(g.paused) g.oriQ=id; else originQuiz(id) }
   function originQuiz(id){
     if(g.over) return;
+    if(g.qskip&&!NM){ g.shake=.4; castOrigin(); return }   /* 선생님 모드(카드 문제 건너뛰기 켜짐): 오리진도 문제 없이 바로 */
     g.paused=true; sfx("bosscast"); g.shake=.4; g.fx.push({k:"flash",col:"#ffd36a",life:.5,max:.5});
     let i=0, ok=0; const qs=pickMixed(2).map(c=>({c,q:makeQ(c,{short:true})}));
     const show=()=>{ const {c,q}=qs[i];
@@ -1632,7 +1643,7 @@ function startGame(opts){ opts=opts||{};
       if(b.kind==="web"){ b.life-=dt; if(!P.dead&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r*.5)**2) g.pslow=Math.max(g.pslow||0,.25); continue }
       if(b.kind==="axe"){ b.tt+=dt; b.life-=dt; b.hitCD-=dt; const u=b.tt/b.T; let px,py; if(u<1){ const k=1-(1-u)*(1-u); px=b.sx+(b.tx-b.sx)*k; py=b.sy+(b.ty-b.sy)*k } else { const own=g.en.find(o=>o.id===b.eid), hx=own?own.x:b.sx, hy=own?own.y:b.sy, k=Math.min(1,(u-1)*(u-1)); px=b.tx+(hx-b.tx)*k; py=b.ty+(hy-b.ty)*k } b.vx=(px-b.x)/Math.max(dt,1e-3); b.vy=(py-b.y)/Math.max(dt,1e-3); b.x=px; b.y=py; if(!P.dead&&b.hitCD<=0&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ b.hitCD=.7; hitPlayer(b.dmg) } continue }
       if(b.kind==="vortex"){ b.life-=dt; b.hitCD-=dt; const dx=b.x-P.x, dy=b.y-P.y, d=Math.hypot(dx,dy)||1; if(!P.dead&&d<b.pr&&d>(b.minR||0)){ const k=b.pull*(1-d/b.pr*.5); P.x+=dx/d*Math.min(d,k*dt); P.y+=dy/d*Math.min(d,k*dt) } if(!P.dead&&d<b.r+P.r&&b.hitCD<=0){ b.hitCD=.8; hitPlayer(b.dmg) } continue }
-      if(b.kind==="beam"){ b.life-=dt; b.ot+=dt; b.hitCD-=dt; b.a=b.a0+b.w*b.ot; const px=P.x-b.x, py=P.y-b.y, al=px*Math.cos(b.a)+py*Math.sin(b.a), ac=Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a)); if(!P.dead&&b.hitCD<=0&&al>0&&al<b.len&&ac<b.r+P.r){ b.hitCD=.9; hitPlayer(b.dmg) } continue }
+      if(b.kind==="beam"){ b.life-=dt; b.ot+=dt; b.hitCD-=dt; b.a=b.a0+b.w*b.ot; if(b.eid!==undefined){ const o=g.en.find(x=>x.id===b.eid&&x.hp>0); if(o){ b.x=o.x+Math.cos(b.a)*o.r*.55; b.y=o.y-o.r*.35+Math.sin(b.a)*o.r*.35 } else b.life=Math.min(b.life,.2) } /* 브레스 시작점이 용 입을 따라다녀요 */ const px=P.x-b.x, py=P.y-b.y, al=px*Math.cos(b.a)+py*Math.sin(b.a), ac=Math.abs(-px*Math.sin(b.a)+py*Math.cos(b.a)); if(!P.dead&&b.hitCD<=0&&al>0&&al<b.len&&ac<b.r+P.r){ b.hitCD=.9; hitPlayer(b.dmg) } continue }
       if(b.bounce){ if(b.grow) b.r=Math.min(64,b.r+dt*8); b.hitCD=(b.hitCD||0)-dt; b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; if(b.x<b.cx-b.hw||b.x>b.cx+b.hw) b.vx*=-1; if(b.y<b.cy-b.hh||b.y>b.cy+b.hh) b.vy*=-1; b.x=Math.max(b.cx-b.hw,Math.min(b.cx+b.hw,b.x)); b.y=Math.max(b.cy-b.hh,Math.min(b.cy+b.hh,b.y)); if(!P.dead&&b.hitCD<=0&&(b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ b.hitCD=1; hitPlayer(b.dmg) } continue }
       if(b.kind==="shock"){ b.rad+=b.v*dt; b.life-=dt; const d=Math.hypot(P.x-b.x,(P.y-b.y)/.75); if(!P.dead&&!b.hitMe&&Math.abs(d-b.rad)<b.band+P.r*.5){ b.hitMe=1; hitPlayer(b.dmg) } continue }
       b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; if(!P.dead && !b.hitMe && (b.x-P.x)**2+(b.y-P.y)**2<(b.r+P.r)**2){ hitPlayer(b.dmg); if(b.kind==="wave") g.fx.push({k:"wburst",x:P.x,y:P.y-12,m:b.map,life:.4,max:.4}); if(b.pierce) b.hitMe=1; else b.life=0 } }

@@ -807,8 +807,11 @@ function pfxBoom(c,f,k){ const P=PFX.boom_fire0; if(!P) return false; const col=
 function pfxRing(c,P,R,t){ for(let i=0;i<16;i++){ const a=t*1.8+i*Math.PI/8, fx=P.x+Math.cos(a)*R, fy=P.y+Math.sin(a)*R*.9; pfxDraw(c,"flame"+((Math.floor(t*12)+i)&3),fx,fy-10,0,.75+.15*Math.sin(t*9+i)) } }
 function pfxRain(c,z,t){ const k=Math.min(1,z.t/.4,(z.max-z.t)/.25+.2), s=(z.x*7+z.y*3)|0;
   const RI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windrain;
-  if(RI&&SKILL_IMG.windarrow){ const Wd=z.r*2/.81, Hd=Wd*RI.height/RI.width; c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=k*(.8+Math.sin(t*9)*.08); c.drawImage(RI,z.x-Wd*.496,z.y-Hd*.784,Wd,Hd); c.restore();
-    c.save(); c.globalCompositeOperation="lighter"; for(let i=0;i<16;i++){ const sp=2.6+jr(s,i)*1.2, ph=(t*sp+jr(s,i+30))%1, cyc=Math.floor(t*sp+jr(s,i+30)), a=jr(s+cyc,i)*TAU, d=Math.sqrt(jr(s+cyc,i+50))*z.r*.9, gx=z.x+Math.cos(a)*d, gy=z.y+Math.sin(a)*d*.6;
+  if(RI&&SKILL_IMG.windarrow){ const Wd=z.r*2/.81, Hd=Wd*RI.height/RI.width; { const D=typeof warnTex==="function"&&warnTex("windrain","#0e6a48"); c.save();   // 진한 초록 밑그림 (밝은 바닥에서도 또렷하게)
+      if(D){ c.globalAlpha=k*.55; c.drawImage(D,z.x-Wd*.496,z.y-Hd*.784,Wd,Hd) }
+      c.translate(z.x,z.y); c.scale(1,.6); c.fillStyle=`rgba(40,200,130,${.16*k})`; c.beginPath(); c.arc(0,0,z.r,0,TAU); c.fill(); c.strokeStyle=`rgba(200,255,225,${.85*k})`; c.lineWidth=3; c.beginPath(); c.arc(0,0,z.r,0,TAU); c.stroke(); c.restore() }
+    c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=k; c.drawImage(RI,z.x-Wd*.496,z.y-Hd*.784,Wd,Hd); c.globalAlpha=k*(.45+Math.sin(t*9)*.1); c.drawImage(RI,z.x-Wd*.496,z.y-Hd*.784,Wd,Hd); c.restore();
+    c.save(); c.globalCompositeOperation="lighter"; for(let i=0;i<22;i++){ const sp=2.6+jr(s,i)*1.2, ph=(t*sp+jr(s,i+30))%1, cyc=Math.floor(t*sp+jr(s,i+30)), a=jr(s+cyc,i)*TAU, d=Math.sqrt(jr(s+cyc,i+50))*z.r*.9, gx=z.x+Math.cos(a)*d, gy=z.y+Math.sin(a)*d*.6;
       if(ph<.85){ const p=ph/.85; drawWindArrow(c,gx+60*(1-p),gy-220*(1-p),1.84,90,k*Math.min(1,p*4)) }
       else { const p=(ph-.85)/.15; c.strokeStyle=`rgba(180,255,210,${(1-p)*k})`; c.lineWidth=2; c.beginPath(); c.ellipse(gx,gy,4+p*16,(4+p*16)*.45,0,0,TAU); c.stroke() } } c.restore(); return }
   c.save(); c.translate(z.x,z.y);
@@ -948,7 +951,8 @@ const SHOCK_COL={1:"#ff8ac0",2:"#7adc6a",3:"#e8b070",4:"#b98aff",5:"#ff6a3a",6:"
 function drawShockArt(c,b,t){ const S=typeof SKILL_IMG!=="undefined"&&!window.__noArt?SKILL_IMG:null; if(!S||!S.shockring) return false;
   const m=b.map||5, T=typeof warnTex==="function"&&warnTex("shockring",SHOCK_COL[m]||"#ffffff"); if(!T) return false;
   const a=Math.min(1,b.life*2.5), R=b.rad+b.band*.4, W=R*2.12, H=W*.75;
-  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=a; c.drawImage(T,b.x-W/2,b.y-H/2,W,H); c.globalAlpha=a*.45; c.drawImage(S.shockring,b.x-W/2,b.y-H/2,W,H); c.restore();
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=a*.55; c.drawImage(T,b.x-W/2,b.y-H/2,W,H); c.globalAlpha=a*.12; c.drawImage(S.shockring,b.x-W/2,b.y-H/2,W,H); c.restore();   // 은은하게 (뒤가 비쳐 보이게)
+  c.save(); c.globalAlpha=a*.9; c.strokeStyle=SHOCK_COL[m]||"#fff"; c.lineWidth=3; c.beginPath(); c.ellipse(b.x,b.y,R,R*.75,0,0,7); c.stroke(); c.restore();   // 실제로 맞는 선은 또렷하게
   const SD=S["sd_"+m]; if(SD){ const n=Math.max(8,Math.min(22,R/30|0)), z=32/Math.max(SD.width,SD.height); c.save(); c.globalAlpha=a;
     for(let i=0;i<n;i++){ const an=i/n*6.283+b.x*.01, x=b.x+Math.cos(an)*R, y=b.y+Math.sin(an)*R*.75, s=z*(.8+pfxR(i,m)*.5); c.save(); c.translate(x,y); c.rotate(an+t*3+i); c.scale(s,s); c.drawImage(SD,-SD.width/2,-SD.height/2); c.restore() } c.restore() }
   return true }
@@ -1169,7 +1173,10 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     c.save();
     // 땅 갈라짐 (먹선) + 그림자
     const cr=Math.min(1,T/.15); c.globalAlpha=al; c.fillStyle="rgba(10,8,14,.28)"; c.beginPath(); c.ellipse(f.x,gy,Wm*.5*cr,Wm*.12*cr,0,0,7); c.fill();
-    const CK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.inkcrack; if(CK){ const cw=Wm*1.45*(.55+.45*(1-Math.pow(1-cr,3))), ch=cw*CK.height/CK.width; c.globalAlpha=al*Math.min(1,T/.08); c.drawImage(CK,f.x-cw/2,gy-ch*.55,cw,ch); c.globalAlpha=al }
+    const CK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.inkcrack; if(CK){ const cw=Wm*1.7*(.55+.45*(1-Math.pow(1-cr,3))), ch=cw*CK.height/CK.width; c.save(); c.globalAlpha=al*Math.min(1,T/.08); c.translate(f.x,gy+Hm*.02); c.scale(1,.42); c.drawImage(CK,-cw/2,-ch/2,cw,ch); c.restore(); c.globalAlpha=al }   // 갈라진 땅을 바닥에 눕혀서 산 밑동에 딱 붙게
+    // 산이 솟을 때 밑동에서 흙먼지·돌 조각이 튀어요
+    if(T<.7){ const q=T/.7; for(let i=0;i<14;i++){ const a=(i/14)*Math.PI*2, d=Wm*(.32+q*.35), px=f.x+Math.cos(a)*d, py=gy+Math.sin(a)*d*.3-Math.sin(q*Math.PI)*(14+pfxR(i,3)*26); c.fillStyle=`rgba(${i%3?"70,62,58":"120,110,96"},${(1-q)*.85*al})`; c.beginPath(); c.ellipse(px,py,(4+pfxR(i,6)*6)*(1-q*.4),(3+pfxR(i,8)*4)*(1-q*.4),a,0,7); c.fill() }
+      const dg=c.createRadialGradient(f.x,gy,Wm*.1,f.x,gy,Wm*.75); dg.addColorStop(0,`rgba(90,80,70,${.35*(1-q)*al})`); dg.addColorStop(1,"rgba(90,80,70,0)"); c.save(); c.translate(f.x,gy); c.scale(1,.35); c.translate(-f.x,-gy); c.fillStyle=dg; c.beginPath(); c.arc(f.x,gy,Wm*.75,0,7); c.fill(); c.restore() }
     else { c.strokeStyle="rgba(15,12,20,.8)"; c.lineWidth=3; c.lineCap="round"; for(let i=0;i<9;i++){ const a=i*.7+.3, L=Wm*(.35+pfxR(i,4)*.25)*cr; c.beginPath(); c.moveTo(f.x,gy); let px=f.x, py=gy; for(let k2=1;k2<=4;k2++){ px+=Math.cos(a+(pfxR(i,k2)-.5)*.6)*L/4; py+=Math.sin(a+(pfxR(i,k2+5)-.5)*.6)*L/4*.35; c.lineTo(px,py) } c.stroke() } }
     // 산: 땅선 위로만 보이게 잘라서 아래에서 솟아올라요
     c.save(); c.beginPath(); c.rect(f.x-Wm, gy-Hm*1.6, Wm*2, Hm*1.6+4); c.clip();
@@ -1200,7 +1207,7 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     c.fillStyle=`rgba(255,235,180,${.45*A})`; for(let i=0;i<10;i++){ const v=((i/10)+T*.5)%1, [x,y]=P_(v), [x2,y2]=P_(Math.min(1,v+.01)), an=Math.atan2(y2-y,x2-x); c.save(); c.translate(x,y); c.rotate(an); c.beginPath(); c.moveTo(12,0); c.lineTo(-6,-10); c.lineTo(-1,0); c.lineTo(-6,10); c.closePath(); c.fill(); c.restore() }
     c.restore(); return true }
   if(K==="inkdragon"){ const T=f.max-f.life, D0=f.d0||0, u0=Math.max(0,(T-D0)/(f.max-D0)), u=u0<.5?2*u0*u0:1-2*(1-u0)*(1-u0), ca=Math.cos(f.a), sa=Math.sin(f.a);
-    const P_=v=>{ const w=Math.sin(v*9)*26; return [f.x+ca*f.len*v-sa*w, f.y+sa*f.len*v+ca*w] };   // 살짝 굽이치는 길
+    const P_=v=>{ const w=Math.sin(v*7)*58; return [f.x+ca*f.len*v-sa*w, f.y+sa*f.len*v+ca*w] };   // 살짝 굽이치는 길
     const [x,y]=P_(u), al=Math.min(1,f.life*3,T*3); c.save(); c.globalAlpha=al;
     // 먹물 붓자국 꼬리 (굵은 먹 띠 + 번짐)
     if(u>0){ const NB=26;
@@ -1215,7 +1222,7 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
     const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{};
     if(S.dr_head&&S.dr_body&&S.dr_tail){ const appear=Math.min(1,T/Math.max(.01,D0)), sc=.55+appear*.45, N=13, sp=46*sc, BH=70*sc;
       // 머리에서 꼬리 쪽으로: 지나온 길 + 몸을 따라 흐르는 물결
-      const pts=[]; for(let i=0;i<=N+1;i++){ const v=u-i*sp/f.len, [px,py]=P_(Math.max(-.3,v)), [qx,qy]=P_(Math.max(-.3,v)+.002), an=Math.atan2(qy-py,qx-px), wv=Math.sin(T*7.5-i*.62)*(6+i*2.6)*sc; pts.push([px-Math.sin(an)*wv, py+Math.cos(an)*wv]) }
+      const pts=[]; for(let i=0;i<=N+1;i++){ const v=u-i*sp/f.len, [px,py]=P_(Math.max(-.3,v)), [qx,qy]=P_(Math.max(-.3,v)+.002), an=Math.atan2(qy-py,qx-px), wv=Math.sin(T*6.5-i*.55)*(12+i*4.4)*sc; pts.push([px-Math.sin(an)*wv, py+Math.cos(an)*wv]) }
       const angAt=i=>{ const a=pts[Math.max(0,i)], b=pts[Math.min(pts.length-1,i+1)]; return Math.atan2(a[1]-b[1],a[0]-b[0]) };
       const part=(img,x,y,an,w,h,ox,oy,flipY,alpha,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(flipY) c.scale(1,-1); if(alpha!==undefined) c.globalAlpha*=alpha; if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
       const up=a=>Math.cos(a)<0;   // 왼쪽으로 날 때는 등이 위로 오게 뒤집어요
@@ -1472,8 +1479,9 @@ function drawSig46Shot(c,b,t){ const K=b.kind;
   if(K==="beam"&&b.style==="breath"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.icebreath){ const im=SKILL_IMG.icebreath, L=b.len*1.08, sc=L/(im.width*(1-.05)), H=im.height*sc*.62, ox=im.width*.05*sc, open=Math.min(1,(b.ot||0)/.25), fade=Math.min(1,b.life/.35);
     const TX=waveTex(8,"icebreath"); c.save(); c.translate(b.x,b.y); c.rotate(b.a); const fl=1+Math.sin(t*23)*.04;
     if(TX){ c.globalAlpha=open*fade*.55; c.drawImage(TX.sh,-ox,-H*.51*fl,L*open,H*fl) }   // 밝은 얼음 바닥에서도 보이게 푸른 그림자를 먼저
-    c.globalCompositeOperation="lighter"; c.globalAlpha=open*fade; c.drawImage(TX?TX.cv:im,-ox,-H*.51*fl,L*open,H*fl);
-    c.globalAlpha=open*fade*.35; c.drawImage(im,-ox+Math.sin(t*9)*10,-H*.56,L*open*1.03,H*1.1);
+    c.globalCompositeOperation="lighter"; c.globalAlpha=open*fade; { const SRC=TX?TX.cv:im, NS=12, sw=SRC.width/NS, dw=L*open/NS;   // 일렁이는 냉기: 조각마다 위아래로 물결치며 굵기가 숨 쉬듯 바뀌어요
+      for(let i=0;i<NS;i++){ const u=i/NS, wob=Math.sin(t*14-i*.9)*H*.06*u, sy=1+Math.sin(t*11-i*.7)*.12*u; c.drawImage(SRC,i*sw,0,sw+1,SRC.height,-ox+i*dw,-H*.51*fl*sy+wob,dw+1,H*fl*sy) } }
+    c.globalAlpha=open*fade*.3; c.drawImage(im,-ox+Math.sin(t*9)*10,-H*.56+Math.sin(t*7)*6,L*open*1.03,H*1.1);
     if(typeof jGlow==="function") jGlow(c,0,0,60,"220,245,255",.8*fade); c.restore(); return true }
   if(K==="beam"&&b.style==="breath"){ const L=b.len, w=b.r; c.save(); c.translate(b.x,b.y); c.rotate(b.a); c.globalCompositeOperation="lighter";
     const g=c.createLinearGradient(0,0,L,0); g.addColorStop(0,"rgba(240,250,255,.95)"); g.addColorStop(.5,"rgba(150,215,255,.6)"); g.addColorStop(1,"rgba(90,160,255,0)"); c.fillStyle=g;
@@ -1611,7 +1619,7 @@ function drawHoleShot(c,b,t){ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG
 /* 불꽃 숨결 (이프리트) */
 function drawFireBreath(c,x,y,a,len,al,t){ /* 불길이 앞으로 확 퍼지며 일렁여요 */ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.firebreath; if(!im) return false;
   const puff=1+Math.sin(t*9)*.06+Math.sin(t*23)*.03, L=len*puff, sc=L/(im.width*.98), H=im.height*sc*.7*(1+Math.sin(t*13)*.06);
-  c.save(); c.translate(x,y); c.rotate(a); c.globalCompositeOperation="lighter"; c.globalAlpha=al; drawFlameImg(c,im,L,H,.01,.52,t,1.3,true,.09);
+  c.save(); c.translate(x,y); c.rotate(a+Math.sin(t*6)*.05); c.globalCompositeOperation="lighter"; c.globalAlpha=al; drawFlameImg(c,im,L,H,.01,.52,t,1.3,true,.14);
   c.globalAlpha=al*.3; c.translate(Math.sin(t*11)*8,0); drawFlameImg(c,im,L*1.05,H*1.12,.01,.53,t+.37,4.1,true,.12); c.restore(); return true }
 
 /* ===== 제미나이 번개 그림을 '번개 줄기'로 눕혀서 모든 번개(빛줄기·돌진·구슬·작은 낙뢰)에 써요 ===== */
@@ -1654,9 +1662,12 @@ function drawFireballFx(c,x,y,a,L,t,al){ const im=typeof SKILL_IMG!=="undefined"
 
 /* ===== 마법사: 독 안개 · 메테오 낙하 마법진 (제미나이 그림) ===== */
 function drawMistArt(c,z,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.poisonmist; if(!im) return false; const k=Math.min(1,z.t/.5,(z.max-z.t)/.4+.15), S=z.r*2.5;
-  c.save(); c.translate(z.x,z.y); c.scale(1,.5); c.globalCompositeOperation="lighter";
-  c.save(); c.rotate(-t*.35); c.globalAlpha=k*.85; c.drawImage(im,-S/2,-S/2,S,S); c.restore();
-  c.save(); c.rotate(t*.22+1.3); const s2=S*(.82+Math.sin(t*1.7)*.05); c.globalAlpha=k*.4; c.drawImage(im,-s2/2,-s2/2,s2,s2); c.restore();
+  c.save(); c.translate(z.x,z.y); c.scale(1,.5);
+  { const D=typeof warnTex==="function"&&warnTex("poisonmist","#3a0a50"); if(D){ c.save(); c.rotate(-t*.35); c.globalAlpha=k*.5; c.drawImage(D,-S/2,-S/2,S,S); c.restore() } }   // 진한 보라 밑그림 (밝은 바닥에서도 보이게)
+  c.fillStyle=`rgba(120,40,160,${.18*k})`; c.beginPath(); c.arc(0,0,z.r,0,7); c.fill(); c.strokeStyle=`rgba(200,140,255,${.75*k})`; c.lineWidth=4; c.setLineDash([16,10]); c.lineDashOffset=-t*20; c.beginPath(); c.arc(0,0,z.r,0,7); c.stroke(); c.setLineDash([]);   // 범위 테두리
+  c.globalCompositeOperation="lighter";
+  c.save(); c.rotate(-t*.35); c.globalAlpha=k; c.drawImage(im,-S/2,-S/2,S,S); c.restore();
+  c.save(); c.rotate(t*.22+1.3); const s2=S*(.82+Math.sin(t*1.7)*.05); c.globalAlpha=k*.6; c.drawImage(im,-s2/2,-s2/2,s2,s2); c.restore();
   c.restore(); return true }
 function drawFireCircle(c,f,k,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.firecircle; if(!im) return false; const q=1-k, W=f.r*2.3*(.85+.15*Math.min(1,q*4)), H=W*im.height/im.width;
   c.save(); c.translate(f.x,f.y); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*5)*(.42+.1*Math.sin(t*14)); c.drawImage(im,-W/2,-H/2,W,H); c.restore(); return true }   // 내 메테오 표시는 은은하게 (보스 경고가 묻히지 않게)

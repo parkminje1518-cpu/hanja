@@ -729,6 +729,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .qrgrid.compact{display:flex;flex-wrap:wrap;gap:6px}.qrgrid.compact .qrc{min-height:0;padding:8px 14px;flex:0 0 auto}.qrgrid.compact .qrc small,.qrgrid.compact .qrc em{display:none}.qrgrid.compact .qrc strong{font-size:16px}.qrgrid.compact .qrc .qrs{font-size:11px}
 .qrinfo{font-size:13px;color:#c8f0d8;margin:2px 0 8px}
 .mapc.slim>small{display:none}
+.pickGrid{flex-wrap:wrap;justify-content:center;max-height:52vh;overflow-y:auto;margin:10px 0}.pickGrid .ph{min-width:96px}
 .pickHero{margin:8px 0 4px}.pickHero>b{display:block;font-size:15px;color:#ffd36a;margin-bottom:6px}.phl{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.ph{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:78px;padding:6px 4px;border-radius:12px;background:#1a1428;border:2px solid #3a2f6a;color:#f3effd;font-size:13px}.ph small{font-size:11px;opacity:.7}.ph.on{border-color:#ffd36a;box-shadow:0 0 10px rgba(255,211,106,.6)}
 .tbh{display:block;color:#ffd36a;font-size:13px;margin:2px 0 4px}.tbheroes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}.tbheroes button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px!important;font-size:12px!important}.tbheroes button.on{outline:2px solid #ffd36a}
 /* 사자성어·속담처럼 긴 문제: 글자를 더 크게 (태블릿·휴대폰에서도 잘 보이게) */
@@ -835,8 +836,10 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .grow{display:flex;align-items:center;gap:12px;font-family:var(--f-ui);font-size:20px;font-variant-numeric:tabular-nums}
 .grow .gtime{flex:1;text-align:center}
 .gtool{pointer-events:auto;width:48px;height:48px;border-radius:12px;border:2px solid #f6c544;background:#2a2347;color:#fff;font-size:20px;margin-right:6px}
-.gtoolbox{pointer-events:auto;position:absolute;right:10px;top:118px;z-index:30;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(30,26,52,.92);border:2px solid #f6c544;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.gtoolbox{pointer-events:auto;position:absolute;right:10px;top:118px;z-index:30;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(30,26,52,.92);border:2px solid #f6c544;box-shadow:0 6px 20px rgba(0,0,0,.35);max-height:calc(100vh - 140px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.gtoolbox::-webkit-scrollbar{width:8px}.gtoolbox::-webkit-scrollbar-thumb{background:#f6c544;border-radius:4px}
 .gtoolbox button{font-family:var(--f-ui);font-size:15px;padding:8px 12px;border-radius:10px;border:0;background:#fffdf6;color:#25211b;text-align:left;min-width:170px}
+.tbjump{position:sticky;top:-10px;z-index:2;display:flex;gap:6px;margin:-10px -10px 4px;padding:8px 10px;background:rgba(30,26,52,.97);border-bottom:1px solid #f6c544}.tbjump button{min-width:0!important;flex:1;text-align:center!important;background:#f6c544!important;font-weight:700}
 .gtoolbox small{color:#d8cfbb;font-size:11px;text-align:center}
 .gpause{pointer-events:auto;width:48px;height:48px;border-radius:12px;border:2px solid #d8cfbb;background:#fffdf6;color:#25211b;font-family:var(--f-ui);font-size:18px}
 .gbanner{align-self:center;margin-top:8px;background:#25211b;color:#fffdf6;border-radius:999px;padding:8px 18px;font-family:var(--f-ui);font-size:19px;text-align:center;max-width:100%}
@@ -957,17 +960,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10240632"></script>
-<script src="jobs.js?v=10240632"></script>
-<script src="maps.js?v=10240632"></script>
-<script src="art.js?v=10240632"></script>
-<script src="monsters.js?v=10240632"></script>
-<script src="jobfx.js?v=10240632"></script>
-<script src="words.js?v=10240632"></script>
-<script src="sayings.js?v=10240632"></script>
-<script src="sfx.js?v=10240632"></script>
+<script src="sprites.js?v=10241245"></script>
+<script src="jobs.js?v=10241245"></script>
+<script src="maps.js?v=10241245"></script>
+<script src="art.js?v=10241245"></script>
+<script src="monsters.js?v=10241245"></script>
+<script src="jobfx.js?v=10241245"></script>
+<script src="words.js?v=10241245"></script>
+<script src="sayings.js?v=10241245"></script>
+<script src="sfx.js?v=10241245"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10240632"></script>
+<script src="mp.js?v=10241245"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1506,7 +1509,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10240632"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10241245"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -2172,4 +2175,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10240632"></script>
+<script src="game.js?v=10241245"></script>

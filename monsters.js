@@ -451,6 +451,8 @@ const BOSS_ART = {}; const BOSS_ART_LIST = (typeof BOSS_ART_FILES!=="undefined"?
 function loadBossArt(){ for(const k in BOSS_ART_LIST){ const o=BOSS_ART_LIST[k], im=new Image(); im.onload=()=>{ BOSS_ART[k]={im,face:o.face===undefined?1:o.face,w:o.w||4,dy:o.dy||0} }; im.src=o.src } }
 loadBossArt();
 const artOf = e=>BOSS_ART[e.bid]||BOSS_ART[e.look];
+/* 떠 있는 보스: 이동 그림을 늘 천천히 재생 + 둥실 위아래 [장면 속도, 띄우는 높이, 흔들림 폭, 기울기] */
+const HOVER_RUN={st8_3:[6,12,10,.05],st4_0:[5,8,7,.03],st6_0:[9,10,9,.04],st6_2:[5,6,6,.02],st7_0:[5,10,8,.04],st8_2:[5,8,7,.03],st9_1:[5,6,6,.02],st10_2:[5,6,6,.02],st10_3:[5,6,7,.02]};
 function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   // 단계별 최대 크기 (약한 185 · 중간 215 · 강한 250 · 최종 295 픽셀 높이) · 강할수록 위엄 있게
   const tier=bossTier(e), MAXH=[225,260,300,350][Math.min(3,tier)]*1.1, MAXW=MAXH*1.3;
@@ -469,9 +471,9 @@ function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
     if(dt>=0&&dt<wd+.42){ const cw=ATK.width/N, ch=ATK.height, idx=dt<wd?(N===4&&dt>wd*.55?1:0):dt<wd+.2?N-2:N-1, rh=h*.86, rw=rh*cw/ch;
       ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
       if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
-  const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], FLY=RUN&&RIGS[e.bid]&&RIGS[e.bid].move==="fly", moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.k==="axethrow"?(e.atk.wind||1)+2.95:(e.atk.wind||.4)+.3));
-  if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, rh=h*(FLY?.95:.82), rw=rh*cw/ch, idx=FLY?Math.floor(t*11+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
-    ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
+  const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], HOV=RUN&&HOVER_RUN[e.bid], FLY=RUN&&((RIGS[e.bid]&&RIGS[e.bid].move==="fly")||HOV), moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.k==="axethrow"?(e.atk.wind||1)+2.95:(e.atk.wind||.4)+.3));
+  if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, rh=h*(FLY?.95:.82), rw=rh*cw/ch, idx=FLY?Math.floor(t*(HOV?HOV[0]:11)+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
+    ctx.save(); ctx.translate(e.x,y0-(HOV?HOV[1]+Math.sin(t*2.2+e.wob)*HOV[2]:0)); ctx.rotate(HOV?Math.sin(t*2.2+e.wob+1)*HOV[3]:0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);   // 승천한 아스라: 공중에서 둥실 굽이치며
     if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true }
   ctx.save(); ctx.translate(e.x,y0); if(A.face) ctx.scale(Math.sign(fs*A.face)*Math.max(.15,Math.abs(fs)),1);
   const paint=()=>{ if(A.rig) drawRig(ctx,A,e,t,w,h); else ctx.drawImage(A.im,-w/2,-h,w,h) };
