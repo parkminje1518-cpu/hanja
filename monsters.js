@@ -1389,7 +1389,7 @@ const RIGS = {
   st10_0:{move:"quad", parts:[{t:"wing",side:"L",z:-1,poly:R_(0.4,0,4.2,5),piv:[4,5]},{t:"wing",side:"R",z:-1,poly:R_(6.2,0.4,9.2,5),piv:[6.6,5]},{t:"tail",z:-1,poly:R_(0,5.6,2.6,8),piv:[2.4,6.8]},{t:"leg",poly:R_(6.6,7.6,10,10),piv:[7.4,7.6]},{t:"leg",z:-1,poly:R_(0.6,7.6,3.4,10),piv:[2,7.6],ph:.5}]},
   st10_1:{move:"gallop",mel:"weapon,leg",mag:"weapon",parts:[{t:"weapon",side:"L",poly:[[0.3,0],[4.7,0],[4.9,3.9],[2.3,3.9]],piv:[4.4,3.6]},{t:"leg",poly:R_(0,5.8,3.6,10),piv:[2.4,6]},{t:"leg",z:-1,poly:R_(3.6,6.6,7.6,10),piv:[5.4,6.8],ph:.5}]},
   st10_2:{move:"hover", parts:[{t:"weapon",side:"L",cast:1,poly:[[0,2.3],[2.3,2.3],[2.5,8],[0.7,8]],piv:[2,5]},{t:"float",poly:R_(1,0.3,9,3.1),piv:[5,1.7]},{t:"float",poly:R_(6.4,3.3,10,4.7),piv:[8.2,4],ph:.5}]},
-  st10_3:{move:"hover", parts:[{t:"weapon",side:"R",poly:R_(7.8,2,10,6.9),piv:[8,6]},{t:"weapon",side:"L",poly:R_(0,5.5,3,8.5),piv:[2.8,6]},{t:"float",poly:R_(2,0,8,2.3),piv:[5,1.2]}]},
+  st10_3:{move:"hover", parts:[]},   /* 새 고해상도 그림: 한 덩어리로 둥실 */
 };
 /* 조각 만들기: 그림이 불러와지면 한 번만 (몸통에서 조각 부분을 지우고, 조각은 따로 잘라 둬요) */
 function buildRig(key,A){ const R=RIGS[key]; if(!R||A.rig) return; const im=A.im, W=im.width, H=im.height, sx=W/10, sy=H/10;
@@ -1500,7 +1500,7 @@ const ATK_PARTS={
   st7_1:["wing,tail","wing"], st7_2:["arm","arm"],
   st8_0:["head,leg","head,tail"], st8_1:["arm","arm"], st8_2:["weapon","weapon"], st8_3:["head","float,head"],
   st9_0:["head","head,tail"], st9_1:["float","float"], st9_2:["head,leg","head,tail"], st9_3:["weapon","weapon"],
-  st10_0:["wing,leg,tail","wing"], st10_2:["weapon,float","weapon,float"], st10_3:["weapon","float,weapon"] };
+  st10_0:["wing,leg,tail","wing"], st10_2:["weapon,float","weapon,float"], st10_3:["",""] };
 function atkPartFor(rig,k,key){ const mel=!!MELEE[k];
   if(rig.mel&&mel) return rig.mel; if(rig.mag&&!mel) return rig.mag;
   const AP=ATK_PARTS[key]; if(AP) return AP[mel?0:1];

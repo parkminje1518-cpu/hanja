@@ -1819,13 +1819,16 @@ function drawClawFx(c,f,k){ const p=1-k, sw=Math.min(1,p/.35), fade=p<.35?1:Math
 /* ===== 청룡: 서예 도령의 묵룡처럼 머리·몸통 마디·발·꼬리가 이어져 물결치며 날아요 (푸른빛) ===== */
 function drawBlueDragon(c,m,t){ const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{}; if(!S.dr_head||!S.dr_body||!S.dr_tail||typeof artTint!=="function") return false;
   const TC="#3a8cff", H_=artTint("dr_head",TC), B_=artTint("dr_body",TC), T_=artTint("dr_tail",TC), F_=S.dr_front&&artTint("dr_front",TC), K_=S.dr_back&&artTint("dr_back",TC); if(!H_||!B_||!T_) return false;
-  const tr=m._tr||(m._tr=[]); tr.unshift([m.x,m.y]); if(tr.length>60) tr.length=60;
-  const N=11, sc=.62, step=4, pts=[]; for(let i=0;i<=N+1;i++){ const q=tr[Math.min(tr.length-1,i*step)]; pts.push([q[0]+Math.sin(t*7-i*.6)*4*(i/N),q[1]+Math.cos(t*7-i*.6)*4*(i/N)]) }
+  const tr=m._tr||(m._tr=[]); tr.unshift([m.x,m.y]); if(tr.length>84) tr.length=84;
+  const N=11, NT=5, sc=.62, step=4, pts=[]; for(let i=0;i<=N+NT+1;i++){ const q=tr[Math.min(tr.length-1,i*step)]; pts.push([q[0]+Math.sin(t*7-i*.6)*4*Math.min(1.6,i/N),q[1]+Math.cos(t*7-i*.6)*4*Math.min(1.6,i/N)]) }
   const angAt=i=>{ const a=pts[Math.max(0,i)], b=pts[Math.min(pts.length-1,i+1)]; const an=Math.atan2(a[1]-b[1],a[0]-b[0]); return isNaN(an)?0:an };
   const part=(img,x,y,an,w,h,ox,oy,fy,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(fy) c.scale(1,-1); if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
   const up=a=>Math.cos(a)<0, sp=34*sc*1.3, BH=70*sc;
   if(K_){ const a=angAt(N-3), w=70*sc, h=w*K_.height/K_.width; part(K_,pts[N-3][0],pts[N-3][1],a+(up(a)?-1:1)*(.9+Math.sin(t*8)*.45),w,h,.25,.2,up(a)) }
-  { const a=angAt(N), w=128*sc, h=w*T_.height/T_.width, CR=.84, r=a+(up(a)?-1:1)*Math.PI*1.5+Math.sin(t*7.5-N*.6)*.25; c.save(); c.translate(pts[N][0],pts[N][1]); c.rotate(r); if(up(a)) c.scale(1,-1); c.drawImage(T_,0,0,T_.width,T_.height*CR,-w*.84,-h*CR+h*.05,w,h*CR); c.restore() }   /* 꼬리 뿌리의 잘린 끝은 잘라 내고 몸통 밑으로 이어 붙여요 */
+  /* 꼬리: 몸통이 점점 가늘어지며 이어지고, 끝에 꼬리털(꼬리 그림의 털 부분만)이 휘날려요 */
+  { const E=N+NT, a=angAt(E-1)+Math.PI+Math.sin(t*7.5-E*.6)*.3, TW=T_.width, TH=T_.height, cx=.56*TW, cy=.33*TH, va=Math.atan2(-.27*TH,-.56*TW), w=118*sc, s=w/TW;
+    c.save(); c.translate(pts[E][0],pts[E][1]); c.rotate(a-va); c.scale(s,s*(up(a+Math.PI)?-1:1)); c.drawImage(T_,0,0,TW*.62,TH*.5,-cx,-cy,TW*.62,TH*.5); c.restore() }
+  for(let i=N+NT;i>N;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]), q=(i-N)/NT, tp=.52*(1-q*.72); part(B_,mx,my,a,Math.max(sp*.8,d*1.3),BH*tp,.5,.55,up(a),.32,.68) }
   for(let i=N;i>=1;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]), tp=1-Math.pow(i/N,1.6)*.48; part(B_,mx,my,a,Math.max(sp,d*1.3),BH*tp,.5,.55,up(a),.32,.68) }   /* 꼬리 쪽으로 갈수록 가늘어져 꼬리와 자연스럽게 이어져요 */
   if(F_){ const a=angAt(2), w=80*sc, h=w*F_.height/F_.width; part(F_,pts[2][0],pts[2][1]+5*sc,a+(up(a)?-1:1)*(1.05+Math.sin(t*8)*.5),w,h,.22,.18,up(a)) }
   { const a=angAt(0)+Math.sin(t*7.5+.8)*.08, w=140*sc, h=w*H_.height/H_.width; part(H_,pts[0][0],pts[0][1],a,w,h,.3,.55,up(a)) }
