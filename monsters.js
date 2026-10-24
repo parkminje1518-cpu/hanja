@@ -1299,7 +1299,7 @@ Object.assign(FLYERS,{icesprite:1,drumling:1,nebula:1,comet:1});
    [기술 종류, 이름] · 최종 보스는 체력 50% 아래에서 「필살기(ult)」를 한 번 써요 */
 const BOSS_SKILLS = {
   1:[ {k:[["shellroll","껍데기 굴리기"],["summon","새끼 달팽이 부르기"]], sig:"🐌 껍데기 속에 숨어 데굴데굴 세 번 굴러와요. 굴러올 길이 빨간 띠로 보이니 옆으로 비켜요!"},
-      {k:[["dash","독침 돌진"],["beeswarm","벌떼 추격"],["summon","벌떼 부르기"]], sig:"🐝 벌 여섯 마리가 나를 쫓아와요. 벌은 느리니까 계속 움직이면 따돌릴 수 있어요!"},
+      {k:[["dash","독침 돌진"],["beeswarm","벌떼 추격"],["summon","벌떼 부르기"]], sig:"🐝 벌 여섯 마리가 빠르게 나를 쫓아와요. 크게 원을 그리며 달리면 따돌릴 수 있어요!"},
       {k:[["spore","독 포자"],["bigjump","점프 내려찍기"],["ring","독액 분출"],["summon","슬라임 분열"]], split:1, sig:"💚 높이 뛰어올라 내 자리에 쿵! 빨간 원에서 나와요. 체력이 절반이 되면 작은 슬라임 둘로 갈라져요."},
       {k:[["ring","꽃잎 폭풍"],["bigjump3","왕의 3연속 점프"],["spore","꽃가루 독"],["orbs","꽃의 구슬"],["summon","왕실 슬라임"]], ult:["nova","꽃왕관의 대축제"], sig:"👑 세 번 연속으로 뛰어올라 내려찍어요. 빨간 원이 생기면 계속 옮겨 다녀요!"} ],
   2:[ {k:[["dash","도토리 창 돌격"],["acornroll","도토리 굴리기"],["summon","도토리 병사 부르기"]], sig:"🌰 큰 도토리가 여러 줄로 굴러와요. 빨간 띠가 없는 빈 줄로 피해요!"},
@@ -1337,7 +1337,7 @@ const BOSS_SKILLS = {
   10:[ {k:[["dash","공허 할퀴기"],["fire5","별불꽃 날개"],["voidclaw","차원 가르기"],["summon","별 부스러기"]], sig:"🌌 내 자리를 지나는 세 줄로 공간이 갈라져요. 줄이 차례로 터지니 빈 곳으로 옮겨요!"},
       {k:[["dash","성운 돌진"],["axethrow","별 도끼 던지기"],["orbs","별 구슬"],["meteor","성운 낙하"],["laser","도끼 광선"]], sig:"🪓 별 도끼를 던졌다가 다시 받아요. 빨간 줄 밖으로 피하고 돌아올 때도 조심해요!"},
       {k:[["planetring","행성 고리"],["meteor","별똥별 낙하"],["orbs","중력 구슬"],["laser","천체 광선"],["cross","별자리 십자"],["ring","성좌 폭발"]], sig:"🪐 행성들이 고리 모양으로 보스에게서 퍼져 나가요. 초록색 빈틈으로 빠져나가요!"},
-      {k:[["eventhorizon","사건의 지평선"],["laser","종언의 낫"],["cross","종언의 십자"],["spiral","은하 소용돌이"],["meteor","별 비"],["nova","별의 소멸"],["orbs","공허 구슬"],["summon","지난 보스 불러내기"]], ult:["storm","우주의 종언"], sig:"🌀 보스가 블랙홀처럼 끌어당기고 충격파가 두 번 퍼져요. 바깥으로 걸으며 충격파를 피해요!"} ],
+      {k:[["eventhorizon","사건의 지평선"],["laser","종언의 낫"],["cross","종언의 십자"],["spiral","은하 소용돌이"],["meteor","별 비"],["nova","별의 소멸"],["orbs","공허 구슬"],["summon","지난 보스 불러내기"]], ult:["storm","우주의 종언"], sig:"🌀 내 발밑에 블랙홀이 생겨 끌어당기고 충격파가 세 번 퍼져요. 바깥으로 걷다가 보라 원이 뜨면 크게 터지니 원 밖으로!"} ],
 };
 /* 스킬 세기: 맵 높이 × 보스 단계 */
 const bossPow = (m,tier)=>({ n:1+(m-1)*.09+tier*.12, cd:Math.max(.55,1.12-(m-1)*.04-tier*.07), sp:1+(m-1)*.035+tier*.04 });
@@ -1349,7 +1349,7 @@ const RIGS = {
   st1_0:{move:"crawl", parts:[{t:"head",poly:R_(7.3,1.6,10,7),piv:[7.6,6.4]}]},
   st1_1:{move:"fly", parts:[{t:"wing",side:"L",z:-1,poly:[[0,0],[3.9,1.4],[3.9,4.6],[0.4,4.6]],piv:[3.9,3.3]},{t:"wing",side:"R",z:-1,poly:[[6.1,0],[10,0],[10,4.2],[5.9,4.3],[5.9,2]],piv:[5.9,3.3]},{t:"tail",poly:R_(3.2,5.6,6.9,10),piv:[5,5.6],thrust:1}]},
   st1_2:{move:"heavy", parts:[{t:"arm",side:"L",poly:R_(0.3,3.3,2.7,8.2),piv:[2.4,3.7]},{t:"arm",side:"R",poly:R_(7.3,3.3,9.8,8.2),piv:[7.6,3.7]}]},
-  st1_3:{move:"squash", parts:[{t:"float",poly:R_(1.2,0,8.8,3.2),piv:[5,3.2]}]},
+  st1_3:{move:"squash", parts:[]},   /* 꽃왕관이 몸에서 떨어져 보이지 않게 한 덩어리로 출렁여요 */
   st2_0:{move:"walk", parts:[{t:"spear",poly:R_(7.2,0,10,10),piv:[8.3,6.1]},{t:"arm",side:"L",poly:R_(0,5,4,9.6),piv:[3.4,5.6],small:1}]},
   st2_1:{move:"gallop", parts:[{t:"leg",z:-1,poly:R_(1,7.2,4.6,10),piv:[3,7.2],ph:.5},{t:"leg",poly:R_(5.6,7.4,8.4,10),piv:[6.8,7.4]},{t:"tail",poly:R_(0,2.4,2.2,6.2),piv:[2,5]},{t:"head",poly:R_(7.2,2.4,10,7.4),piv:[7.2,5.4]}]},
   st2_2:{move:"waddle", parts:[{t:"arm",side:"L",poly:R_(1.4,5.2,3.7,7.8),piv:[3.5,5.6]},{t:"arm",side:"R",poly:R_(6.3,5.2,8.7,7.8),piv:[6.5,5.6]},{t:"cap",poly:R_(0.8,0,9.2,4.7),piv:[5,4.7]}]},
@@ -1487,7 +1487,7 @@ function drawAura(ctx,R,e,t,st,W0,H0){ const a=R.aura, A=st.atk, on=!!(A&&A.part
 /* 공격 종류 → 어느 조각으로 공격할지 (보스마다 무기·특징에 맞게) */
 const MELEE={dash:1,stomp:1,laser:1,cross:1,fire3:1,fire5:1,rock:1};
 const ATK_PARTS={
-  st1_0:["head","head"], st1_1:["tail","wing"], st1_2:["arm","arm"], st1_3:["float","float"],
+  st1_0:["head","head"], st1_1:["tail","wing"], st1_2:["arm","arm"], st1_3:["",""],
   st2_0:["weapon","weapon,arm"], st2_1:["head,leg","head"], st2_2:["cap,arm","cap"], st2_3:["arm","cap,arm"],
   st3_1:["tail,arm","tail"], st3_2:["head","head"], st3_3:["head,leg","head,tail"],
   st4_0:["arm","arm"], st4_2:["wing,tail","wing"], st4_3:["head","float,head"],

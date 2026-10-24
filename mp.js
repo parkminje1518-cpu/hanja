@@ -81,7 +81,7 @@ function boardId(g,c){ return "hje-"+String(location.hostname.split(".")[0]||"x"
 function myReport(){ const p=prof(), d=(P.daily&&P.daily.date===todayKey())?P.daily:{sets:0,plays:0,trace:0};
   return {id:curId,g:p.g,c:p.c,n:p.n,name:p.name||"",coins:P.coins,earned:P.earned,hero:P.hero,lv:HS().lv,tier:HS().tier,heroes:P.heroes.length,
     q:P.stats.q,ok:P.stats.c,games:P.stats.games,sets:P.stats.sets,mastered:UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length,
-    wrong:P.wrong.length,stamps:P.done.length,sws:typeof sayDoneCount==="function"?sayDoneCount("S"):0,swp:typeof sayDoneCount==="function"?sayDoneCount("P"):0,best:P.best||null,today:{sets:d.sets,plays:d.plays,trace:d.trace},at:Date.now()} }
+    wrong:P.wrong.length,stamps:P.done.length,sws:typeof sayDoneCount==="function"?sayDoneCount("S"):0,swp:typeof sayDoneCount==="function"?sayDoneCount("P"):0,wk:(P.wrong||[]).filter(h=>!/^[SP]:/.test(h)).sort((x,y)=>((P.wcnt||{})[y]||0)-((P.wcnt||{})[x]||0)).slice(0,3),wtop:Object.entries(P.wcnt||{}).filter(([h])=>!/^[SP]:/.test(h)&&(P.wrong||[]).includes(h)).sort((x,y)=>y[1]-x[1]).slice(0,10),ovc:(P.ovc||[]).length,best:P.best||null,today:{sets:d.sets,plays:d.plays,trace:d.trace},at:Date.now()} }
 function reportTick(){
   if(!netAvailable()||typeof P==="undefined"||!P||isAdmin()||document.hidden||REP.busy) return;
   const p=prof(); if(!p||!p.g||!p.c) return;

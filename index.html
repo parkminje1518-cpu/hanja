@@ -373,6 +373,41 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .moveBar .mvCode{background:transparent;color:#d8ffe8;border:2px solid #8af0c1;border-radius:10px;padding:6px 10px;font-family:var(--f-ui);font-size:15px}
 .mvArea{width:100%;min-height:120px;font-size:13px;font-family:monospace;border-radius:10px;border:2px solid var(--line);background:#120e28;color:#e8e0ff;padding:8px;word-break:break-all}
 
+/* 한자 각인 */
+.engBar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;background:linear-gradient(100deg,#2a1d4a,#3a2a1a);border:2px solid #d8a62a;border-radius:14px;padding:10px 12px;color:#f6efe0}
+.engBar>b{font-family:var(--f-title);font-weight:400;font-size:20px;color:#ffd36a}
+.engSlots{display:flex;gap:6px}
+.engS{position:relative;display:grid;place-items:center;min-width:48px;height:52px;padding:0 6px;border-radius:10px;border:2px solid var(--gc,#777);background:#1a1426;color:#fff;font-family:"Noto Serif KR",serif;font-weight:900;font-size:26px;line-height:1}
+.engS small{font-family:var(--f-ui);font-weight:400;font-size:11px;color:var(--gc,#aaa)}
+.engS.empty{border-style:dashed;border-color:#6a5a8a;color:#8a7aa8;font-size:20px;font-family:var(--f-ui)}
+.engSum{flex:1;min-width:160px;font-family:var(--f-ui);font-size:14px;color:#e8dcc0}.engSum em{font-style:normal;color:#ffd36a}
+.engm{max-width:680px}.engHelp{font-size:15px;line-height:1.5;margin:4px 0 8px}
+.engSlots.big{justify-content:center;flex-wrap:wrap}.engSlots.big .engS{min-width:96px;height:auto;padding:8px 10px 6px;font-size:40px;cursor:pointer}
+.engSlots.big .engS small{font-size:12px;margin-top:2px}.engSlots.big .engS i{position:absolute;top:2px;right:6px;font-style:normal;font-size:12px;color:#ff8a8a;font-family:var(--f-ui)}
+.engSlots.big .engS.empty{font-size:15px;min-height:70px}
+.engCombo{font-family:var(--f-ui);font-size:14px;color:#8a5a00;margin:8px 0;text-align:center}.engCombo.dim{color:#8a7a6a}
+.engList{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-height:40vh;overflow:auto;padding:4px}
+.engH{display:flex;flex-direction:column;align-items:center;gap:1px;background:#fffaf0;border:2px solid var(--gc,#ccc);border-radius:10px;padding:6px 4px;cursor:pointer}
+.engH .eh{font-family:"Noto Serif KR",serif;font-weight:900;font-size:30px;line-height:1.1;color:#2a1d10}.engH .ei{font-size:13px;color:#5a4a3a}.engH small{font-size:11px;color:#7a6a5a}
+.engH.on{background:#2a1d4a;border-width:3px}.engH.on .eh,.engH.on .ei,.engH.on small{color:#fff}
+.gs.eng i{font-style:normal;font-family:"Noto Serif KR",serif;font-weight:900;margin-left:2px}
+.weakq{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;width:min(440px,92vw);background:linear-gradient(160deg,#2a1d4a,#1a1030);border:3px solid #ffd36a;border-radius:18px;padding:10px 12px 8px;color:#fff;text-align:center;box-shadow:0 0 24px rgba(255,211,106,.55);animation:wqIn .25s ease-out}
+.weakq.out{opacity:0;transition:opacity .25s}
+.weakq .wqh{font-family:var(--f-ui);font-size:15px;color:#ffe9b0}.weakq .wqh b{color:#ffd36a}
+.weakq .wqc{font-family:"Noto Serif KR",serif;font-weight:900;font-size:54px;line-height:1.1;color:#fff;text-shadow:0 0 14px #ffd36a}
+.weakq .wqo{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 6px}
+.weakq .wqo button{font-family:var(--f-ui);font-size:18px;padding:10px 4px;border-radius:12px;border:2px solid #8a7ab8;background:#fffaf0;color:#2a1d10}
+.weakq .wqo button.ok{background:#3fcf8e;border-color:#fff;color:#fff}.weakq .wqo button.no{background:#e9475f;color:#fff}
+.weakq .wqt{height:6px;border-radius:4px;background:rgba(255,255,255,.2);overflow:hidden}.weakq .wqt i{display:block;height:100%;background:#ffd36a;animation:wqT 6s linear forwards}
+.weakq small{display:block;margin-top:4px;font-size:12px;color:#cfc4e8}
+@keyframes wqIn{from{transform:translate(-50%,30px);opacity:0}}@keyframes wqT{from{width:100%}to{width:0}}
+.ovcFx{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;align-items:center;gap:2px;background:radial-gradient(circle,#3a2a6a,#1a1030);border:3px solid #ffd36a;border-radius:20px;padding:12px 26px;color:#fff;pointer-events:none;animation:ovcIn 2.6s ease forwards;box-shadow:0 0 40px rgba(255,211,106,.7)}
+.ovcFx b{font-family:"Noto Serif KR",serif;font-weight:900;font-size:64px;line-height:1;text-shadow:0 0 16px #ffd36a}.ovcFx span{font-family:var(--f-title);font-size:30px;color:#ffd36a}.ovcFx small{font-family:var(--f-ui);font-size:14px;color:#e8dcff}
+@keyframes ovcIn{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}12%{opacity:1;transform:translate(-50%,0) scale(1.08)}20%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-20px)}}
+.bdWeak{background:#fff7e6;border:2px solid #f6a23a;border-radius:14px;padding:10px 12px}.bdWeak>b{font-family:var(--f-title);font-weight:400;font-size:19px;color:#8a4a00}
+.bdWeak>div{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}.bdWeak span{display:flex;flex-direction:column;align-items:center;background:#fff;border:2px solid #f6c544;border-radius:12px;padding:6px 12px;font-size:14px}
+.bdWeak span i{font-style:normal;font-family:"Noto Serif KR",serif;font-weight:900;font-size:34px;line-height:1.1;color:#2a1d10}.bdWeak small{color:#a05a00;font-size:12px}
+.bdT td.wkc{font-family:"Noto Serif KR",serif;font-weight:900;font-size:18px;letter-spacing:2px}
 /* ===== 사용 설명서 ===== */
 .guideBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;margin:4px 0 2px;background:linear-gradient(100deg,#ff7a45 0%,#ffb020 45%,#ffd84a 100%);border:4px solid #fff4c8;border-radius:20px;padding:12px 18px 12px 12px;color:#2a1200;text-align:left;min-height:92px;box-shadow:0 6px 0 #b8501a,0 0 0 0 rgba(255,200,60,.7);animation:gdPulse 1.8s ease-in-out infinite;overflow:hidden}
 .guideBtn::after{content:"";position:absolute;top:0;bottom:0;width:60px;left:-80px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:gdShine 2.6s ease-in-out infinite}
@@ -930,6 +965,15 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .chestbox .glow{position:absolute;left:46px;top:30px;width:0;height:0;border-radius:50%;box-shadow:0 0 30px 18px rgba(255,220,120,0);animation:cglow 1s .7s ease forwards}
 @keyframes lidopen{to{transform:rotate(-38deg) translateY(-6px)}}
 @keyframes cglow{to{box-shadow:0 0 50px 30px rgba(255,220,120,.85)}}
+.chestimg{position:relative;width:150px;height:120px}
+.chestimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.chestimg .cc{animation:cshake .5s .2s ease-in-out 2, chide .01s 1.15s forwards}
+.chestimg .co{opacity:0;animation:cshow .25s 1.15s ease-out forwards}
+.chestimg .glow{position:absolute;left:50%;top:45%;width:0;height:0;border-radius:50%;box-shadow:0 0 40px 22px rgba(255,220,120,0);animation:cglow 1s 1.15s ease forwards}
+          .chestimg+.chestout{animation-delay:1.35s}
+@keyframes cshake{25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes chide{to{opacity:0}}
+@keyframes cshow{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 .chestout{opacity:0;animation:cout .7s 1s ease forwards;text-align:center}
 .chestout .ckey{width:110px;height:110px;object-fit:contain;filter:drop-shadow(0 0 12px #ffd36a);animation:kfloat 2.4s 1.7s ease-in-out infinite}
 @keyframes cout{from{opacity:0;transform:translateY(30px) scale(.6)}to{opacity:1;transform:none}}
@@ -960,17 +1004,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10241245"></script>
-<script src="jobs.js?v=10241245"></script>
-<script src="maps.js?v=10241245"></script>
-<script src="art.js?v=10241245"></script>
-<script src="monsters.js?v=10241245"></script>
-<script src="jobfx.js?v=10241245"></script>
-<script src="words.js?v=10241245"></script>
-<script src="sayings.js?v=10241245"></script>
-<script src="sfx.js?v=10241245"></script>
+<script src="sprites.js?v=10241401"></script>
+<script src="jobs.js?v=10241401"></script>
+<script src="maps.js?v=10241401"></script>
+<script src="art.js?v=10241401"></script>
+<script src="monsters.js?v=10241401"></script>
+<script src="jobfx.js?v=10241401"></script>
+<script src="words.js?v=10241401"></script>
+<script src="sayings.js?v=10241401"></script>
+<script src="sfx.js?v=10241401"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10241245"></script>
+<script src="mp.js?v=10241401"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1082,7 +1126,13 @@ const pool = ()=>[...new Map([...P.set.sel].sort((a,b)=>a-b).flatMap(w=>WEEKS[w-
 const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; if(/^[SP]:/.test(h)){ P.swrong=P.swrong||[]; if(!P.swrong.includes(h)) P.swrong.push(h); saveP(); return } if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
 /* 학습 기록: 주차별 정답률 + 익힌 날짜 */
 function trackAns(c,ok){ if(!P||!c) return; if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
-  if(ok){ P.mt=P.mt||{}; if((P.mastery[c.h]||0)>=MASTER_N && !P.mt[c.h]) P.mt[c.h]=Date.now() } }
+  if(ok){ P.mt=P.mt||{}; if((P.mastery[c.h]||0)>=MASTER_N && !P.mt[c.h]) P.mt[c.h]=Date.now() }
+  /* 틀린 한자 극복: 한 번이라도 틀렸던 한자를 3번 연속 맞히면 '극복!' (오답 노트에서도 빠져요) */
+  if((P.wcnt||{})[c.h]&&!(P.ovc||[]).includes(c.h)){ P.wst=P.wst||{}; if(ok){ P.wst[c.h]=(P.wst[c.h]||0)+1; if(P.wst[c.h]>=3){ delete P.wst[c.h]; P.ovc=P.ovc||[]; P.ovc.push(c.h); P.wrong=(P.wrong||[]).filter(x=>x!==c.h); overcomeFx(c) } } else P.wst[c.h]=0 } }
+function overcomeFx(c){ sfx("win"); const n=(P.ovc||[]).length, t=OVC_TITLES.filter(x=>x[0]===n)[0];
+  const d=document.createElement("div"); d.className="ovcFx"; d.innerHTML=`<b>${c.h}</b><span>극복!</span><small>${esc(c.hun||"")} ${esc(c.eum||"")} · 이제 한자 각인에 쓸 수 있어요${t?` · 칭호 '${t[1]}'`:""}</small>`; document.body.appendChild(d); setTimeout(()=>d.remove(),2600) }
+function ovcTitle(){ let t=""; for(const [n,name] of OVC_TITLES) if(((P&&P.ovc)||[]).length>=n) t=name; return t }
+const OVC_TITLES=[[1,"첫 극복"],[5,"오답 사냥꾼"],[10,"오답 정복자"],[20,"오답 박멸왕"],[40,"한자 불사조"]];
 /* 약한 한자 먼저: 많이 틀렸거나, 아직 덜 익혔거나, 처음 보는 한자일수록 자주 나와요 */
 function hanjaWeight(c){ const m=(P.mastery||{})[c.h]||0, wc=(P.wcnt||{})[c.h]||0, inW=(P.wrong||[]).includes(c.h);
   return 1 + Math.min(6,wc)*1.2 + (inW?3:0) + Math.max(0,MASTER_N-m)*0.9 + ((P.seen||{})[c.h]?0:1.2) }
@@ -1201,12 +1251,14 @@ function board(){
     <p class="bdMsg">${can?`<i></i>${esc(BOARD.msg||"")}`:"학생 현황은 새 주소(github.io)에서만 볼 수 있어요."}</p>
     <div class="bdSum"><div><b>${rows.length}</b><span>기록이 들어온 학생</span></div><div><b>${todayN}</b><span>오늘 공부·게임한 학생</span></div>
       <div><b>${avg(acc)}%</b><span>평균 퀴즈 정답률</span></div><div><b>${avg(r=>r.mastered)}</b><span>평균 익힌 한자 (/${UNIQUE.length})</span></div><div><b>${avg(r=>(r.sws||0)+(r.swp||0))}</b><span>평균 외운 사자성어·속담 주차 (/21)</span></div></div>
-    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>사자성어 외운 주차</th><th>속담 외운 주차</th><th>오답</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
+    ${(()=>{ const T={}; for(const r of rows) for(const [hh,n] of (r.wtop||[])){ const t=T[hh]||(T[hh]={n:0,s:0}); t.n+=n; t.s++ } const top=Object.entries(T).sort((a,b)=>b[1].s-a[1].s||b[1].n-a[1].n).slice(0,5);
+      return top.length?`<div class="bdWeak"><b>🔎 우리 반이 가장 많이 틀린 한자</b><div>${top.map(([hh,t])=>{ const c=UNIQUE.find(x=>x.h===hh)||{}; return `<span><i>${hh}</i>${esc((c.hun||"")+" "+(c.eum||""))}<small>${t.s}명 · ${t.n}번 틀림</small></span>` }).join("")}</div><p class="meta">다음 수업에서 이 한자들을 한 번 더 다뤄 주면 좋아요.</p></div>`:"" })()}
+    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>사자성어 외운 주차</th><th>속담 외운 주차</th><th>오답</th><th>약한 한자</th><th>극복</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
       ${rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}, a=acc(r);
         return `<tr><td>${r.n}</td><td class="nm"><span class="${live(r)?"on":"off"}"></span>${esc(r.name||"-")}</td>
         <td><span class="hero">${avaHtml(r.hero,28)}${esc(heroById(r.hero).cls)} Lv${r.lv}${r.tier?` · ${r.tier}차`:""}</span></td>
         <td class="${t.sets?"hi":""}">${t.sets}세트</td><td>${t.plays}판</td><td>${t.trace}</td>
-        <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td>${r.sws||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S:11}</td><td>${r.swp||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.P:10}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td>${r.stamps}/26</td>
+        <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td>${r.sws||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S:11}</td><td>${r.swp||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.P:10}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td class="wkc">${(r.wk||[]).join(" ")||"-"}</td><td>${r.ovc||0}</td><td>${r.stamps}/26</td>
         <td>${r.sets}세트</td><td>${r.games}판</td><td>${r.best?`${fmtT(r.best.t)}${r.best.win?" 승리":""}`:"-"}</td><td>${r.coins} (${r.earned})</td><td>${ago(r.at)}</td></tr>` }).join("")}
     </tbody></table></div>`:`<p class="muted" style="text-align:center;margin:20px 0">아직 들어온 기록이 없어요. 학생들이 새 주소에서 앱을 켜 두면 30초 안에 들어와요.</p>`}
     <div class="bdBtns"><button class="btn ghost" id="bdCsv" ${rows.length?"":"disabled"}>엑셀용 파일(CSV) 받기</button><button class="btn ghost" id="bdClr" ${rows.length?"":"disabled"}>이 반 기록 지우기</button></div>
@@ -1215,8 +1267,8 @@ function board(){
   const chg=()=>{ LS.set("boardSel",{g:+document.getElementById("bdG").value,c:+document.getElementById("bdC").value}); board() };
   document.getElementById("bdG").onchange=chg; document.getElementById("bdC").onchange=chg;
   document.getElementById("bdClr").onclick=()=>{ const a=LS.get("board",{}); delete a[key]; LS.set("board",a); toast("이 반 기록을 지웠어요"); board() };
-  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
-    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
+  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","약한 한자","극복한 한자","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
+    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,(r.wk||[]).join(" "),r.ovc||0,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
     const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`한자탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
   if(typeof BOARD!=="undefined") BOARD.onUpdate=()=>{ if(document.getElementById("bdG")) board() };
@@ -1336,12 +1388,22 @@ function guide(start){
      x:`화면에 손가락을 대고 <b>끌면</b> 용사가 움직여요.<br><b>공격은 저절로!</b> 몬스터를 피하면서 반짝이는 <b>경험치 구슬</b>을 먹어요.`, tip:"빨간 <b>체력 막대</b>가 0이 되면 쓰러져요. 몬스터에게 둘러싸이지 않게 조심해요!"},
     {t:"레벨 업 카드 고르기", n:2, art:`<div class="gdCards"><div class="gdCard"><span class="lb">기술 카드</span><span class="h">天</span><div class="o"><span class="ok">하늘 천</span><span>땅 지</span><span>사람 인</span><span>날 일</span></div>정답! 고를 수 있어요</div><div class="gdCard dim"><span class="lb">기술 카드</span><span class="h">地</span><div class="o"><span>하늘 천</span><span>달 월</span><span>물 수</span><span>불 화</span></div>틀리면 못 골라요</div></div>`,
      x:`경험치가 다 차면 <b>레벨 업!</b> 기술 카드가 나와요.<br>카드마다 있는 <b>한자 문제</b>를 맞히면 그 카드를 고를 수 있어요.`, tip:"한자를 잘 알수록 좋은 기술을 고를 수 있어요. 공부가 곧 실력이에요!"},
-    {t:"보스와 보물, 위험 신호", n:2, art:`<div class="gdIcons"><div><span class="em">⚡</span><b>보스 한자 결투</b>보스가 나오면 한자 3문제! 맞히면 한자 번개로 보스 체력이 크게 깎여요</div><div><span class="em">🎁</span><b>보물상자</b>보스를 잡으면 나와요. 전직했다면 전직 스킬 강화가 꼭 하나 나와요</div><div><span class="em">🧪</span><b>물약</b>먹으면 체력이 차요</div><div><span class="em">⚠️</span><b>위험 신호</b>몬스터 떼가 몰려와요. 빈틈으로 도망!</div><div><span class="em">🔴</span><b>빨간 원</b>곧 공격이 떨어지는 곳! 피해요</div><div><span class="em">💪</span><b>다시 일어나기</b>쓰러져도 한자 문제를 맞히면 부활!</div></div>`,
+    {t:"보스와 보물, 위험 신호", n:2, art:`<div class="gdIcons"><div><span class="em">⚡</span><b>보스 한자 결투</b>보스가 나오면 한자 3문제! 맞히면 한자 번개로 보스 체력이 크게 깎여요</div><div><span class="em">🎁</span><b>보물상자</b>보스를 잡으면 나와요. 4차 스킬 강화가 다 오를 때까지 꼭 나오고, 1~3차 강화는 더 크게 세져요</div><div><span class="em">🧪</span><b>물약</b>먹으면 체력이 차요</div><div><span class="em">⚠️</span><b>위험 신호</b>몬스터 떼가 몰려와요. 빈틈으로 도망!</div><div><span class="em">🔴</span><b>빨간 원</b>곧 공격이 떨어지는 곳! 피해요</div><div><span class="em">💪</span><b>다시 일어나기</b>쓰러져도 한자 문제를 맞히면 부활!</div></div>`,
      x:`보스 4마리를 순서대로 물리치면 <b>스테이지 클리어!</b><br><b>약한 보스 → 중간 보스 → 강한 보스 → 최종 보스</b> · 보스를 잡을 때마다 맵이 바뀌고 몬스터가 강해져요. (보스가 오기 10초 전에 알려 줘요)`, tip:"용암·회오리·대포처럼 맵마다 위험한 것이 달라요. 빨간 원과 화살표 신호를 잘 봐요!"},
     {t:"오리진 스킬 (위기 탈출!)", n:2, art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🆘</span>체력이 낮고<br>몬스터가 가득!</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📜</span>한자 문제<br><b style="color:#ffd36a;font-weight:400">2개 다 맞히기</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✨</span><b style="color:#ffd36a;font-weight:400">오리진 발동!</b><br>화면 몬스터 싹쓸이</div></div>`,
      x:`아주 위험할 때 <b>오리진 스킬</b> 기회가 와요! 한자 2문제를 <b>모두</b> 맞히면 화면의 몬스터가 한꺼번에 사라지고 체력이 <b>40%</b> 차요. (보스는 체력이 크게 깎여요)<br><b>같이 하기</b>에서는 <b>모든 친구가</b> 2문제를 다 맞혀야 발동해요!`, tip:"한 번 쓰면 잠시 뒤에 다시 기회가 와요. 평소에 한자를 잘 외워 두면 위기에서 살아남아요!"},
     {t:"보스의 기술과 필살기", n:2, art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✨</span>보스가 빛나며<br><b style="color:#ffd36a;font-weight:400">기를 모으면</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">💥</span>곧 <b style="color:#ffd36a;font-weight:400">기술</b>이 나와요<br>빨간 원·선을 피해요</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">☠️</span>최종 보스는 체력 절반에<br><b style="color:#ffd36a;font-weight:400">필살기!</b></div></div>`,
      x:`보스마다 쓰는 <b>기술이 달라요.</b> 기술 이름이 보스 머리 위에 떠요.<br>높은 맵일수록, 센 보스일수록 기술이 <b>많고 강해요.</b> 보스가 몸을 젖히며 빛나면 곧 공격이 와요!`, tip:"블랙홀이 나오면 반대쪽으로 계속 걸어요. 십자 레이저는 빨간 선 사이로 피해요!"},
+    {t:"보스가 더 똑똑해졌어요!", n:2, art:`<div class="gdIcons"><div><span class="em">🌀</span><b>순간이동</b>보스가 화면 밖으로 멀어지면 보라색 원 자리로 날아와요</div><div><span class="em">👥</span><b>부하 소환</b>보라 테두리 부하를 다 잡으면 보스가 2초 기절!</div><div><span class="em">🟥</span><b>빨간 띠 돌진</b>띠 폭이 보스 몸 크기예요. 띠 밖으로 피해요</div><div><span class="em">🐝</span><b>따라오는 공격</b>벌·박쥐·불덩이는 2.5초 동안 따라와요. 크게 돌며 피해요</div><div><span class="em">🕳</span><b>사건의 지평선</b>내 발밑에 블랙홀! 바깥으로 걷고 마지막 폭발을 피해요</div><div><span class="em">🔥</span><b>더 센 곳</b>마왕성·별의 왕좌, 어려움·지옥, 친구가 많을수록 패턴이 많아요</div></div>`,
+     x:`보스는 이제 멀리 도망쳐도 <b>다시 찾아와요.</b> 모든 공격은 <b>미리 경고</b>가 나오니 잘 보고 피해요.<br>부하를 먼저 잡으면 보스를 마음껏 때릴 <b>빈틈</b>이 생겨요!`, tip:"같이 하기에서는 친구 수만큼 보스 체력과 공격 개수가 늘어나요. 서로 도와요!"},
+    {t:"보스 약점 한자", n:2, art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">💔</span>보스 체력이<br><b style="color:#ffd36a;font-weight:400">절반 · 4분의 1</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:40px;color:#ffd36a;line-height:1">水</span>약점 한자가 떠요<br>6초 안에 뜻 고르기</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🎯</span><b style="color:#ffd36a;font-weight:400">약점 공격!</b><br>3초 기절 + 큰 피해</div></div>`,
+     x:`보스가 지치면 화면 아래에 <b>약점 한자</b>가 나와요. 게임은 멈추지 않으니 피하면서 <b>뜻과 소리</b>를 눌러요.<br>맞히면 보스가 <b>3초 동안 꼼짝 못 하고</b> 체력이 크게 깎여요. 틀려도 벌은 없고 오답 노트에 들어가요.`, tip:"같이 하기에서는 가장 먼저 맞힌 친구가 팀 전체를 구해요!"},
+    {t:"한자 각인 (한자 실력 = 힘)", n:2, art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📖</span>한자를<br><b style="color:#ffd36a;font-weight:400">3번 맞히면</b> 익힌 한자</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:34px;color:#ffd36a;line-height:1">炎 體 速</span>게임 화면에서<br>3칸에 새기기</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">💪</span>뜻에 맞는 힘<br><b style="color:#ffd36a;font-weight:400">동→은→금→빛나는 금</b></div></div>`,
+     x:`게임 화면의 <b>🔖 한자 각인</b>에서 익힌 한자를 용사마다 <b>3칸</b>(4차는 4칸)에 새겨요. 炎은 공격력, 體는 체력, 速은 이동 속도처럼 <b>뜻에 맞는 힘</b>이 생겨요.<br>많이 맞힐수록 <b>동 3번 → 은 10번 → 금 25번 → 빛나는 금 50번</b>으로 세지고, 틀려도 내려가지 않아요.`, tip:"石+岩, 風+速처럼 어울리는 두 한자를 같이 새기면 숨은 '한자 조합'이 발동해요. 8가지를 찾아봐요!"},
+    {t:"틀린 한자 극복", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">❌</span>틀린 한자는<br>더 자주 나와요</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✅✅✅</span><b style="color:#ffd36a;font-weight:400">3번 연속</b> 맞히면</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🏅</span><b style="color:#ffd36a;font-weight:400">극복!</b><br>칭호도 받아요</div></div>`,
+     x:`한 번이라도 틀렸던 한자를 <b>3번 연속</b> 맞히면 <b>극복!</b> 오답 노트에서 빠지고, 극복한 한자 수에 따라 <b>칭호</b>가 생겨요.<br>첫 극복 · 오답 사냥꾼(5) · 오답 정복자(10) · 오답 박멸왕(20) · 한자 불사조(40)`, tip:"공부할 때도, 게임 퀴즈에서도 모두 세어 줘요. 틀리는 건 부끄러운 게 아니라 극복할 기회예요!"},
+    {t:"도전 단계와 보스 카드", n:2, art:`<div class="gdIcons"><div><span class="em">🟢</span><b>보통</b>맵 원래 세기</div><div><span class="em">🟠</span><b>어려움</b>내 레벨에 맞춰 세지고 보스 공격이 더 많아요</div><div><span class="em">🔴</span><b>지옥</b>가장 어렵고 보스가 각성해요. 보상도 최고!</div><div><span class="em">🃏</span><b>보스 카드</b>보스를 잡으면 동·은·금 카드 · 120장 모으기</div><div><span class="em">🎖</span><b>명예 카드</b>그 직업으로 별의 왕좌를 정복하면!</div><div><span class="em">🗝</span><b>맵 열쇠</b>최종 보스 보물상자에서 다음 맵 열쇠가 나와요</div></div>`,
+     x:`맵을 깨면 <b>어려움</b>, 어려움을 깨면 <b>지옥</b> 단계가 열려요. 보스 카드는 보통=동, 어려움=은, 지옥=금이에요.<br>한 맵의 카드 4장을 다 모으면 <b>모든 직업</b>이 세져요!`, tip:"첫 화면의 '보스 카드'에서 모은 카드를 탭별로 볼 수 있어요."},
     {t:"게임으로 코인 벌기", n:2, art:`<div class="gdIcons" style="grid-template-columns:repeat(4,minmax(0,1fr))">${MAPS.map((m,k)=>`<div style="border-color:${MAPC[k]||"#8ad8ff"}"><span class="em">${["🌼","🌲","🏛️","🦇","🔥","🌪","🏰","❄","⚡","🌌"][k]||"☁"}</span><b>${m.name}</b>★4 클리어<br><span style="color:#ffd36a">최대 ${maxGameCoins(m.id)}</span><br>첫 클리어 +${firstClearCoin(m.id)}</div>`).join("")}</div>`,
      x:`보스를 잡을 때마다 <b>별 ★</b>을 받고, 별이 많을수록 코인이 늘어요. 최종 보스까지 잡아 <b>클리어</b>하면 큰 보너스!<br>맵마다 <b>처음 클리어</b>하면 보너스 코인을 한 번 더 받아요.`, tip:"어려운 맵일수록 코인을 훨씬 많이 줘요. 입장료가 50코인이니 보스를 많이 잡아야 이득이에요!"},
     {t:"하늘로 도전! 천공 맵", n:2, art:`<div class="gdIcons" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div style="border-color:#3ab8ff"><span class="em">🌪</span><b>용오름 첨탑 (Lv 80)</b>움직이는 회오리에 닿으면 튕겨 나가요! 화살표가 깜빡이면 돌풍이 와요</div><div style="border-color:#d8a62a"><span class="em">🏰</span><b>하늘 성 (Lv 85)</b>성벽 대포가 빨간 원으로 떨어져요! 성벽 때문에 길이 좁아요</div><div style="border-color:#5ac8f0"><span class="em">❄</span><b>천공 빙궁 (Lv 90)</b>빙판에서 미끄러지고 고드름이 떨어져요</div><div style="border-color:#e8a62a"><span class="em">⚡</span><b>천상 신전 (Lv 95)</b>「신의 심판」이 오면 빛의 원 안으로!</div><div style="border-color:#9a5aff"><span class="em">🌌</span><b>별의 왕좌 (4차 전직)</b>중력 우물과 블랙홀이 끌어당겨요</div><div><span class="em">🧪</span><b>물약이 적어요</b>하늘에서는 회복 물약이 잘 안 나와요</div></div>`,
@@ -1379,7 +1441,7 @@ function home(){
   const mastered=UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length;
   $app.innerHTML = `
   <div class="homeTop">
-    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}${typeof sayTitle==="function"&&sayTitle()?`<span class="sayTitleTag">${esc(sayTitle())}</span>`:""}${typeof medalTitle==="function"&&medalTitle()?`<span class="sayTitleTag" style="background:#9be7c4">${esc(medalTitle())}</span>`:""}</small></span></button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
+    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}${typeof sayTitle==="function"&&sayTitle()?`<span class="sayTitleTag">${esc(sayTitle())}</span>`:""}${ovcTitle()?`<span class="sayTitleTag" style="background:#c8b4ff">${esc(ovcTitle())}</span>`:""}${typeof medalTitle==="function"&&medalTitle()?`<span class="sayTitleTag" style="background:#9be7c4">${esc(medalTitle())}</span>`:""}</small></span></button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
     ${coinPill()}
   </div>
   ${titleBlock()}
@@ -1509,7 +1571,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10241245"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10241401"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -2175,4 +2237,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10241245"></script>
+<script src="game.js?v=10241401"></script>

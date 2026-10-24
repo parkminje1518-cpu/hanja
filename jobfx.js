@@ -649,6 +649,7 @@ function drawTreasure(c,x,y,t,GL){
   for(let i=0;i<10;i++){ c.rotate(TAU/10); const g=c.createLinearGradient(0,0,0,-90); g.addColorStop(0,`rgba(255,230,140,${.35+.15*open})`); g.addColorStop(1,"rgba(255,230,140,0)"); c.fillStyle=g; c.beginPath(); c.moveTo(-6,0); c.lineTo(0,-90); c.lineTo(6,0); c.closePath(); c.fill() }
   c.restore(); jGlow(c,x,y-4+b,60,"255,210,100",.55); c.restore();
   c.fillStyle="rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(x,y+22,32,8,0,0,TAU); c.fill();
+  { const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.chest_c; if(im){ const w=78, h=w*im.height/im.width; c.drawImage(im,x-w/2,y+24-h+b,w,h); return } }
   c.save(); c.translate(x,y+b);
   // 몸통 (나무판)
   const wg=c.createLinearGradient(0,-6,0,20); wg.addColorStop(0,"#a8642e"); wg.addColorStop(1,"#5a3214");
@@ -1339,6 +1340,8 @@ function drawShieldBubble(c,P,t,k){ c.save(); c.globalCompositeOperation="lighte
 /* ===================== 보스 고유 패턴 그림 (맵 1~3) ===================== */
 function drawSigShot(c,b,t){
   if(drawSig46Shot(c,b,t)) return true;
+  if(b.kind==="bee"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.shot_bee){ const im=SKILL_IMG.shot_bee, a=Math.atan2(b.vy,b.vx), fl=Math.cos(a)<0?-1:1, w=58, h=w*im.height/im.width, bob=Math.sin(t*14+b.x*.05)*3;
+    c.save(); c.translate(b.x,b.y+bob); c.scale(fl,1); c.rotate(fl<0?Math.PI-a:a); c.rotate(Math.sin(t*30+b.y)*.06); c.drawImage(im,-w/2,-h/2,w,h); c.restore(); return true }
   if(b.kind==="bee"){ const a=Math.atan2(b.vy,b.vx), fl=Math.sin(t*50+b.x)*.9; c.save(); c.translate(b.x,b.y); c.rotate(a); c.scale(1.6,1.6);
     c.fillStyle="rgba(255,255,255,.75)"; c.strokeStyle="rgba(80,80,90,.6)"; c.lineWidth=1; for(const s of [-1,1]){ c.save(); c.rotate(s*(.9+fl*.4)); c.beginPath(); c.ellipse(-2,s*7,7,4,0,0,7); c.fill(); c.stroke(); c.restore() }
     c.fillStyle="#2a1a08"; c.beginPath(); c.ellipse(0,0,13,9,0,0,7); c.fill();
@@ -1527,6 +1530,8 @@ function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k; if(K==="erupt") return drawEr
   if(K==="tilewarn"){ const s=f.s*.92, h=s/2; c.save(); c.translate(f.x,f.y); c.fillStyle=`rgba(20,0,0,${.25+.15*p})`; c.fillRect(-h,-h,s,s);
     c.fillStyle=`rgba(255,200,80,${.25+.35*p})`; c.fillRect(-h*p,-h*p,s*p,s*p); c.strokeStyle=`rgba(255,${230+Math.round(25*Math.sin(t*16))},140,${.75+.25*Math.sin(t*16)})`; c.lineWidth=3.5; c.strokeRect(-h,-h,s,s);
     c.lineWidth=1.5; c.beginPath(); c.moveTo(-h*.35,-h*.35); c.lineTo(h*.35,h*.35); c.moveTo(h*.35,-h*.35); c.lineTo(-h*.35,h*.35); c.stroke(); c.restore(); return true }
+  if(K==="firepillar"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.firepillar){ const im=SKILL_IMG.firepillar, q=1-k, w=f.r*3.2*(.7+.3*Math.min(1,q*4)), h=w*im.height/im.width*(.8+.35*Math.min(1,q*3));
+    c.save(); c.globalAlpha=Math.min(1,k*2.2); c.globalCompositeOperation="lighter"; c.drawImage(im,f.x-w/2,f.y+w*.16-h,w,h); c.restore(); return true }
   if(K==="firepillar"){ const r=f.r, H=130*(.5+p); c.save(); c.translate(f.x,f.y); c.globalCompositeOperation="lighter";
     const g=c.createLinearGradient(0,-H,0,10); g.addColorStop(0,"rgba(255,80,20,0)"); g.addColorStop(.4,`rgba(255,120,30,${.7*k})`); g.addColorStop(.85,`rgba(255,230,140,${k})`); g.addColorStop(1,"rgba(255,255,220,0)");
     c.fillStyle=g; c.beginPath(); c.moveTo(-r*.8,6); c.quadraticCurveTo(-r*.6,-H*.5,Math.sin(t*20)*8,-H); c.quadraticCurveTo(r*.6,-H*.5,r*.8,6); c.closePath(); c.fill();
