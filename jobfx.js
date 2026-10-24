@@ -649,7 +649,13 @@ function drawTreasure(c,x,y,t,GL){
   for(let i=0;i<10;i++){ c.rotate(TAU/10); const g=c.createLinearGradient(0,0,0,-90); g.addColorStop(0,`rgba(255,230,140,${.35+.15*open})`); g.addColorStop(1,"rgba(255,230,140,0)"); c.fillStyle=g; c.beginPath(); c.moveTo(-6,0); c.lineTo(0,-90); c.lineTo(6,0); c.closePath(); c.fill() }
   c.restore(); jGlow(c,x,y-4+b,60,"255,210,100",.55); c.restore();
   c.fillStyle="rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(x,y+22,32,8,0,0,TAU); c.fill();
-  { const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.chest_c; if(im){ const w=78, h=w*im.height/im.width; c.drawImage(im,x-w/2,y+24-h+b,w,h); return } }
+  { const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.chest_c; if(im){ const w=96, h=w*im.height/im.width, pu=.5+.5*Math.sin(t*4);
+    /* 어느 맵에서도 잘 보이게: 하늘로 솟는 금빛 기둥 + 바닥 고리 + 금빛 테두리 + "보물상자" 글씨 */
+    c.save(); c.globalCompositeOperation="lighter"; const lg=c.createLinearGradient(0,y-260,0,y+20); lg.addColorStop(0,"rgba(255,220,120,0)"); lg.addColorStop(.7,`rgba(255,220,120,${.22+.12*pu})`); lg.addColorStop(1,`rgba(255,240,180,${.45+.2*pu})`); const GP=SKILL_IMG.goldpillar; if(GP){ const pw=130, ph=pw*GP.height/GP.width*(1+.06*pu); c.globalAlpha=.75+.25*pu; c.drawImage(GP,x-pw/2,y+30-ph,pw,ph); c.globalAlpha=1 } else { c.fillStyle=lg; c.fillRect(x-26,y-260,52,280) }
+    const GR=SKILL_IMG.goldring; if(GR){ const rw=150, rh=rw*GR.height/GR.width; c.globalAlpha=.7+.3*pu; c.drawImage(GR,x-rw/2,y+24-rh/2,rw,rh); const q=(t*.6)%1, s2=1+q*.7; c.globalAlpha=.55*(1-q); c.drawImage(GR,x-rw*s2/2,y+24-rh*s2/2,rw*s2,rh*s2); c.globalAlpha=1 } else for(let k=0;k<2;k++){ const q=(t*.7+k*.5)%1; c.strokeStyle=`rgba(255,215,110,${.85*(1-q)})`; c.lineWidth=4; c.beginPath(); c.ellipse(x,y+22,30+q*60,10+q*20,0,0,TAU); c.stroke() } c.restore();
+    c.save(); c.shadowColor="#ffd36a"; c.shadowBlur=18+10*pu; c.drawImage(im,x-w/2,y+26-h+b,w,h); c.restore();
+    { const SP=SKILL_IMG.goldspark; if(SP) for(let k=0;k<2;k++){ const q=(t*.55+k*.5)%1, sz=(50+60*Math.sin(q*Math.PI))*(k?.7:1); c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.sin(q*Math.PI)*.9; c.translate(x+(k?-24:20),y+26-h*.75+b); c.rotate(t*.6*(k?-1:1)); c.drawImage(SP,-sz/2,-sz/2,sz,sz); c.restore() } }   /* 반짝반짝 */
+    c.save(); c.font='bold 17px "Do Hyeon",sans-serif'; c.textAlign="center"; c.lineWidth=4; c.strokeStyle="#3a2200"; const ty=y+26-h+b-12-4*pu; c.strokeText("🎁 보물상자",x,ty); c.fillStyle="#ffe9a0"; c.fillText("🎁 보물상자",x,ty); c.restore(); return } }
   c.save(); c.translate(x,y+b);
   // 몸통 (나무판)
   const wg=c.createLinearGradient(0,-6,0,20); wg.addColorStop(0,"#a8642e"); wg.addColorStop(1,"#5a3214");
@@ -1391,6 +1397,11 @@ function drawSigFx(c,f,k,t){ const p=1-k, K=f.k;
   if(K==="mushsprout"){ const s=Math.min(1,p*1.6); c.save(); c.translate(f.x,f.y); c.scale(s,s); c.fillStyle="#f4ecd8"; c.strokeStyle="#5a3a20"; c.lineWidth=2; c.beginPath(); c.roundRect?c.roundRect(-7,-6,14,20,5):c.rect(-7,-6,14,20); c.fill(); c.stroke();
     const sh=1+Math.sin(t*20)*.05*(p>.7?1:0); c.scale(sh,sh); c.beginPath(); c.ellipse(0,-8,22,15,0,Math.PI,0); c.closePath(); const g=c.createLinearGradient(0,-24,0,-6); g.addColorStop(0,"#ff6a5a"); g.addColorStop(1,"#b8281e"); c.fillStyle=g; c.fill(); c.stroke();
     c.fillStyle="#fff"; for(const [x,y,r] of [[-9,-14,3.5],[4,-18,3],[11,-11,2.5],[-2,-10,2]]){ c.beginPath(); c.arc(x,y,r,0,7); c.fill() } c.restore(); return true }
+  if(K==="roots"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.rootspike){ const im=SKILL_IMG.rootspike, al=Math.min(1,k*2.5), n=7; c.save(); c.globalAlpha=al;
+    for(let i=1;i<=n;i++){ const d=i/n*f.len*.97, up=Math.min(1,p*4-(i/n)*1.2); if(up<=0) continue; const x=f.x+Math.cos(f.a)*d, y=f.y+Math.sin(f.a)*d, w=(100+(i%3)*20)*(1-i/n*.25), h=w*im.height/im.width, e=1-Math.pow(1-up,3);
+      c.fillStyle="rgba(30,18,8,.45)"; c.beginPath(); c.ellipse(x,y,w*.42,w*.13,0,0,7); c.fill();
+      c.save(); c.translate(x,y); if(i%2) c.scale(-1,1); c.beginPath(); c.rect(-w,-h*1.2,w*2,h*1.2+w*.08); c.clip(); c.drawImage(im,-w/2,-h*e+w*.06,w,h); c.restore() }
+    c.restore(); return true }
   if(K==="roots"){ const al=Math.min(1,k*2.5), n=14; c.save(); c.globalAlpha=al; for(let i=1;i<=n;i++){ const d=i/n*f.len, up=Math.min(1,p*4-(i/n)*1.2); if(up<=0) continue; const x=f.x+Math.cos(f.a)*d, y=f.y+Math.sin(f.a)*d, h=(26+(i%3)*10)*up, w=8+(i%2)*3;
       c.fillStyle="#2a1a0c"; c.beginPath(); c.moveTo(x-w-2,y+2); c.quadraticCurveTo(x-2,y-h*.6,x+(i%2?4:-4),y-h-3); c.quadraticCurveTo(x+2,y-h*.5,x+w+2,y+2); c.closePath(); c.fill();
       const g=c.createLinearGradient(x-w,0,x+w,0); g.addColorStop(0,"#5a3a1a"); g.addColorStop(.5,"#8a6a3a"); g.addColorStop(1,"#4a2e14"); c.fillStyle=g; c.beginPath(); c.moveTo(x-w,y); c.quadraticCurveTo(x-1,y-h*.6,x+(i%2?4:-4),y-h); c.quadraticCurveTo(x+1,y-h*.5,x+w,y); c.closePath(); c.fill();
@@ -1812,8 +1823,8 @@ function drawBlueDragon(c,m,t){ const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG
   const part=(img,x,y,an,w,h,ox,oy,fy,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(fy) c.scale(1,-1); if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
   const up=a=>Math.cos(a)<0, sp=34*sc*1.3, BH=70*sc;
   if(K_){ const a=angAt(N-3), w=70*sc, h=w*K_.height/K_.width; part(K_,pts[N-3][0],pts[N-3][1],a+(up(a)?-1:1)*(.9+Math.sin(t*8)*.45),w,h,.25,.2,up(a)) }
-  { const a=angAt(N), w=120*sc, h=w*T_.height/T_.width; part(T_,pts[N][0],pts[N][1],a+(up(a)?-1:1)*Math.PI*1.5+Math.sin(t*7.5-N*.6)*.25,w,h,.86,.97,up(a)) }
-  for(let i=N;i>=1;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]), tp=1-(i/N)*.35; part(B_,mx,my,a,Math.max(sp,d*1.3),BH*tp,.5,.55,up(a),.32,.68) }
+  { const a=angAt(N), w=128*sc, h=w*T_.height/T_.width, CR=.84, r=a+(up(a)?-1:1)*Math.PI*1.5+Math.sin(t*7.5-N*.6)*.25; c.save(); c.translate(pts[N][0],pts[N][1]); c.rotate(r); if(up(a)) c.scale(1,-1); c.drawImage(T_,0,0,T_.width,T_.height*CR,-w*.84,-h*CR+h*.05,w,h*CR); c.restore() }   /* 꼬리 뿌리의 잘린 끝은 잘라 내고 몸통 밑으로 이어 붙여요 */
+  for(let i=N;i>=1;i--){ const a=angAt(i-1), mx=(pts[i][0]+pts[i-1][0])/2, my=(pts[i][1]+pts[i-1][1])/2, d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]), tp=1-Math.pow(i/N,1.6)*.48; part(B_,mx,my,a,Math.max(sp,d*1.3),BH*tp,.5,.55,up(a),.32,.68) }   /* 꼬리 쪽으로 갈수록 가늘어져 꼬리와 자연스럽게 이어져요 */
   if(F_){ const a=angAt(2), w=80*sc, h=w*F_.height/F_.width; part(F_,pts[2][0],pts[2][1]+5*sc,a+(up(a)?-1:1)*(1.05+Math.sin(t*8)*.5),w,h,.22,.18,up(a)) }
   { const a=angAt(0)+Math.sin(t*7.5+.8)*.08, w=140*sc, h=w*H_.height/H_.width; part(H_,pts[0][0],pts[0][1],a,w,h,.3,.55,up(a)) }
   c.save(); c.globalCompositeOperation="lighter"; jGlow(c,pts[0][0],pts[0][1],70,"90,170,255",.35); c.restore(); return true }
