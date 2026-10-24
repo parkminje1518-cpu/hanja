@@ -3,7 +3,9 @@ const NET = { peer:null, role:null, code:"", myId:"", conns:{}, hostConn:null, l
 const NET_PREFIX = "hanja-explorers-game-", NET_MAX = 4;
 function netAvailable(){ return !!window.Peer && (/github\.io$/.test(location.hostname) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) }
 function netOpts(){ const Q=new URLSearchParams(location.search), S=Q.get("srv"); return S?{host:S.split(":")[0],port:+S.split(":")[1],path:"/",secure:false,debug:0}:{debug:0} }
-function netMe(){ const p=prof(); return {name:(p&&p.name)||(p?`${p.c}반 ${p.n}번`:"친구"), hero:P.hero, tier:HS().tier, lv:HS().lv} }
+function netMe(){ const p=prof(), K=typeof knowPower==="function"?knowPower(P.set.qrange||5,typeof srangeOf==="function"?srangeOf().w:0):null; return {name:(p&&p.name)||(p?`${p.c}반 ${p.n}번`:"친구"), hero:P.hero, tier:HS().tier, lv:HS().lv, kd:K?Math.round(K.dmg*100):0, ka:K?Math.round(K.armor*100):0, kc:K?Math.round(K.cd*100):0, qw:P.set.qrange||5, pw:typeof heroPower==="function"?heroPower(P.hero):0} }
+/* 같이하기: 내 퀴즈 범위를 바꾸면 방 친구들에게 내 지식·지혜의 힘을 다시 알려요 */
+function netSendMe(){ try{ if(NET.role==="client"&&NET.hostConn&&NET.hostConn.open) NET.hostConn.send({t:"hello",me:netMe()}); else if(NET.role==="host") netHostLobby() }catch(e){} }
 function netInRoom(){ return !!NET.role && (NET.role==="host" ? !!NET.code : !!(NET.hostConn&&NET.hostConn.open)) }
 function netRefresh(){ if(document.getElementById("mpPanel")) gameLobby() }
 function netErr(e){ const t=e&&e.type||"";
@@ -55,7 +57,9 @@ function netStartClient(d){
 function mpPanelHtml(){
   if(!netAvailable()) return "";
   const inRoom=netInRoom(), list=NET.lobby||[];
-  const pl=list.map(p=>`<div class="mpP">${avaHtml(p.hero,40)}<span><b>${esc(p.name)}</b><small>${p.host?"방장 · ":""}${esc(heroById(p.hero).cls)} Lv ${p.lv}</small></span></div>`).join("");
+  const pw=p=>p.pw||0, top=list.length>1?Math.max(...list.map(pw)):-1, F=n=>Math.round(n||0).toLocaleString("ko-KR");
+  const pl=list.map(p=>`<div class="mpP ${list.length>1&&pw(p)===top&&top>0?"mpTop":""}">${avaHtml(p.hero,40)}<span><b>${list.length>1&&pw(p)===top&&top>0?"👑 ":""}${esc(p.name)}</b><small>${p.host?"방장 · ":""}${esc(heroById(p.hero).cls)} Lv ${p.lv}</small><em class="mpPw">⚔ ${F(p.pw)}</em><em class="mpK">📚 +${p.kd||0}% · 📜 -${p.ka||0}%</em></span></div>`).join("")
+    +(list.length>1?`<div class="mpParty">⚔ 우리 파티 전투력 <b class="big">${F(list.reduce((a,p)=>a+(p.pw||0),0))}</b> · 지식 <b>📚 +${list.reduce((a,p)=>a+(p.kd||0),0)}%</b> · 지혜 <b>📜 -${list.reduce((a,p)=>a+(p.ka||0),0)}%</b><small>👑 표시는 우리 파티 최강 용사예요. 퀴즈 범위를 넓히고 많이 외울수록 전투력이 올라가요!</small></div>`:"");
   let body;
   if(!inRoom) body=`<p class="mpHint">태블릿 2~4대가 한 방에 모여 같이 싸워요. 한 명이 <b>방 만들기</b>, 친구들은 <b>코드</b>를 넣어요.</p>
     <div class="mpRow"><button class="big green" id="mpMk" ${NET.busy?"disabled":""}>방 만들기</button>

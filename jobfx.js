@@ -1354,6 +1354,8 @@ function drawSigShot(c,b,t){
     const g=c.createLinearGradient(0,-8,0,8); g.addColorStop(0,"#ffe680"); g.addColorStop(1,"#e8a010"); c.fillStyle=g; c.beginPath(); c.ellipse(0,0,11.5,7.5,0,0,7); c.fill();
     c.fillStyle="#2a1a08"; for(const x of [-5,1]) c.fillRect(x,-7,3,14); c.beginPath(); c.arc(10,0,4.5,0,7); c.fill(); c.beginPath(); c.moveTo(-12,0); c.lineTo(-18,-2); c.lineTo(-18,2); c.closePath(); c.fill();
     c.fillStyle="#fff"; c.beginPath(); c.arc(11.5,-1.5,1.4,0,7); c.fill(); c.restore(); return true }
+  if(b.kind==="acorn"&&typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.shot_acorn){ const r=b.r, im=SKILL_IMG.shot_acorn, w=r*3.3, h=w*im.height/im.width, sg=Math.sign(b.vx||1);   /* 제미나이 도토리가 데굴데굴 */
+    c.save(); c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(b.x,b.y+r*.9,r*1.05,r*.3,0,0,7); c.fill(); c.translate(b.x,b.y); c.rotate(t*8*sg+(b.x*.002)); c.drawImage(im,-w/2,-h/2,w,h); c.restore(); return true }
   if(b.kind==="acorn"){ const r=b.r; c.save(); c.fillStyle="rgba(0,0,0,.22)"; c.beginPath(); c.ellipse(b.x,b.y+r*.9,r,r*.3,0,0,7); c.fill(); c.translate(b.x,b.y); c.rotate(t*9*Math.sign(b.vx||1));
     c.lineWidth=3; c.strokeStyle="#3a2210"; c.beginPath(); c.ellipse(0,3,r*.85,r,0,0,7); c.stroke(); const g=c.createRadialGradient(-6,-2,2,0,4,r); g.addColorStop(0,"#e0a060"); g.addColorStop(1,"#8a4a1a"); c.fillStyle=g; c.fill();
     c.fillStyle="#6a4422"; c.beginPath(); c.ellipse(0,-r*.45,r*.95,r*.45,0,Math.PI,0); c.fill(); c.stroke(); c.strokeStyle="rgba(40,20,5,.6)"; c.lineWidth=1; for(let i=-3;i<=3;i++){ c.beginPath(); c.moveTo(i*5,-r*.55); c.lineTo(i*5+3,-r*.3); c.stroke() }

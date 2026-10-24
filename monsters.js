@@ -453,6 +453,10 @@ loadBossArt();
 const artOf = e=>BOSS_ART[e.bid]||BOSS_ART[e.look];
 /* 떠 있는 보스: 이동 그림을 늘 천천히 재생 + 둥실 위아래 [장면 속도, 띄우는 높이, 흔들림 폭, 기울기] */
 const HOVER_RUN={st8_3:[6,12,10,.05],st4_0:[5,8,7,.03],st6_0:[9,10,9,.04],st6_2:[5,6,6,.02],st7_0:[5,10,8,.04],st8_2:[5,8,7,.03],st9_1:[5,6,6,.02],st10_2:[5,6,6,.02],st10_3:[5,6,7,.02]};
+/* 장면 그림(달리기·공격)의 실제 몸 높이를 한 번 재서, 멈춰 있을 때 그림과 같은 크기로 그려요 (크기가 커졌다 작아졌다 하지 않게) */
+function sheetFit(img,N){ if(img._fit) return img._fit; let top=img.height, bot=0; try{ const cv=document.createElement("canvas"), W=Math.max(1,Math.round(img.width/4)), H=Math.max(1,Math.round(img.height/4)); cv.width=W; cv.height=H; const c=cv.getContext("2d"); c.drawImage(img,0,0,W,H); const D=c.getImageData(0,0,W,H).data;
+    for(let y=0;y<H;y++){ for(let x=0;x<W;x++){ if(D[(y*W+x)*4+3]>40){ if(y<top) top=y; if(y>bot) bot=y; break } } } top*=4; bot=(bot+1)*4 }catch(err){ top=0; bot=img.height }
+  if(bot<=top){ top=0; bot=img.height } return img._fit={top,bot,cf:(bot-top)/img.height} }
 function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   // 단계별 최대 크기 (약한 185 · 중간 215 · 강한 250 · 최종 295 픽셀 높이) · 강할수록 위엄 있게
   const tier=bossTier(e), MAXH=[225,260,300,350][Math.min(3,tier)]*1.1, MAXW=MAXH*1.3;
@@ -463,18 +467,18 @@ function drawBossArt(ctx,e,t,px){ const A=artOf(e); if(!A) return false;
   // 성운의 인도자 도끼 던지기: 젖히기(빨간 줄 동안) → 빈손으로 도끼가 날아갔다 오길 기다리기 → 돌아온 도끼 받기
   const THR=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&e.atk&&e.atk.k==="axethrow"&&e.atk.t0!==undefined&&SKILL_IMG["thr_"+e.bid];
   if(THR){ const wd=e.atk.wind||1, dt=t-e.atk.t0, L=wd+.9;
-    if(dt>=0&&dt<L+2.05){ const N=3, cw=THR.width/N, ch=THR.height, idx=dt<L?0:dt<L+1.65?1:2, rh=h*.86, rw=rh*cw/ch;
-      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
-      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
+    if(dt>=0&&dt<L+2.05){ const N=3, cw=THR.width/N, ch=THR.height, idx=dt<L?0:dt<L+1.65?1:2, FT=sheetFit(THR,N), rh=h*.97/FT.cf, rw=rh*cw/ch, oy=-rh*FT.bot/ch;
+      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,oy,rw,rh);
+      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(THR,idx*cw,0,cw,ch,-rw/2,oy,rw,rh) } ctx.restore(); return true } }
   const ATK=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&!e.spin&&e.atk&&e.atk.t0!==undefined&&SKILL_IMG["atk_"+e.bid];
   if(ATK){ const wd=e.atk.wind||.45, dt=t-e.atk.t0, N=(e.bid==="st9_3"||e.bid==="st3_3"||e.bid==="st10_1")?3:4;
-    if(dt>=0&&dt<wd+.42){ const cw=ATK.width/N, ch=ATK.height, idx=dt<wd?(N===4&&dt>wd*.55?1:0):dt<wd+.2?N-2:N-1, rh=h*.86, rw=rh*cw/ch;
-      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);
-      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true } }
+    if(dt>=0&&dt<wd+.42){ const cw=ATK.width/N, ch=ATK.height, idx=dt<wd?(N===4&&dt>wd*.55?1:0):dt<wd+.2?N-2:N-1, FT=sheetFit(ATK,N), rh=h*.97/FT.cf, rw=rh*cw/ch, oy=-rh*FT.bot/ch;
+      ctx.save(); ctx.translate(e.x,y0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,oy,rw,rh);
+      if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(ATK,idx*cw,0,cw,ch,-rw/2,oy,rw,rh) } ctx.restore(); return true } }
   const RUN=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["run_"+e.bid], HOV=RUN&&HOVER_RUN[e.bid], FLY=RUN&&((RIGS[e.bid]&&RIGS[e.bid].move==="fly")||HOV), moving=RUN&&!e.spin&&(FLY||(e._v||0)>18||e.dash>0)&&!(e.atk&&e.atk.t0!==undefined&&t-e.atk.t0<(e.atk.k==="axethrow"?(e.atk.wind||1)+2.95:(e.atk.wind||.4)+.3));
-  if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, rh=h*(FLY?.95:.82), rw=rh*cw/ch, idx=FLY?Math.floor(t*(HOV?HOV[0]:11)+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
-    ctx.save(); ctx.translate(e.x,y0-(HOV?HOV[1]+Math.sin(t*2.2+e.wob)*HOV[2]:0)); ctx.rotate(HOV?Math.sin(t*2.2+e.wob+1)*HOV[3]:0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh);   // 승천한 아스라: 공중에서 둥실 굽이치며
-    if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,-rh,rw,rh) } ctx.restore(); return true }
+  if(moving){ const N=4, cw=RUN.width/N, ch=RUN.height, FT=sheetFit(RUN,N), rh=h*.97/FT.cf, rw=rh*cw/ch, oy=-rh*FT.bot/ch, idx=FLY?Math.floor(t*(HOV?HOV[0]:11)+e.wob*3)%N:Math.floor(((e._wph||t*8)/(Math.PI*2))*N*1.4)%N;
+    ctx.save(); ctx.translate(e.x,y0-(HOV?HOV[1]+Math.sin(t*2.2+e.wob)*HOV[2]:0)); ctx.rotate(HOV?Math.sin(t*2.2+e.wob+1)*HOV[3]:0); ctx.scale(Math.sign(fs||1)*Math.max(.15,Math.abs(fs)),1); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,oy,rw,rh);   // 승천한 아스라: 공중에서 둥실 굽이치며
+    if(e.flash>0){ ctx.globalCompositeOperation="lighter"; ctx.globalAlpha=Math.min(.7,e.flash*4); ctx.drawImage(RUN,idx*cw,0,cw,ch,-rw/2,oy,rw,rh) } ctx.restore(); return true }
   ctx.save(); ctx.translate(e.x,y0); if(A.face) ctx.scale(Math.sign(fs*A.face)*Math.max(.15,Math.abs(fs)),1);
   const paint=()=>{ if(A.rig) drawRig(ctx,A,e,t,w,h); else ctx.drawImage(A.im,-w/2,-h,w,h) };
   paint();
@@ -1352,7 +1356,7 @@ const RIGS = {
   st1_3:{move:"squash", parts:[]},   /* 꽃왕관이 몸에서 떨어져 보이지 않게 한 덩어리로 출렁여요 */
   st2_0:{move:"walk", parts:[{t:"spear",poly:R_(7.2,0,10,10),piv:[8.3,6.1]},{t:"arm",side:"L",poly:R_(0,5,4,9.6),piv:[3.4,5.6],small:1}]},
   st2_1:{move:"gallop", parts:[{t:"leg",z:-1,poly:R_(1,7.2,4.6,10),piv:[3,7.2],ph:.5},{t:"leg",poly:R_(5.6,7.4,8.4,10),piv:[6.8,7.4]},{t:"tail",poly:R_(0,2.4,2.2,6.2),piv:[2,5]},{t:"head",poly:R_(7.2,2.4,10,7.4),piv:[7.2,5.4]}]},
-  st2_2:{move:"waddle", parts:[{t:"arm",side:"L",poly:R_(1.4,5.2,3.7,7.8),piv:[3.5,5.6]},{t:"arm",side:"R",poly:R_(6.3,5.2,8.7,7.8),piv:[6.5,5.6]},{t:"cap",poly:R_(0.8,0,9.2,4.7),piv:[5,4.7]}]},
+  st2_2:{move:"waddle", parts:[]},   /* 버섯 갓·팔이 네모로 잘려 보이지 않게 한 덩어리로 뒤뚱 */
   st2_3:{move:"heavy",noLeg:1, parts:[{t:"arm",side:"L",poly:R_(0.6,5,4,9.2),piv:[3.8,5.3]},{t:"arm",side:"R",poly:R_(7,4.6,10,9.4),piv:[7.2,5.2]},{t:"cap",poly:R_(0,0,10,4.8),piv:[5,4.8]}]},
   st3_0:{move:"hover", parts:[]},
   st3_1:{move:"crawl", parts:[{t:"tail",poly:R_(5.2,0,8.6,4.6),piv:[6.5,4.6],strike:1},{t:"arm",side:"L",poly:R_(0,5.2,4,8.9),piv:[4,6.2]},{t:"arm",side:"L",poly:R_(3.4,7.6,7.2,10),piv:[5.6,7.4],ph:.5}]},
@@ -1488,7 +1492,7 @@ function drawAura(ctx,R,e,t,st,W0,H0){ const a=R.aura, A=st.atk, on=!!(A&&A.part
 const MELEE={dash:1,stomp:1,laser:1,cross:1,fire3:1,fire5:1,rock:1};
 const ATK_PARTS={
   st1_0:["head","head"], st1_1:["tail","wing"], st1_2:["arm","arm"], st1_3:["",""],
-  st2_0:["weapon","weapon,arm"], st2_1:["head,leg","head"], st2_2:["cap,arm","cap"], st2_3:["arm","cap,arm"],
+  st2_0:["weapon","weapon,arm"], st2_1:["head,leg","head"], st2_2:["",""], st2_3:["arm","cap,arm"],
   st3_1:["tail,arm","tail"], st3_2:["head","head"], st3_3:["head,leg","head,tail"],
   st4_0:["arm","arm"], st4_2:["wing,tail","wing"], st4_3:["head","float,head"],
   st5_0:["head,leg","head,tail"], st5_1:["weapon","weapon"], st5_2:["wing","wing"],

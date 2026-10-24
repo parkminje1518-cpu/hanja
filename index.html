@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>한자 탐험대</title>
+<title>지혜 탐험대</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gowun+Dodum&family=Noto+Serif+KR:wght@600;900&family=Press+Start+2P&display=swap">
@@ -390,6 +390,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .engH{display:flex;flex-direction:column;align-items:center;gap:1px;background:#fffaf0;border:2px solid var(--gc,#ccc);border-radius:10px;padding:6px 4px;cursor:pointer}
 .engH .eh{font-family:"Noto Serif KR",serif;font-weight:900;font-size:30px;line-height:1.1;color:#2a1d10}.engH .ei{font-size:13px;color:#5a4a3a}.engH small{font-size:11px;color:#7a6a5a}
 .engH.on{background:#2a1d4a;border-width:3px}.engH.on .eh,.engH.on .ei,.engH.on small{color:#fff}
+.gs.know{background:linear-gradient(90deg,#8a5a00,#4a2a6a);color:#fff;font-weight:700;border:1px solid #ffd36a}
 .gs.eng i{font-style:normal;font-family:"Noto Serif KR",serif;font-weight:900;margin-left:2px}
 .weakq{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;width:min(440px,92vw);background:linear-gradient(160deg,#2a1d4a,#1a1030);border:3px solid #ffd36a;border-radius:18px;padding:10px 12px 8px;color:#fff;text-align:center;box-shadow:0 0 24px rgba(255,211,106,.55);animation:wqIn .25s ease-out}
 .weakq.out{opacity:0;transition:opacity .25s}
@@ -428,6 +429,45 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .coach .cbt .cq{margin-right:auto;background:none;border-color:transparent;color:#8a7a6a}.coach .cbt .cnx{background:#ffb020;border-color:#b8501a;color:#2a1200}
 .gmodal .gcard{position:relative}
 .engm .engHd{display:flex;align-items:center;gap:6px;justify-content:center}
+.engm>*{flex-shrink:0}
+.engHints{margin:6px 0;background:#fff7e6;border:2px solid #f6c544;border-radius:12px;padding:6px 10px;color:#2a1d10}
+.engHints summary{font-family:var(--f-ui);font-size:15px;color:#8a4a00;cursor:pointer}
+.engHints>div{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:6px}
+.engHints .eh{display:flex;flex-direction:column;gap:2px;background:#fff;border:2px dashed #e0c890;border-radius:10px;padding:6px 8px;font-family:var(--f-ui);font-size:14px;line-height:1.35}
+.engHints .eh b{font-family:"Noto Serif KR",serif;font-weight:900}.engHints .eh small{font-size:12px;color:#8a7a6a}.engHints .eh small.rdy{color:#1f8a4a;font-weight:700}
+.engHints .eh.found{border:2px solid #ffd36a;background:#2a1d4a;color:#fff}.engHints .eh.found b{color:#ffd36a}.engHints .eh.found small{color:#e8dcff}
+.gdGrp{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.gdG{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;column-gap:12px;align-items:center;text-align:left;background:var(--panel);border:3px solid var(--line);border-radius:16px;padding:12px 14px;color:inherit}
+.gdG .ic{grid-row:1/4;font-size:40px}.gdG b{font-family:var(--f-title);font-weight:400;font-size:26px}.gdG small{font-family:var(--f-ui);font-size:14px;color:var(--muted)}.gdG em{font-style:normal;font-family:var(--f-ui);font-size:14px;color:#e9475f}
+.gdPath{display:flex;align-items:center;gap:10px}.gdPath b{font-family:var(--f-title);font-weight:400;font-size:24px}
+.kpow{display:flex;gap:12px;align-items:center;margin:4px 0 10px;padding:12px 14px;border-radius:16px;border:3px solid #f6c544;background:linear-gradient(120deg,#4a2a00,#2a1a3a);box-shadow:0 0 0 0 rgba(246,197,68,.6),0 6px 0 #8a5a00;animation:kpGlow 2.4s ease-in-out infinite;color:#fff}
+.kpow .kic{flex:none;font-size:46px;line-height:1;filter:drop-shadow(0 0 10px rgba(255,211,106,.8))}
+.kpow .kbd{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.kpow .kt{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}.kpow .kt b{font-family:var(--f-title);font-weight:400;font-size:24px;color:#ffd36a}
+.kpow .kv{font-family:var(--f-title);font-size:clamp(24px,4.5vw,32px);color:#fff;text-shadow:0 0 12px rgba(255,211,106,.9)}
+.kpow .kbar{position:relative;height:14px;border-radius:8px;background:rgba(255,255,255,.15);overflow:hidden}.kpow .kbar i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,#ffb020,#ffe9a0);box-shadow:0 0 10px #ffd36a}
+.kpow .kbar s{position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.35)}
+.kpow small{font-family:var(--f-ui);font-size:14px;color:#f2e6cc}.kpow .kwarn{color:#ff8a8a;font-weight:700}
+.kpow .knext{align-self:flex-start;font-style:normal;font-family:var(--f-ui);font-size:15px;background:#e9475f;color:#fff;border-radius:10px;padding:3px 10px;box-shadow:0 3px 0 #8a1f3a}.kpow .knext.max{background:#3fcf8e;box-shadow:0 3px 0 #1f7a4a}
+@keyframes kpGlow{50%{box-shadow:0 0 18px 2px rgba(246,197,68,.55),0 6px 0 #8a5a00}}
+.kpow.wis{border-color:#6ab0ff;background:linear-gradient(120deg,#0a2a5a,#2a1a3a);box-shadow:0 6px 0 #1a4a8a;animation-name:kpGlowB}.kpow.wis .kt b{color:#9ad0ff}.kpow.wis .kic{filter:drop-shadow(0 0 10px rgba(120,180,255,.9))}
+.kpow.wis .kv{text-shadow:0 0 12px rgba(120,180,255,.95)}.kpow.wis .kbar i{background:linear-gradient(90deg,#3a8cff,#bfe0ff);box-shadow:0 0 10px #6ab0ff}
+@keyframes kpGlowB{50%{box-shadow:0 0 18px 2px rgba(106,176,255,.6),0 6px 0 #1a4a8a}}
+.mpP .mpK{display:block;font-style:normal;font-family:var(--f-ui);font-size:13px;color:#ffd36a}
+.mpP.mpTop{border-color:#ffd36a!important;box-shadow:0 0 12px rgba(255,211,106,.6)}
+.mpParty{order:99;grid-column:1/-1;width:100%;margin-top:6px;padding:8px 12px;border-radius:12px;background:linear-gradient(90deg,#4a2a00,#0a2a5a);border:2px solid #ffd36a;color:#fff;font-family:var(--f-ui);font-size:16px}
+.mpParty b{color:#ffe9a0;font-size:18px}.mpParty small{display:block;font-size:13px;color:#e8dcc0;margin-top:2px}
+.bigBtn .bi .biImg{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+.pwrTag{display:inline-flex;align-items:center;gap:4px;font-family:var(--f-ui);font-size:13px;background:linear-gradient(90deg,#8a2a1c,#e9475f);color:#fff;border-radius:999px;padding:2px 10px;margin-left:6px;white-space:nowrap;box-shadow:0 2px 0 #5a1010}
+.pwrTag b{font-family:var(--f-title);font-weight:400;font-size:16px;color:#ffe9a0}
+.mrec{display:block;font-family:var(--f-ui);font-size:12px;margin-top:2px;padding:1px 6px;border-radius:6px;width:max-content;max-width:100%}.mrec.ok{background:#1f7a4a;color:#dfffe9}.mrec.lo{background:#8a1f2a;color:#ffe0e0}
+.engPow{font-family:var(--f-ui);font-size:15px;color:#ffd36a;white-space:nowrap}.engPow b{font-size:18px;color:#fff}
+.growPow{margin-top:6px;font-family:var(--f-ui);font-size:16px;display:flex;align-items:center;gap:8px}.growPow b{font-family:var(--f-title);font-weight:400;font-size:30px;color:#e9475f;text-shadow:0 2px 0 rgba(0,0,0,.15)}
+.pwUp{font-style:normal;font-family:var(--f-title);font-size:22px;color:#1faa5a;animation:pwUp 1.2s ease-out forwards}@keyframes pwUp{0%{transform:translateY(6px) scale(.6);opacity:0}30%{transform:translateY(-4px) scale(1.2);opacity:1}100%{transform:none;opacity:1}}
+.mpP .mpPw{display:block;font-style:normal;font-family:var(--f-title);font-size:17px;color:#ff8a8a}
+.mpP.mpTop .mpPw{color:#ffe9a0;text-shadow:0 0 8px #ffd36a}
+.mpParty b.big{font-family:var(--f-title);font-weight:400;font-size:26px;color:#ffd36a}
+.gs.conf{background:#6a2a8a;color:#fff;font-weight:700;animation:confP 1s ease-in-out infinite}@keyframes confP{50%{background:#9a3aba}}
 /* ===== 사용 설명서 ===== */
 .guideBtn{position:relative;display:flex;align-items:center;gap:14px;width:100%;margin:4px 0 2px;background:linear-gradient(100deg,#ff7a45 0%,#ffb020 45%,#ffd84a 100%);border:4px solid #fff4c8;border-radius:20px;padding:12px 18px 12px 12px;color:#2a1200;text-align:left;min-height:92px;box-shadow:0 6px 0 #b8501a,0 0 0 0 rgba(255,200,60,.7);animation:gdPulse 1.8s ease-in-out infinite;overflow:hidden}
 .guideBtn::after{content:"";position:absolute;top:0;bottom:0;width:60px;left:-80px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:gdShine 2.6s ease-in-out infinite}
@@ -438,7 +478,8 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .guideBtn small{font-family:var(--f-ui);font-size:18px;color:#5a2800}
 .guideBtn .gbGo{margin-left:auto;flex:none;font-family:var(--f-title);font-size:22px;background:#e9475f;color:#fff;border:3px solid #fff;border-radius:14px;padding:8px 16px;box-shadow:0 4px 0 #8a1f3a;animation:gdNudge 1s ease-in-out infinite}
 .guideBtn .gbNew{align-self:flex-start;font-family:var(--f-ui);font-style:normal;font-size:14px;background:#2a1d6a;color:#fff;border-radius:8px;padding:1px 8px;margin-bottom:2px}
-.guideBtn.seen{animation:none;box-shadow:0 6px 0 #b8501a}
+.guideBtn.seen{animation:none;box-shadow:0 6px 0 #b8501a;min-height:64px;padding:8px 14px 8px 10px}
+.guideBtn.seen .gbIco{width:48px;height:48px}.guideBtn.seen .gbIco .ico{width:34px;height:34px}.guideBtn.seen strong{font-size:clamp(22px,4vw,28px)}.guideBtn.seen small{font-size:14px}.guideBtn.seen::after{display:none}
 .guideBtn.seen .gbIco,.guideBtn.seen .gbGo{animation:none}
 @keyframes gdPulse{0%,100%{box-shadow:0 6px 0 #b8501a,0 0 0 0 rgba(255,200,60,.7)}50%{box-shadow:0 6px 0 #b8501a,0 0 0 12px rgba(255,200,60,0)}}
 @keyframes gdShine{0%,55%{left:-80px}100%{left:110%}}
@@ -1024,17 +1065,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10241436"></script>
-<script src="jobs.js?v=10241436"></script>
-<script src="maps.js?v=10241436"></script>
-<script src="art.js?v=10241436"></script>
-<script src="monsters.js?v=10241436"></script>
-<script src="jobfx.js?v=10241436"></script>
-<script src="words.js?v=10241436"></script>
-<script src="sayings.js?v=10241436"></script>
-<script src="sfx.js?v=10241436"></script>
+<script src="sprites.js?v=10241536"></script>
+<script src="jobs.js?v=10241536"></script>
+<script src="maps.js?v=10241536"></script>
+<script src="art.js?v=10241536"></script>
+<script src="monsters.js?v=10241536"></script>
+<script src="jobfx.js?v=10241536"></script>
+<script src="words.js?v=10241536"></script>
+<script src="sayings.js?v=10241536"></script>
+<script src="sfx.js?v=10241536"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10241436"></script>
+<script src="mp.js?v=10241536"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1145,7 +1186,7 @@ const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;
 const pool = ()=>[...new Map([...P.set.sel].sort((a,b)=>a-b).flatMap(w=>WEEKS[w-1]).map(c=>[c.h,c])).values()];
 const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; if(/^[SP]:/.test(h)){ P.swrong=P.swrong||[]; if(!P.swrong.includes(h)) P.swrong.push(h); saveP(); return } if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
 /* 학습 기록: 주차별 정답률 + 익힌 날짜 */
-function trackAns(c,ok){ if(!P||!c) return; if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
+function trackAns(c,ok){ if(!P||!c) return; if(window.__qHook) try{ window.__qHook(c,ok) }catch(e){} if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
   if(ok){ P.mt=P.mt||{}; if((P.mastery[c.h]||0)>=MASTER_N && !P.mt[c.h]) P.mt[c.h]=Date.now() }
   /* 틀린 한자 극복: 한 번이라도 틀렸던 한자를 3번 연속 맞히면 '극복!' (오답 노트에서도 빠져요) */
   if((P.wcnt||{})[c.h]&&!(P.ovc||[]).includes(c.h)){ P.wst=P.wst||{}; if(ok){ P.wst[c.h]=(P.wst[c.h]||0)+1; if(P.wst[c.h]>=3){ delete P.wst[c.h]; P.ovc=P.ovc||[]; P.ovc.push(c.h); P.wrong=(P.wrong||[]).filter(x=>x!==c.h); overcomeFx(c) } } else P.wst[c.h]=0 } }
@@ -1195,17 +1236,17 @@ const canSpeak = "speechSynthesis" in window;
 function speak(text){ if(!P||!P.set.voice) return; try{const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){} }
 
 function titleBlock(small){
-  return `<div class="titleBlock">${small?"":`<div class="subTitle">HANJA EXPLORERS · 4학년 한자 26주차</div>`}
-    <h1 class="bigTitle">한자 탐험대</h1>
+  return `<div class="titleBlock">${small?"":`<div class="subTitle">WISDOM EXPLORERS · 한자 · 사자성어 · 속담</div>`}
+    <h1 class="bigTitle">지혜 탐험대</h1>
     <div class="subTitle">EP.01 · 26 WEEKS · ${UNIQUE.length} HANJA</div></div>`;
 }
 function topbar(title){ const hk=String(title).startsWith("학습 · ")?null:title; return `<header class="top"><button class="back" id="back">← 메인으로</button><div class="ttl">${title}</div>${hk&&HELP[hk]?`<button class="helpQ" data-help="${hk}" aria-label="이 화면 도움말">?</button>`:""}${coinPill()}</header>` }
 /* ===== 화면마다 ? 도움말: 눌러 보면 칸을 하나씩 반짝이며 "여기는 무엇을 하는 곳인지" 알려 줘요 ===== */
 const HELP={
-  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
+  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#guideBtn","사용 설명서","시작·학습·용사·게임·보스 칸으로 나뉘어 있어요. 궁금한 칸만 골라 읽어요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
   "학습하기":[[".ltabs","무엇을 공부할까?","한자 · 사자성어 · 속담 중에서 골라요."],[".weeks","주차 고르기","공부할 주차 번호를 눌러요. 여러 개 골라도 돼요. ★는 그 주차 만점!"],["#selAll","한 번에 고르기","전체 선택 · 전체 해제 버튼이에요."],[".acts","공부 방법","카드, 퀴즈, 짝 맞추기, 쓰기 같은 공부 방법을 골라요. 모두 코인을 받아요."],[".memoAct","기억해서 쓰기 도전","모양을 외워 획순대로 써요. 코인을 가장 많이 받아요!"]],
   "게임 · 몬스터 대작전":[[".pickHero","출전 용사","이번 판에 나갈 용사를 골라요."],[".engBar","🔖 한자 각인","익힌 한자를 새기면 용사가 세져요. '각인하기'를 눌러 칸을 채워요."],[".mpP","친구와 같이 하기","방을 만들거나 코드를 넣어 친구와 함께 싸워요."],[".qrgrid","한자 퀴즈 범위","게임 속 퀴즈에 나올 주차예요. 넓을수록 보상이 커요."],[".mapgrid","맵 고르기","갈 맵을 골라요. 최종 보스를 잡으면 다음 맵 열쇠가 나와요."],[".difrow","도전 단계","보통 → 어려움 → 지옥. 어려울수록 보상과 카드 등급이 올라가요."],[".mapGuide","맵 도감","이 맵의 몬스터와 보스, 보스 고유 패턴 피하는 법을 미리 봐요."],["#go","입장!","코인을 내고 출발해요. 들어가기 전에 용사를 한 번 더 고를 수 있어요."]],
-  "각인":[[".engSlots.big","각인 칸","여기에 한자를 새겨요. 3칸(4차 전직하면 4칸)이에요. 칸을 누르면 빠져요."],[".engList","익힌 한자","3번 이상 맞힌 한자예요. 눌러서 칸에 넣어요. 아래 글씨는 그 한자가 주는 힘이에요."],[".engList .engH","등급","테두리 색이 등급이에요. 동 3번 → 은 10번 → 금 25번 → 빛나는 금 50번 맞히면 세져요."],[".engCombo","숨은 조합","어울리는 두 한자(石+岩, 風+速…)를 같이 새기면 특별한 힘이 더해져요. 8가지를 찾아봐요!"],["#engOk","새기기","다 골랐으면 눌러요. 게임 화면 체력바 옆에 새긴 한자가 보여요."]],
+  "각인":[[".engSlots.big","각인 칸","여기에 한자를 새겨요. 3칸(4차 전직하면 4칸)이에요. 칸을 누르면 빠져요."],[".engList","익힌 한자","3번 이상 맞힌 한자예요. 눌러서 칸에 넣어요. 아래 글씨는 그 한자가 주는 힘이에요."],[".engList .engH","등급","테두리 색이 등급이에요. 동 3번 → 은 10번 → 금 25번 → 빛나는 금 50번 맞히면 세져요."],[".engHints","숨은 조합 힌트","어울리는 두 한자를 같이 새기면 특별한 힘이 더해져요. 수수께끼 힌트를 읽고 8가지를 찾아봐요! ✔ 표시는 두 한자를 이미 익혔다는 뜻이에요."],["#engOk","새기기","다 골랐으면 눌러요. 게임 화면 체력바 옆에 새긴 한자가 보여요."]],
   "용사":[[".hgrid","용사 고르기","용사마다 역할과 스킬이 달라요. 코인으로 새 용사를 열어요."],[".hact","출전 · 키우기","출전할 용사를 정하거나 키우기 화면으로 가요."]],
   "용사 성장":[[".growTop","내 용사","레벨과 경험치예요. 게임을 하면 경험치가 쌓여요."],[".pt","능력치 포인트","레벨이 오르면 포인트가 생겨요. 체력·공격 같은 능력치에 나눠 줘요."],["#sAuto","자동 분배","어디에 줄지 모르겠으면 눌러요."],[".jtrack","전직 길","Lv 10 · 30 · 60 · 100에 전직해요. 전직하면 새 스킬을 배워요."],["#adv","전직 시험","한자 5문제 중 4문제를 맞히면 통과!"]],
   "오답 노트":[[".stats","틀린 한자 수","지금 오답 노트에 있는 한자 수예요."],[".notelist","틀린 한자들","내가 틀렸던 한자예요. 눌러서 뜻을 다시 봐요."],["#nq","오답 퀴즈","틀린 한자만 모아 퀴즈를 풀어요. 3번 연속 맞히면 '극복!' 칭호도 받아요."]],
@@ -1251,7 +1292,7 @@ function unpackData(code){ code=String(code||"").trim().replace(/^.*#import=/,""
 function moveBar(){ const el=document.getElementById("moveBar"); if(!el) return;
   if(ON_NEW || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && !new URLSearchParams(location.search).get("move")){ el.innerHTML=""; return }
   const n=Object.keys(profiles).filter(id=>id!==ADMIN_ID).length;
-  el.innerHTML=`<div class="moveBar"><span>📦 <b>한자 탐험대가 새 주소로 이사해요!</b><br>버튼을 누르면 이 태블릿의 기록(${n}명)이 새 주소로 그대로 옮겨져요.</span>
+  el.innerHTML=`<div class="moveBar"><span>📦 <b>지혜 탐험대가 새 주소로 이사해요!</b><br>버튼을 누르면 이 태블릿의 기록(${n}명)이 새 주소로 그대로 옮겨져요.</span>
     <a class="mvGo" id="mvGo" href="${MOVE_URL}" target="_blank" rel="noopener">기록 옮기기 ▶</a><button class="mvCode" id="mvCode">새 창이 안 열리면</button></div>`;
   document.getElementById("mvGo").onclick=e=>{ e.currentTarget.href=MOVE_URL+"#import="+packData() };
   document.getElementById("mvCode").onclick=()=>{ const code=packData();
@@ -1319,14 +1360,14 @@ function board(){
   document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","약한 한자","극복한 한자","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
     const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,(r.wk||[]).join(" "),r.ovc||0,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
     const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
-    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`한자탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`지혜탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
   if(typeof BOARD!=="undefined") BOARD.onUpdate=()=>{ if(document.getElementById("bdG")) board() };
 }
 
 function picker(){
   run0(); modal.hidden=true; curId=null; P=null;
   const list=Object.entries(profiles).filter(([id])=>id!==ADMIN_ID).sort((a,b)=>(b[1].last||0)-(a[1].last||0));
-  $app.innerHTML = `<div class="titleBlock"><div class="subTitle">HANJA EXPLORERS</div><h1 class="bigTitle">어서 와, 탐험대원!</h1><p class="muted" style="margin:0;font-size:19px">${list.length?"내 이름이 적힌 카드를 찾아서 눌러요":"이 태블릿에 처음 왔어요! 아래 노란 카드를 눌러요"}</p></div>
+  $app.innerHTML = `<div class="titleBlock"><div class="subTitle">WISDOM EXPLORERS</div><h1 class="bigTitle">어서 와, 탐험대원!</h1><p class="muted" style="margin:0;font-size:19px">${list.length?"내 이름이 적힌 카드를 찾아서 눌러요":"이 태블릿에 처음 왔어요! 아래 노란 카드를 눌러요"}</p></div>
   <div class="pkHow">
     <div class="new"><span class="n">1</span><span><b>처음 왔다면</b> 노란 <b>「+ 새 친구」</b> 카드를 눌러요<small>학년 · 반 · 번호를 고르면 나만의 탐험대원 카드가 생겨요</small></span></div>
     <div class="old"><span class="n">2</span><span><b>다시 왔다면</b> <b>내 반 · 번호</b>가 적힌 카드를 눌러요<small>코인과 용사가 그대로 이어져요</small></span></div>
@@ -1417,7 +1458,7 @@ function guide(start){
   const hid=P&&P.hero||"warrior";
   const MAPC=["#3fcf8e","#63b0ff","#f6a623","#8a4fd6","#e9475f","#3ab8ff","#d8a62a","#5ac8f0","#e8a62a","#9a5aff"];
   const P_=[
-    {t:"한자 탐험대에 온 걸 환영해요!", art:`<div class="gdFlow"><div class="gdStep">${ico("book")}한자 공부</div><span class="gdArrow">➜</span><div class="gdStep">${ico("coin")}코인 받기</div><span class="gdArrow">➜</span><div class="gdStep">${ico("sword")}게임·용사</div></div>`,
+    {t:"지혜 탐험대에 온 걸 환영해요!", art:`<div class="gdFlow"><div class="gdStep">${ico("book")}한자 공부</div><span class="gdArrow">➜</span><div class="gdStep">${ico("coin")}코인 받기</div><span class="gdArrow">➜</span><div class="gdStep">${ico("sword")}게임·용사</div></div>`,
      x:`한자를 <b>공부</b>하면 <b>코인</b>이 생겨요.<br>모은 코인으로 <b>게임</b>을 하고 나만의 <b>용사</b>를 키워요!`, tip:"모르는 게 있으면 첫 화면의 <b>사용 설명서</b> 버튼을 언제든 다시 눌러 봐요."},
     {t:"공부할 주차 고르기", n:1, art:`<div class="gdWk">${[1,2,3,4,5,6,7,8,9,10,11,12].map(w=>`<span class="${[1,2,3].includes(w)?"on":""}">${w}${w===1?"<em>★</em>":""}</span>`).join("")}</div><span class="gdFinger" style="right:22%;bottom:18%">👆</span>`,
      x:`첫 화면에서 <b>학습하기</b>를 눌러요.<br>공부할 <b>주차 번호</b>를 눌러서 골라요. 여러 개 골라도 돼요.`, tip:"<b>★</b> 표시는 그 주차 퀴즈에서 <b>만점</b>을 받았다는 뜻이에요."},
@@ -1464,22 +1505,28 @@ function guide(start){
     {t:"같이 하기 규칙", n:3, art:`<div class="gdIcons"><div><span class="em">👥</span><b>최대 4명</b>방장 1명 + 친구 3명</div><div><span class="em">💪</span><b>더 어려워요!</b>친구가 많을수록 몬스터·보스가 많고 세져요</div><div><span class="em">🎁</span><b>협동 보너스</b>끝나면 코인·경험치 ×1.3</div><div><span class="em">💎</span><b>팀 경험치</b>누가 구슬을 먹어도 모두 경험치를 받아요</div><div><span class="em">🆘</span><b>친구 살리기</b>쓰러진 친구 옆에 3초 서 있으면 부활!</div><div><span class="em">🐢</span><b>레벨업이 느려요</b>경험치 ×0.7 · 구슬을 같이 모아요</div></div>`,
      x:`혼자보다 훨씬 어려우니 <b>꼭 힘을 합쳐요!</b><br>모두 쓰러지면 게임이 끝나고, 함께 최종 보스를 잡으면 클리어예요.`, tip:"서로 너무 멀리 떨어지지 말고, 쓰러진 친구를 먼저 구해 줘요. 카드를 고르는 동안에는 몬스터가 다른 친구에게 가고, 모두 고르는 중이면 몬스터도 멈춰요."},
     {t:"다른 메뉴도 써 봐요", art:`<div class="gdIcons"><div>${ico("dex","em")}<b>한자 도감</b>익힌 한자를 모아 봐요</div><div>${ico("note","em")}<b>오답 노트</b>틀린 한자만 다시 연습</div><div>${ico("trophy","em")}<b>내 기록</b>내 점수와 도장을 봐요</div><div>${ico("gear","em")}<b>설정</b>소리, 음악, 문제 수</div><div><span class="em">🙋</span><b>처음 화면</b>내 카드를 눌러서 들어와요</div><div><span class="em">📖</span><b>사용 설명서</b>언제든 다시 보기</div></div>`,
-     x:`공부하고, 코인 모으고, 용사를 키워서<br><b>최고의 한자 탐험대원</b>이 되어 봐요!`, tip:"태블릿마다 내 기록이 저장돼요. 다른 친구의 이름으로 들어가지 않게 조심해요."},
+     x:`공부하고, 코인 모으고, 용사를 키워서<br><b>최고의 지혜 탐험대원</b>이 되어 봐요!`, tip:"태블릿마다 내 기록이 저장돼요. 다른 친구의 이름으로 들어가지 않게 조심해요."},
   ];
   /* 설명서를 칸(장)으로 나눠요: 목차에서 원하는 칸만 골라 읽어요 */
-  const CHS=[["시작","🌟","처음 왔다면 여기부터"],["학습","📚","한자 공부와 코인"],["용사","🦸","용사 고르기 · 키우기 · 전직"],["게임","🎮","게임 하는 방법과 보상"],["보스","👑","보스 · 경고 표시 · 패턴"],["한자의 힘","🔖","각인 · 약점 한자 · 극복"],["같이하기","👥","친구와 함께 싸우기"],["기타","🗂","다른 메뉴"]];
-  const CHOF={"한자 탐험대에 온 걸 환영해요!":"시작","공부할 주차 고르기":"학습","공부하는 방법 5가지":"학습","오늘의 한자와 성적표":"학습","코인 모으기":"학습","나의 용사 고르기":"용사","용사 키우기와 전직":"용사","게임 시작하기":"게임","게임 하는 방법":"게임","레벨 업 카드 고르기":"게임","오리진 스킬 (위기 탈출!)":"게임","게임으로 코인 벌기":"게임","하늘로 도전! 천공 맵":"게임","도전 단계와 보스 카드":"게임","보스와 보물, 위험 신호":"보스","보스의 기술과 필살기":"보스","경고 표시 읽는 법":"보스","보스가 더 똑똑해졌어요!":"보스","보스 약점 한자":"한자의 힘","한자 각인 (한자 실력 = 힘)":"한자의 힘","틀린 한자 극복":"한자의 힘","친구와 같이 하기":"같이하기","같이 하기 규칙":"같이하기","다른 메뉴도 써 봐요":"기타"};
+  /* 설명서는 큰 칸(학습하기 · 게임하기 …) → 작은 칸 → 쪽 으로 나눠져 있어요 */
+  const GRP=[["처음","🌟","처음 왔다면 여기부터"],["학습하기","📚","한자 공부 · 코인 · 기록"],["게임하기","🎮","용사 · 게임 · 보스 · 한자의 힘 · 친구"],["기타","🗂","다른 메뉴"]];
+  const CHS=[["시작","🌟","지혜 탐험대 둘러보기","처음"],["공부하기","📖","주차 고르기 · 공부 방법","학습하기"],["코인과 기록","🪙","코인 모으기 · 오늘의 한자 · 성적표","학습하기"],["용사","🦸","용사 고르기 · 키우기 · 전직","게임하기"],["게임 기본","🕹","시작 · 조작 · 레벨 업 · 오리진","게임하기"],["보스","👑","보스 · 경고 표시 · 패턴","게임하기"],["한자의 힘","🔖","각인 · 약점 한자 · 극복","게임하기"],["보상과 맵","🗺","코인 · 천공 맵 · 도전 단계 · 카드","게임하기"],["같이하기","👥","친구와 함께 싸우기","게임하기"],["기타","🗂","도감 · 오답 노트 · 내 기록","기타"]];
+  const CHOF={"지혜 탐험대에 온 걸 환영해요!":"시작","공부할 주차 고르기":"공부하기","공부하는 방법 5가지":"공부하기","오늘의 한자와 성적표":"코인과 기록","코인 모으기":"코인과 기록","나의 용사 고르기":"용사","용사 키우기와 전직":"용사","게임 시작하기":"게임 기본","게임 하는 방법":"게임 기본","레벨 업 카드 고르기":"게임 기본","오리진 스킬 (위기 탈출!)":"게임 기본","게임으로 코인 벌기":"보상과 맵","하늘로 도전! 천공 맵":"보상과 맵","도전 단계와 보스 카드":"보상과 맵","보스와 보물, 위험 신호":"보스","보스의 기술과 필살기":"보스","경고 표시 읽는 법":"보스","보스가 더 똑똑해졌어요!":"보스","보스 약점 한자":"한자의 힘","한자 각인 (한자 실력 = 힘)":"한자의 힘","틀린 한자 극복":"한자의 힘","친구와 같이 하기":"같이하기","같이 하기 규칙":"같이하기","다른 메뉴도 써 봐요":"기타"};
   const CI=c=>CHS.findIndex(x=>x[0]===c); P_.forEach(p=>p.ch=CHOF[p.t]||"기타"); P_.sort((a,b)=>CI(a.ch)-CI(b.ch));
-  const toc=()=>{ mcard.className="mcard guide"; mcard.innerHTML=`<div class="gdTop"><span class="pg">사용 설명서 · 목차</span><button class="x" id="gdX">닫기</button></div>
-      <h2 class="gdTitle">📖 궁금한 칸을 눌러요</h2>
-      <div class="gdToc">${CHS.map(([c,ic,sub])=>{ const ps=P_.map((p,k)=>[p,k]).filter(([p])=>p.ch===c); return ps.length?`<div class="gdCh"><button class="gdChH" data-pg="${ps[0][1]}"><span class="ic">${ic}</span><b>${c}</b><small>${sub}</small></button><div class="gdChL">${ps.map(([p,k])=>`<button data-pg="${k}">${p.t}</button>`).join("")}</div></div>`:"" }).join("")}</div>`;
-    modal.hidden=false;
-    document.getElementById("gdX").onclick=()=>{ if(P&&!P.guideSeen){ P.guideSeen=true; saveP() } closeModal() };
-    mcard.querySelectorAll("[data-pg]").forEach(b=>b.onclick=()=>{ i=+b.dataset.pg; sfx("flip"); draw() }) };
+  const grpOf=ch=>(CHS[CI(ch)]||[])[3]||"기타";
+  const tocTop=`<div class="gdTop"><span class="pg">사용 설명서 · 목차</span><button class="x" id="gdX">닫기</button></div>`;
+  const bindToc=()=>{ document.getElementById("gdX").onclick=()=>{ if(P&&!P.guideSeen){ P.guideSeen=true; saveP() } closeModal() };
+    mcard.querySelectorAll("[data-pg]").forEach(b=>b.onclick=()=>{ i=+b.dataset.pg; sfx("flip"); draw() }); mcard.querySelectorAll("[data-gr]").forEach(b=>b.onclick=()=>{ sfx("flip"); toc(b.dataset.gr) }); const bk=document.getElementById("gdUp"); if(bk) bk.onclick=()=>{ sfx("flip"); toc() } };
+  const toc=gr=>{ mcard.className="mcard guide"; modal.hidden=false;
+    if(!gr){ mcard.innerHTML=tocTop+`<h2 class="gdTitle">📖 무엇이 궁금해요?</h2><div class="gdGrp">${GRP.map(([g0,ic,sub])=>{ const n=P_.filter(p=>grpOf(p.ch)===g0).length; return n?`<button class="gdG" data-gr="${g0}"><span class="ic">${ic}</span><b>${g0}</b><small>${sub}</small><em>${n}쪽 ▶</em></button>`:"" }).join("")}</div>`; bindToc(); return }
+    const G=GRP.find(x=>x[0]===gr)||GRP[0];
+    mcard.innerHTML=tocTop+`<div class="gdPath"><button class="btn ghost" id="gdUp">◀ 처음 목차</button><b>${G[1]} ${G[0]}</b></div>
+      <div class="gdToc">${CHS.filter(c=>c[3]===gr).map(([c,ic,sub])=>{ const ps=P_.map((p,k)=>[p,k]).filter(([p])=>p.ch===c); return ps.length?`<div class="gdCh"><button class="gdChH" data-pg="${ps[0][1]}"><span class="ic">${ic}</span><b>${c}</b><small>${sub}</small></button><div class="gdChL">${ps.map(([p,k])=>`<button data-pg="${k}">${p.t}</button>`).join("")}</div></div>`:"" }).join("")}</div>`;
+    bindToc() };
   const draw=()=>{ const g=P_[i], last=i===P_.length-1;
     mcard.className="mcard guide";
-    const chp=P_.filter(p=>p.ch===g.ch), ci=chp.indexOf(g), CH=CHS[CI(g.ch)]||["","",""], nx=P_[i+1];
-    mcard.innerHTML=`<div class="gdTop"><span class="gdChip">${CH[1]} ${CH[0]}</span><span class="pg">${ci+1} / ${chp.length}</span><button class="x toc" id="gdT">☰ 목차</button><button class="x" id="gdX">닫기</button></div>
+    const chp=P_.filter(p=>p.ch===g.ch), ci=chp.indexOf(g), CH=CHS[CI(g.ch)]||["","",""], nx=P_[i+1], GG=GRP.find(x=>x[0]===CH[3])||["","",""];
+    mcard.innerHTML=`<div class="gdTop"><span class="gdChip">${GG[1]} ${GG[0]} › ${CH[1]} ${CH[0]}</span><span class="pg">${ci+1} / ${chp.length}</span><button class="x toc" id="gdT">☰ 목차</button><button class="x" id="gdX">닫기</button></div>
       <div class="gdArt">${g.art}</div>
       <h2 class="gdTitle">${g.n?`<span class="n">${g.n}</span>`:""}${g.t}</h2>
       <p class="gdText">${g.x}</p>
@@ -1488,7 +1535,7 @@ function guide(start){
       <div class="gdNav"><button class="btn ghost" id="gdP" ${i?"":"disabled"}>◀ 이전</button><button class="btn gold" id="gdN">${last?"다 읽었어요!":nx&&nx.ch!==g.ch?`다음 칸: ${nx.ch} ▶`:"다음 ▶"}</button></div>`;
     modal.hidden=false;
     const done=()=>{ if(P&&!P.guideSeen){ P.guideSeen=true; saveP() } closeModal() };
-    document.getElementById("gdX").onclick=done; document.getElementById("gdT").onclick=()=>{ sfx("flip"); toc() };
+    document.getElementById("gdX").onclick=done; document.getElementById("gdT").onclick=()=>{ sfx("flip"); toc(CH[3]) };
     document.getElementById("gdP").onclick=()=>{ if(i>0){ i--; sfx("flip"); draw() } };
     document.getElementById("gdN").onclick=()=>{ if(last){ sfx("win"); done() } else { i++; sfx("flip"); draw() } };
   };
@@ -1507,10 +1554,10 @@ function home(){
     ${coinPill()}
   </div>
   ${titleBlock()}
-  <button class="guideBtn ${P.guideSeen?"seen":""}" id="guideBtn" ${P.guideSeen?"hidden":""}><span class="gbIco">${ico("book")}</span><span class="gbTxt">${P.guideSeen?"":`<em class="gbNew">처음이면 꼭 읽어요!</em>`}<strong>사용 설명서</strong><small>그림으로 쉽게 알아보는 한자 탐험대</small></span><span class="gbGo">보기 ▶</span></button>
+  <button class="guideBtn ${P.guideSeen?"seen":""}" id="guideBtn"><span class="gbIco">${ico("book")}</span><span class="gbTxt">${P.guideSeen?"":`<em class="gbNew">처음이면 꼭 읽어요!</em>`}<strong>사용 설명서</strong><small>${P.guideSeen?"시작 · 학습 · 용사 · 게임 · 보스 · 한자의 힘 · 같이하기":"그림으로 쉽게 알아보는 지혜 탐험대"}</small></span><span class="gbGo">${P.guideSeen?"목차 ▶":"보기 ▶"}</span></button>
   ${todayHtml()}
   <button class="helpFab" id="helpFab" aria-label="사용 설명서 열기">?<span>도움말</span></button>
-  <div class="heroBar"><button class="heroChip" id="heroChip">${avaHtml(P.hero,48)}<span><small>출전 중 · ${heroBadge(P.hero)}</small><b>${heroById(P.hero).name}</b> <em>${heroById(P.hero).skill}</em></span>${HS().pts||canAdvance(P.hero)?`<span class="dot">${canAdvance(P.hero)?"전직 가능!":`포인트 ${HS().pts}`}</span>`:""}<span class="chg">성장 ›</span></button></div>
+  <div class="heroBar"><button class="heroChip" id="heroChip">${avaHtml(P.hero,48)}<span><small>출전 중 · ${heroBadge(P.hero)}</small><b>${heroById(P.hero).name}</b> <em>${heroById(P.hero).skill}</em></span>${HS().pts||canAdvance(P.hero)?`<span class="dot">${canAdvance(P.hero)?"전직 가능!":`포인트 ${HS().pts}`}</span>`:""}${typeof powHtml==="function"?powHtml(P.hero):""}<span class="chg">성장 ›</span></button></div>
   <details class="statusFold"><summary>📊 오늘 학습 <b>${d.sets}/${DAILY_SETS}</b>세트 · 남은 게임 <b>${left}</b>판 · 익힌 한자 <b>${mastered}</b>자 <span class="sfMore">자세히 ▾</span></summary>
   <div class="statusRow">
     ${isAdmin()?`<span class="adminTag">선생님 모드 · 코인과 판 수 제한 없음</span>`:""}
@@ -1522,8 +1569,8 @@ function home(){
   </div>
   </details>
   <div class="bigBtns">
-    <button class="bigBtn gold" id="goLearn"><span class="num">1</span><span class="bi">${ico("book")}</span><span><strong>학습하기</strong><small>주차를 골라 퀴즈·카드·한자 비·획순 쓰기<br>코인 받는 세트 ${d.sets}/${DAILY_SETS} · 많이 할수록 코인 UP!</small></span></button>
-    <button class="bigBtn red" id="goGame"><span class="num">2</span><span class="bi">${ico("sword")}</span><span><strong>게임 시작</strong><small>입장료 ${GAME_COST}코인 · 오늘 남은 판 ${left}<br>배운 한자로 몬스터를 물리쳐요</small></span></button>
+    <button class="bigBtn gold" id="goLearn"><span class="num">1</span><span class="bi">${typeof SKILL_ART_FILES!=="undefined"&&SKILL_ART_FILES.ic_learn?`<img class="biImg" src="${SKILL_ART_FILES.ic_learn}" alt="">`:ico("book")}</span><span><strong>학습하기</strong><small>한자 · 사자성어 · 속담을 주차별로 공부해요<br>코인 받는 세트 ${d.sets}/${DAILY_SETS} · 많이 할수록 코인 UP!</small></span></button>
+    <button class="bigBtn red" id="goGame"><span class="num">2</span><span class="bi">${typeof SKILL_ART_FILES!=="undefined"&&SKILL_ART_FILES.ic_game?`<img class="biImg" src="${SKILL_ART_FILES.ic_game}" alt="">`:ico("sword")}</span><span><strong>게임 시작</strong><small>입장료 ${GAME_COST}코인 · 오늘 남은 판 ${left}<br>많이 외울수록 용사가 세져요!</small></span></button>
   </div>
   <div class="menu4">
     <button data-go="hero"><span class="mi">${avaHtml(nextLockedOrCur(),34)}</span>용사<small>${P.heroes.length}/${HEROES.length} 해금</small></button>
@@ -1633,7 +1680,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10241436"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10241536"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -1646,7 +1693,7 @@ function grow(id,back){
     <div class="ginfo">
       <span class="cls">${h.cls}</span>
       <h2>${h.name}</h2>
-      ${heroBadge(id)}
+      ${heroBadge(id)}${(()=>{ if(typeof heroPower!=="function") return ""; const pw=heroPower(id), pv=(grow.pw||{})[id]; (grow.pw=grow.pw||{})[id]=pw; const dl=pv!==undefined?pw-pv:0; return `<div class="growPow">⚔ 전투력 <b>${fmtPow(pw)}</b>${dl>0?`<em class="pwUp">+${fmtPow(dl)}</em>`:""}</div>` })()}
       <div class="prog" style="margin-top:8px"><div class="pt"><span>경험치</span><b>${s.lv>=MAX_LV?"최고 레벨!":`${s.exp} / ${need}`}</b></div><div class="bar"><i style="width:${s.lv>=MAX_LV?100:s.exp/need*100}%"></i></div></div>
       <p class="muted" style="margin:0;font-size:14px">학습으로 코인을 받으면 코인의 1.5배, 게임을 하면 물리친 몬스터와 버틴 시간만큼 경험치가 쌓여요.</p>
       <div class="row" style="gap:8px;justify-content:flex-start">${P.hero===id?`<span class="badge">◆ 출전 중</span>`:own?`<button class="btn ghost sm" id="gpick">이 용사로 출전</button>`:""}<button class="btn ghost sm" id="gall">다른 용사 보기</button>
@@ -2299,4 +2346,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10241436"></script>
+<script src="game.js?v=10241536"></script>
