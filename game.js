@@ -73,7 +73,11 @@ function engVal(h){ const [k,f]=engType(h); return [k,ENG_V[k]*f*engLv(h)] }
 function engSlots(id){ return HS(id).tier>=4||(typeof isAdmin==="function"&&isAdmin())?4:3 }
 function engOf(id){ P.eng=P.eng||{}; return (P.eng[id]||[]).filter(h=>engLv(h)>0).slice(0,engSlots(id)) }
 function engCombos(list){ return ENG_COMBO.filter(c=>list.includes(c[0])&&list.includes(c[1])) }
-function engraveBonus(id,list){ const L=list||engOf(id), S={}; for(const h of L){ const [k,v]=engVal(h); S[k]=(S[k]||0)+v } for(const c of engCombos(L)) for(const k in c[3]) S[k]=(S[k]||0)+c[3][k]; for(const k in S) S[k]=Math.min(S[k],ENG_CAP[k]||1); return S }
+/* 직업마다 추천 각인 효과 (추천 효과로 새기면 10% 더 세져요) */
+const ENG_REC={warrior:["armor","hp","石岩固體","石+岩 반석"],archer:["cd","spd","時電風速","風+速 질풍"],thief:["crit","dmg","目見炎强","—"],mage:["dmg","cd","炎爆天地","天+地 천지의 힘"],pirate:["cd","dmg","時電炎拳","—"],healer:["regen","hp","水林木體","木+林 숲의 가호"],calli:["dmg","cd","炎强時現","時+現 시간의 틈"],zodiac:["cd","xp","時電學問","學+問 학문의 길"],mech:["dmg","armor","勇强石固","勇+强 용맹"]};
+const ENG_NM={dmg:"공격력",hp:"최대 체력",armor:"받는 피해 감소",spd:"이동 속도",cd:"공격 속도",regen:"체력 회복",crit:"급소",xp:"경험치",mag:"줍는 거리"};
+const engRecOf=id=>ENG_REC[id]||["dmg","hp","",""], isRec=(id,k)=>engRecOf(id).slice(0,2).includes(k);
+function engraveBonus(id,list){ const L=list||engOf(id), S={}; for(const h of L){ const [k,v0]=engVal(h), v=v0*(isRec(id,k)?1.1:1); S[k]=(S[k]||0)+v } for(const c of engCombos(L)) for(const k in c[3]) S[k]=(S[k]||0)+c[3][k]; for(const k in S) S[k]=Math.min(S[k],ENG_CAP[k]||1); return S }
 function engFmt(k,v){ return k==="regen"?`${ENG_NAME[k]} ${+(v*100).toFixed(1)}%`:`${ENG_NAME[k]} ${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%` }
 function engInfo(h){ return UNIQUE.find(c=>c.h===h)||{h,hun:"",eum:""} }
 function engHtml(id){ const L=engOf(id), n=engSlots(id), S=engraveBonus(id), cb=engCombos(L);
@@ -83,6 +87,7 @@ function engraveUI(back){ const id=P.hero, n=engSlots(id); P.eng=P.eng||{}; let 
   const learned=UNIQUE.filter(c=>engLv(c.h)>0).sort((a,b)=>engLv(b.h)-engLv(a.h)||((P.mastery[b.h]||0)-(P.mastery[a.h]||0)));
   const draw=()=>{ const cb=engCombos(cur);
     mcard.className="mcard engm"; mcard.innerHTML=`<div class="engHd"><h3>🔖 ${esc(heroById(id).name)}의 한자 각인 (${cur.length}/${n})</h3><span class="engPow">⚔ ${fmtPow(heroPower(id,{eng:engOf(id)}))} → <b>${fmtPow(heroPower(id,{eng:cur.filter(h=>engLv(h)>0)}))}</b></span><button class="helpQ" data-help="각인" aria-label="각인 도움말">?</button></div>
+      ${(()=>{ const R=engRecOf(id); return `<div class="engRec">⭐ <b>${esc(heroById(id).name)} 추천</b>: ${ENG_NM[R[0]]} · ${ENG_NM[R[1]]} <small>(추천 효과는 10% 더 세져요)</small><span class="erH">예) ${[...R[2]].join(" ")}${R[3]&&R[3]!=="—"?` · 조합 ${R[3]}`:""}</span><button class="btn gold" id="engAuto">⭐ 추천대로 새기기</button></div>` })()}
       <details class="engHow" ${(P.eng&&Object.keys(P.eng).length)?"":"open"}><summary>❓ 한자 각인이 뭐예요? (눌러서 보기)</summary>
         <div class="ehSteps"><div><i>1</i><b>외우기</b><span>학습하기에서 한자를 <b>3번</b> 맞히면 아래 목록에 나타나요</span></div><div><i>2</i><b>새기기</b><span>목록의 한자를 눌러 위 <b>${n}칸</b>에 넣고 '새기기'를 눌러요${HS(id).tier>=4?"":" (4차 전직하면 4칸)"}</span></div><div><i>3</i><b>세지기</b><span>게임에서 그 한자의 <b>뜻에 맞는 힘</b>이 생겨요 (炎 불꽃 → 공격력)</span></div></div>
         <div class="ehLad"><span style="--c:#c88a4a">동<small>3번 · ×1</small></span>➜<span style="--c:#c8d2e0">은<small>10번 · ×2</small></span>➜<span style="--c:#ffd36a">금<small>25번 · ×3</small></span>➜<span style="--c:#fff3a0">빛나는 금<small>50번 · ×4</small></span></div>
@@ -95,10 +100,14 @@ function engraveUI(back){ const id=P.hero, n=engSlots(id); P.eng=P.eng||{}; let 
         return ORD.filter(t=>G[t]).map(t=>`<div class="ehGrp"><b>${NM[t]}</b><div>${G[t].map(([c,k])=>card(c,k)).join("")}</div></div>`).join("") })()}</details>
       <div class="engList">${learned.length?(()=>{ const ci=h=>{ const k=ENG_COMBO.findIndex(c=>c[0]===h||c[1]===h); return k<0?99:k }, grp={}; learned.forEach(c=>{ const k=engType(c.h); (grp[k[1]<1?"etc":k[0]]=grp[k[1]<1?"etc":k[0]]||[]).push(c) });
         const ORD=["dmg","hp","armor","spd","cd","regen","crit","xp","mag","etc"], NM={dmg:"⚔ 공격력",hp:"❤ 최대 체력",armor:"🛡 받는 피해 감소",spd:"👟 이동 속도",cd:"⚡ 공격 속도",regen:"🌿 체력 회복",crit:"🎯 급소",xp:"📖 경험치",mag:"🧲 줍는 거리",etc:"✦ 그 밖의 한자 (작은 힘)"};
-        return ORD.filter(k=>grp[k]).map(k=>`<div class="engGrp"><b>${NM[k]}</b><div class="engGL">${grp[k].sort((a,b)=>ci(a.h)-ci(b.h)||engLv(b.h)-engLv(a.h)).map(c=>{ const g=ENG_GR[engLv(c.h)], [k2,v]=engVal(c.h), on=cur.includes(c.h); return `<button class="engH ${on?"on":""}" data-h="${c.h}" style="--gc:${g[1]}"><span class="eh">${c.h}</span><span class="ei">${esc(c.hun)} ${esc(c.eum)}</span><small>${g[0]} · ${engFmt(k2,v)}</small></button>` }).join("")}</div></div>`).join("") })():`<p class="muted">아직 익힌 한자가 없어요. 학습하기에서 한자를 3번 이상 맞혀 봐요!</p>`}</div>
+        const RC=engRecOf(id); ORD.sort((x,y)=>(isRec(id,y)?1:0)-(isRec(id,x)?1:0));
+        return ORD.filter(k=>grp[k]).map(k=>`<div class="engGrp ${isRec(id,k)?"rec":""}"><b>${NM[k]}${isRec(id,k)?' <em class="recB">⭐ 추천</em>':""}</b><div class="engGL">${grp[k].sort((a,b)=>ci(a.h)-ci(b.h)||engLv(b.h)-engLv(a.h)).map(c=>{ const g=ENG_GR[engLv(c.h)], [k2,v]=engVal(c.h), on=cur.includes(c.h); return `<button class="engH ${on?"on":""}" data-h="${c.h}" style="--gc:${g[1]}"><span class="eh">${c.h}</span><span class="ei">${esc(c.hun)} ${esc(c.eum)}</span><small>${g[0]} · ${engFmt(k2,v)}</small></button>` }).join("")}</div></div>`).join("") })():`<p class="muted">아직 익힌 한자가 없어요. 학습하기에서 한자를 3번 이상 맞혀 봐요!</p>`}</div>
       <div class="gbtns"><button class="big red" id="engOk">새기기</button><button class="big alt" id="engNo">닫기</button></div>`;
     mcard.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ sfx("tap"); cur.splice(+b.dataset.rm,1); draw() });
     mcard.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{ const h=b.dataset.h; if(cur.includes(h)) cur=cur.filter(x=>x!==h); else if(cur.length<n) cur.push(h); else { toast(`각인 칸이 가득 찼어요. 위에서 하나를 빼고 넣어요`); return } sfx("tap"); draw() });
+    { const ab=document.getElementById("engAuto"); if(ab) ab.onclick=()=>{ const R=engRecOf(id), sc=h=>{ const [k,v]=engVal(h); return v*(isRec(id,k)?1.1:1)*(isRec(id,k)?3:1)+([...R[2]].includes(h)?.5:0) };
+      let pick=learned.map(c=>c.h).sort((a,b)=>sc(b)-sc(a)).slice(0,n); const cm=ENG_COMBO.find(c=>R[3]&&R[3].startsWith(c[0]+"+"+c[1])); if(cm&&engLv(cm[0])>0&&engLv(cm[1])>0&&!(pick.includes(cm[0])&&pick.includes(cm[1]))){ pick=[cm[0],cm[1],...pick.filter(h=>h!==cm[0]&&h!==cm[1])].slice(0,n) }
+      if(!pick.length){ toast("아직 익힌 한자가 없어요. 학습하기에서 3번 이상 맞혀 봐요!"); return } cur=pick; sfx("pick"); draw() } }
     document.getElementById("engNo").onclick=()=>{ modal.hidden=true; back&&back() };
     document.getElementById("engOk").onclick=()=>{ const before=engCombos(engOf(id)).map(c=>c[2]); P.eng[id]=cur.slice(); P.engFound=P.engFound||[]; const nw=engCombos(cur).filter(c=>!P.engFound.includes(c[2])); nw.forEach(c=>P.engFound.push(c[2])); saveP(); sfx(nw.length?"win":"pick"); modal.hidden=true;
       if(nw.length) toast(`✨ 새로운 한자 조합 발견! ${nw.map(c=>c[0]+"+"+c[1]+" "+c[2]).join(", ")}`); else toast("한자를 새겼어요!"); back&&back() } };
@@ -205,8 +214,9 @@ function heroPower(id,o){ o=o||{}; id=id||P.hero; const H=heroById(id), S=o.S||H
   M.cd/=1+STAT.spd*Math.min(S.spd||0,STAT.spdMax);
   const off=M.dmg*(1+(S.lv||1)*.01)*(1/Math.max(.3,M.cd))*(1+M.crit)*(1+.4*(S.tier||0))*(1+(S.lv||1)*.02), def=hp/Math.max(.3,M.armor)*(1+(EB.regen||0)*20)*(1+(S.lv||1)*.015);
   const raw=Math.sqrt(off*def); if(o.raw) return raw;
-  const base=(heroPower.B=heroPower.B||{})[id]||(heroPower.B[id]=heroPower(id,{S:{lv:1,tier:0,hp:0,atk:0,spd:0},noBonus:1,raw:1}));   /* 직업마다 1레벨 = 1,000 으로 맞춰 공평하게 */
-  return Math.round(raw/base*1000) }
+  const base=(heroPower.B=heroPower.B||{})[id]||(heroPower.B[id]=heroPower(id,{S:{lv:1,tier:0,hp:0,atk:0,spd:0},noBonus:1,raw:1}));
+  const R=heroPower.R||(heroPower.R={}); if(R[id]===undefined){ const ref=id2=>heroPower(id2,{S:{lv:100,tier:4,hp:33,atk:33,spd:33},noBonus:1,raw:1})/((heroPower.B[id2])||(heroPower.B[id2]=heroPower(id2,{S:{lv:1,tier:0,hp:0,atk:0,spd:0},noBonus:1,raw:1}))); R[id]=ref("warrior")/ref(id) }   /* 직업 차이 없이 같은 성장이면 같은 전투력 */   /* 직업마다 1레벨 = 1,000 으로 맞춰 공평하게 */
+  return Math.round(raw/base*1000*Math.pow(R[id],Math.min(1,((S.lv||1)-1)/99))) }
 const fmtPow=n=>Math.round(n).toLocaleString("ko-KR");
 function powHtml(id){ return `<span class="pwrTag">⚔ 전투력 <b>${fmtPow(heroPower(id))}</b></span>` }
 /* 맵 · 단계마다 권장 전투력: 그 맵 레벨의 보통 용사(능력치 고르게 · 각인/카드 없이)를 기준으로 */
@@ -287,18 +297,26 @@ function gameLobby(){
   if(!isAdmin() && (HS().lv<mapById(P.set.map||1).lv||(mapById(P.set.map||1).tier&&HS().tier<mapById(P.set.map||1).tier))){ P.set.map=1; saveP() }
   $app.querySelectorAll(".difb").forEach(b=>b.onclick=()=>{ if(typeof NET!=="undefined"&&NET.role==="client") return; const id=P.set.map||1, d=+b.dataset.dif; if(!difUnlocked(id,d)){ toast(d===1?"보통 단계를 클리어하면 열려요!":"어려움 단계를 클리어하면 열려요!"); return } P.set.difs=P.set.difs||{}; P.set.difs[id]=d; saveP(); sfx("tap"); if(typeof NET!=="undefined"&&NET.role==="host") netHostLobby(); else gameLobby() });
   // 입장 버튼: 바로 들어가지 않고 "이 용사로 출전할까요?" 창에서 용사를 한 번 더 고르고 들어가요
-  document.getElementById("go").onclick = ()=>{ const M=mapById(P.set.map||1);
-    const draw=()=>{ const K=knowPower(P.set.qrange||5,srangeOf().w); mcard.innerHTML=`<h3>어떤 용사로 출전할까요?</h3><p>${esc(M.name)} · ${DIFS[mapDif(M.id)].n} · 권장 전투력 ${fmtPow(recPower(M.id,mapDif(M.id)))}</p>
-      <div class="phl pickGrid">${HEROES.filter(h=>P.heroes.includes(h.id)||isAdmin()).map(h=>`<button class="ph ${P.hero===h.id?"on":""}" data-pk="${h.id}">${avaHtml(h.id,48)}<span>${h.name}</span><small>Lv ${HS(h.id).lv} · ${jobTitle(h.id)}</small><em class="phPw">⚔ ${fmtPow(heroPower(h.id))}</em></button>`).join("")}</div>
-      <div class="pkRange"><b>한자 퀴즈 범위</b><div>${QRANGE.map(q=>`<button class="pkr ${(P.set.qrange||5)===q.w?"on":""}" data-mq="${q.w}">${q.label}</button>`).join("")}</div>
+  document.getElementById("go").onclick = ()=>openPick();
+  function openPick(tab){ const M=mapById(P.set.map||1); let T=tab||"";
+    /* 입장 창: 용사 · 각인 · 퀴즈 범위를 눌러서 펼쳐 바꿔요. 미리 골라 둔 그대로라 바로 '입장하기'만 눌러도 돼요 */
+    const draw=()=>{ const K=knowPower(P.set.qrange||5,srangeOf().w), E=engOf(P.hero), H=heroById(P.hero), rp=recPower(M.id,mapDif(M.id)), pw=heroPower(P.hero);
+      const sec=(k,ic,ttl,sum,body)=>`<div class="pkSec ${T===k?"on":""}"><button class="pkHead" data-tab="${k}"><span class="pkIc">${ic}</span><span class="pkT"><b>${ttl}</b><small>${sum}</small></span><em>${T===k?"접기 ▲":"바꾸기 ▼"}</em></button>${T===k?`<div class="pkBody">${body}</div>`:""}</div>`;
+      mcard.innerHTML=`<h3>출전 준비</h3><p>${esc(M.name)} · ${DIFS[mapDif(M.id)].n} · 권장 전투력 ${fmtPow(rp)}</p>
+      <div class="pkPow ${pw>=rp?"ok":"lo"}">⚔ 내 전투력 <b>${fmtPow(pw)}</b><small>${pw>=rp?"충분해요!":"조금 부족해요"}</small></div>
+      ${sec("hero",avaHtml(P.hero,40),"용사",`${esc(H.name)} · Lv ${HS().lv} · ⚔ ${fmtPow(pw)}`,`<div class="phl pickGrid">${HEROES.filter(h=>P.heroes.includes(h.id)||isAdmin()).map(h=>`<button class="ph ${P.hero===h.id?"on":""}" data-pk="${h.id}">${avaHtml(h.id,48)}<span>${h.name}</span><small>Lv ${HS(h.id).lv} · ${jobTitle(h.id)}</small><em class="phPw">⚔ ${fmtPow(heroPower(h.id))}</em></button>`).join("")}</div>`)}
+      ${sec("eng","🔖",`한자 각인 · ${esc(H.name)}`,E.length?E.map(h=>`<i class="pkEh" style="color:${ENG_GR[engLv(h)][1]}">${h}</i>`).join("")+" · "+Object.entries(engraveBonus(P.hero)).map(([k,v])=>engFmt(k,v)).join(" · "):"아직 새긴 한자가 없어요",`<p class="pkK">각인은 용사마다 따로 새겨요. 지금 고른 용사의 각인이에요.</p><button class="big gold" id="pkEng">🔖 각인 바꾸러 가기</button>`)}
+      ${sec("rng","📚","퀴즈 범위",`한자 ${qrangeOf().label} · 사자성어·속담 ${srangeOf().label} · 📚 +${Math.round(K.dmg*100)}% · 📜 -${Math.round(K.armor*100)}%`,`<div class="pkRange"><b>한자 퀴즈 범위</b><div>${QRANGE.map(q=>`<button class="pkr ${(P.set.qrange||5)===q.w?"on":""}" data-mq="${q.w}">${q.label}</button>`).join("")}</div>
         <b>사자성어·속담 범위</b><div>${SRANGE.map(q=>`<button class="pkr ${srangeOf().w===q.w?"on":""}" data-ms="${q.w}">${q.label}</button>`).join("")}</div>
-        <p class="pkK">📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}% <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>
-      <div class="gbtns"><button class="big red" id="pkGo">⚔ 입장하기<small style="display:block;font-size:13px">${esc(heroById(P.hero).name)} · 전투력 ${fmtPow(heroPower(P.hero))} · 코인 ${GAME_COST}개</small></button><button class="big alt" id="pkNo">취소</button></div>`;
-      mcard.querySelectorAll("[data-mq],[data-ms]").forEach(b=>b.onclick=()=>{ sfx("tap"); if(b.dataset.mq) P.set.qrange=+b.dataset.mq; else P.set.srange=+b.dataset.ms; saveP(); draw() });
+        <p class="pkK">📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}% <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`)}
+      <div class="gbtns"><button class="big red" id="pkGo">⚔ 입장하기<small style="display:block;font-size:13px">${esc(H.name)} · 전투력 ${fmtPow(pw)} · 코인 ${GAME_COST}개</small></button><button class="big alt" id="pkNo">취소</button></div>`;
+      mcard.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{ sfx("tap"); T=T===b.dataset.tab?"":b.dataset.tab; draw() });
+      mcard.querySelectorAll("[data-mq],[data-ms]").forEach(b=>b.onclick=()=>{ sfx("tap"); if(b.dataset.mq) P.set.qrange=+b.dataset.mq; else P.set.srange=+b.dataset.ms; saveP(); if(typeof netSendMe==="function"&&typeof netInRoom==="function"&&netInRoom()) netSendMe(); draw() });
       mcard.querySelectorAll("[data-pk]").forEach(b=>b.onclick=()=>{ sfx("tap"); P.hero=b.dataset.pk; saveP(); if(typeof netSendMe==="function"&&typeof netInRoom==="function"&&netInRoom()) netSendMe(); draw() });
+      const pe=document.getElementById("pkEng"); if(pe) pe.onclick=()=>{ sfx("tap"); engraveUI(()=>openPick("eng")) };
       document.getElementById("pkNo").onclick=()=>{ modal.hidden=true; const y=window.scrollY; gameLobby(); window.scrollTo(0,y) };
       document.getElementById("pkGo").onclick=()=>{ modal.hidden=true; if(payGame()) startGame(); else gameLobby() } };
-    draw(); modal.hidden=false };
+    mcard.className="mcard"; draw(); modal.hidden=false }
   if(typeof mpBind==="function"){ mpBind(); if(netInRoom()) document.getElementById("go").style.display="none" }
 }
 
@@ -746,6 +764,11 @@ function startGame(opts){ opts=opts||{};
         e.minWatch=1; e.minT0=g.t; g.fx.push({k:"boom",x:e.x,y:e.y,r:R,col:"#c08bff",life:.45,max:.45}); sfx("boom") }}) }
     else if(act==="spore"){ for(let i=0;i<10;i++){ const a=i*Math.PI/5; g.eshots.push({th:e.th,x:e.x,y:e.y,vx:Math.cos(a)*200,vy:Math.sin(a)*200,r:9,dmg:e.dmg*.6,life:3,col:"#b8e06a",kind:"spore"}) } }
     else if(act==="rock"){ for(let i=-1;i<=1;i++) g.eshots.push({th:e.th,x:e.x,y:e.y,vx:Math.cos(aim+i*.25)*360,vy:Math.sin(aim+i*.25)*360,r:14,dmg:e.dmg*.8,life:2.5,col:"#8d86a0",kind:"rock"}) }
+    else if(act==="spearthrust"){   /* 도토리 병정 대장: 빨간 띠(창이 닿는 곳) → 2번 연달아 푹! 찌르기 */
+      for(let n=0;n<2;n++) g.pending.push({t:n*1.25,run:()=>{ if(e.hp<=0) return; const q=TP(), oy=e.y-e.r*BOSS_DY, a=Math.atan2(q.y-oy,q.x-e.x), L=e.r*1.2+230, w=40;
+        e.aimHold=.75; g.fx.push({k:"laserwarn",x:e.x,y:oy,a,w,len:L,life:.75,max:.75}); g.fx.push({k:"label",x:e.x,y:oy-e.r*1.8,text:"창 찌르기!",life:.75,max:.75});
+        g.pending.push({t:.75,run:()=>{ if(e.hp<=0) return; e.atk={k:"spearthrust",t0:g.t-.45,wind:.45,sp:0}; e.x+=Math.cos(a)*30; e.y+=Math.sin(a)*30; aoeL(e.x,oy,a,L,e.dmg*1.1); g.fx.push({k:"pbeam",x:e.x,y:oy+40,a,len:L,col:"255,235,180",life:.25,max:.25}); g.shake=Math.max(g.shake,.2); sfx("multislash1") }}) }});
+      e.bt=Math.max(e.bt,3.4) }
     else if(act==="dash"){ const q=TP(), a=Math.atan2(q.y-(e.y-e.r*BOSS_DY),q.x-e.x), v=e.sp*5; e.rollA=a; e.aimHold=.7; e.dsx=e.x; e.dsy=e.y; g.fx.push({k:"laserwarn",x:e.x,y:e.y-e.r*BOSS_DY,a,w:e.r+12,len:v*.6+e.r,life:.7,max:.7}); g.pending.push({t:.7,run:()=>{ if(e.hp<=0) return; e.x=e.dsx; e.y=e.dsy; e.dash=.6; e.dvx=Math.cos(a)*v; e.dvy=Math.sin(a)*v }}) }
     else if(act==="fire3"||act==="fire5"){ const n=act==="fire3"?3:5; for(let w=0;w<(e.big?2:1);w++) g.pending.push({t:w*.35,run:()=>{ const q=TP(), a0=Math.atan2(q.y-e.y,q.x-e.x);
       for(let i=0;i<n;i++){ const a=a0+(i-(n-1)/2)*.22; g.eshots.push({th:e.th,x:e.x,y:e.y,vx:Math.cos(a)*300,vy:Math.sin(a)*300,r:11,dmg:e.dmg*.7,life:3,col:"#ff8a2a",kind:"fire"}) } }}) }
