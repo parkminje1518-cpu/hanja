@@ -1272,7 +1272,7 @@ function drawNewFx(c,f,k,t,GL,P){ if(drawSigFx(c,f,k,t)) return true; const p=1-
         c.globalCompositeOperation=GL; jGlow(c,X,Y+L*.35,w*2.6,"90,160,255",.55);
         const go=c.createLinearGradient(X,Y,X,Y+L); go.addColorStop(0,"rgba(120,190,255,.95)"); go.addColorStop(.5,"rgba(60,110,255,.75)"); go.addColorStop(1,"rgba(30,60,220,0)"); c.fillStyle=go; c.beginPath(); c.moveTo(X-w,Y); c.quadraticCurveTo(X-w*.6,Y+L*.6,X,Y+L); c.quadraticCurveTo(X+w*.6,Y+L*.6,X+w,Y); c.fill();
         const gi=c.createLinearGradient(X,Y,X,Y+L*.6); gi.addColorStop(0,"rgba(255,255,255,1)"); gi.addColorStop(.6,"rgba(180,235,255,.8)"); gi.addColorStop(1,"rgba(120,200,255,0)"); c.fillStyle=gi; c.beginPath(); c.moveTo(X-w*.45,Y); c.quadraticCurveTo(X,Y+L*.75,X+w*.45,Y); c.fill();
-        c.globalCompositeOperation="source-over"; for(let i=0;i<3;i++){ const ph=(T*4+i/3+ox*.01)%1; c.fillStyle=`rgba(200,200,210,${.35*(1-ph)})`; c.beginPath(); c.arc(X+(pfxR(i,ox|0)-.5)*20,Y+L+ph*40,6+ph*14,0,7); c.fill() } } }
+        c.globalCompositeOperation="source-over"; for(let i=0;i<3;i++){ const ph=((T*4+i/3+ox*.01)%1+1)%1; c.fillStyle=`rgba(200,200,210,${.35*(1-ph)})`; c.beginPath(); c.arc(X+(pfxR(i,ox|0)-.5)*20,Y+L+ph*40,6+ph*14,0,7); c.fill() } } }
     // 착지 충격 빛
     if(T>.72&&T<.95){ c.globalCompositeOperation=GL; jGlow(c,f.x,f.y+H*.3,200,"255,230,160",.8*(1-(T-.72)/.23)); c.globalCompositeOperation="source-over" }
     // 몸 (빠르게 움직일 땐 잔상)
@@ -1699,7 +1699,7 @@ const WTX2={}; function warnTex(key,col){ const id=key+col; if(WTX2[id]) return 
 function mixHex(a,b,t){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), A=p(a), B=p(b); return "#"+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,"0")).join("") }
 /* 위험 색: 맵(보스) 색에 빨강을 섞어 '위험'이 바로 보이게 */
 /* 맵 분위기를 살린 위험 색 (테두리 깜빡임은 모든 맵 붉은빛으로 통일) */
-const DANGER_COL={1:"#ff4f8f",2:"#ff8a3a",3:"#e8923a",4:"#e04ad8",5:"#ff3a30",6:"#ff6a6a",7:"#ffa040",8:"#a87cff",9:"#ffb030",10:"#c060ff"};
+const DANGER_COL={1:"#ff4f8f",2:"#ff8a3a",3:"#e8923a",4:"#e04ad8",5:"#ff3a30",6:"#ff6a6a",7:"#ffa040",8:"#a87cff",9:"#ffb030",10:"#c060ff",11:"#e040ff"};
 function dangerCol(th){ return DANGER_COL[window.__mapId]||"#ff4a4a" }
 const OWN_COL="#ffd36a", SAFE_COL="#5af08a";
 const WGEO={warncircle:[.5,.477,.495,.516],warndonut:[.499,.484,.496,.506],warnsafe:[.5,.538,.491,.448],warnown:[.5,.537,.487,.446]};

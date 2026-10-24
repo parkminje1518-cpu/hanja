@@ -95,6 +95,9 @@ const SND = (()=>{
     quake:()=>{ boom(.45,0,.7); noise({f:300,f2:60,d:1.0,v:.2,a:.02}); tone({f:60,f2:30,d:.9,type:"sine",v:.3,at:.05}) },
     awaken:()=>{ [440,554,659,880].forEach((f,i)=>tone({f,d:1.4,type:"sawtooth",v:.04,lp:800,lp2:4000,a:.25,det:(i-1.5)*8,vib:5,vibd:4}));
       noise({type:"highpass",f:2000,f2:8000,d:1.0,v:.08,a:.3}); swish(.3,.3,.6); boom(.3,.35,.9); arp([1760,2217,2637,3520],.07,{d:.25,type:"sine",v:.04,at:.4}) },
+    /* 5차 궁극기: 기를 모으고 → 쿵! 터져요 */
+    ultcharge:()=>{ tone({f:90,f2:520,d:.62,type:"sawtooth",v:.07,lp:600,lp2:5000,a:.05}); tone({f:45,f2:90,d:.62,type:"sine",v:.25,a:.1}); noise({type:"bandpass",f:300,f2:6000,d:.6,v:.14,a:.4,q:2}); arp([523,659,784,1047,1319],.1,{d:.18,type:"triangle",v:.035}) },
+    ultboom:()=>{ boom(.55,0,.6); boom(.35,.06,1.2); tone({f:55,f2:28,d:1.3,type:"sine",v:.4}); noise({f:900,f2:50,d:1.6,v:.2,a:.02}); noise({type:"highpass",f:3000,f2:9000,d:.5,v:.08,at:.05}); arp([1568,2093,2637],.06,{d:.4,type:"sine",v:.04,at:.12}) },
     multislash1:()=>{ swish(.22,0,.7); tone({f:2400,f2:1600,d:.14,type:"triangle",v:.04}) },
     cutin:()=>{ noise({type:"bandpass",f:400,f2:5000,d:.35,v:.18,a:.05,q:1.2}); tone({f:220,f2:880,d:.3,type:"sawtooth",v:.06,lp:2500}); arp([1047,1568,2093],.05,{d:.25,type:"square",v:.04,lp:5000,at:.25}); tone({f:65,f2:45,d:.5,type:"sine",v:.25,at:.25}) },
     /* 궁수 */

@@ -33,7 +33,13 @@ const MAPS = [
     sky:["#1a1244","#07051a"], hud:"#f3effd", dark:0.25, enemy:{body:"#3a2a7a",shade:"#1a1040",eye:"#c88aff",acc:"horn",name:"공허 성마"}, bossName:"성좌의 종언신 아스트라카", tag:"#9a5aff" },
 ];
 MAPS.forEach(m=>{ if(!m.realm) m.realm="ground" });
-const mapById = id=>MAPS.find(m=>m.id===id)||MAPS[0];
+/* ===== 시즌 2: 군단장 보스 맵 (보스만 나와요) ===== */
+const S2MAPS = [
+  { id:11, realm:"boss", name:"검귀의 달빛 결투장", diff:"시즌 2 · 군단장 1", lv:100, tier:4, exp:7, hp:7.2, spawn:0, spd:1.35, boss11:1,
+    desc:"이계 마신군 제1군단장 「암흑의 검귀」가 기다리는 결투장이에요. 몬스터 없이 보스와 1:1! 시간대(자정·여명·정오·황혼)마다 패턴이 바뀌어요.",
+    sky:["#2a1048","#0c0418"], hud:"#f3effd", dark:0.3, enemy:{body:"#3a2a5a",shade:"#1a1030",eye:"#c88aff",acc:"horn",name:"그림자"}, bossName:"암흑의 검귀", tag:"#b07aff" },
+];
+const mapById = id=>MAPS.find(m=>m.id===id)||S2MAPS.find(m=>m.id===id)||MAPS[0];
 /* 같은 칸이면 언제나 같은 장식이 나오도록 하는 해시 */
 function mhash(x,y,i){ let n=(x*374761393 + y*668265263 + i*69069)|0; n=Math.imul(n^(n>>>13),1274126177); return ((n^(n>>>16))>>>0)/4294967295 }
 /* ===== 바닥 도형: 네모 타일 대신 모양이 제각각인 돌판 · 육각 타일 · 떠 있는 섬 ===== */
@@ -294,6 +300,7 @@ function ruleCell(map,cx,cy){
    바닥: 이어 붙여도 티 안 나는 타일을 화면 가득 깔아요 (선명하게)
    장애물: 나무 아래 덤불, 큰 바위 옆 작은 바위처럼 무리 지어 자연스럽게 놓아요 */
 const ART_MAP = {
+  11:{floor:.8, props:{}},
   1:{floor:.72, props:{tree:["o1_tree",200,250],rock:["o1_rock",92,125],bush:["o1_bush",52,80]}},
   2:{floor:.72, props:{tree:["o2_tree",215,265],rock:["o2_log",70,90,"log"],bush:["o2_mush",48,70]}},
   3:{floor:.8, props:{tree:["o3_pillar",150,190],rock:["o3_wall",100,130],bush:["o3_plate",40,52,"flat"]}},
