@@ -1152,17 +1152,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10250558"></script>
-<script src="jobs.js?v=10250558"></script>
-<script src="maps.js?v=10250558"></script>
-<script src="art.js?v=10250558"></script>
-<script src="monsters.js?v=10250558"></script>
-<script src="jobfx.js?v=10250558"></script>
-<script src="words.js?v=10250558"></script>
-<script src="sayings.js?v=10250558"></script>
-<script src="sfx.js?v=10250558"></script>
+<script src="sprites.js?v=10250604"></script>
+<script src="jobs.js?v=10250604"></script>
+<script src="maps.js?v=10250604"></script>
+<script src="art.js?v=10250604"></script>
+<script src="monsters.js?v=10250604"></script>
+<script src="jobfx.js?v=10250604"></script>
+<script src="words.js?v=10250604"></script>
+<script src="sayings.js?v=10250604"></script>
+<script src="sfx.js?v=10250604"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10250558"></script>
+<script src="mp.js?v=10250604"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1783,7 +1783,9 @@ function adminPanel(){
 
 
 /* ===== 용사 성장 ===== */
-function HS(id){ id=id||P.hero; P.hl=P.hl||{}; if(!P.hl[id]) P.hl[id]={lv:1,exp:0,pts:0,hp:0,atk:0,spd:0,dmg:0,tier:0,v3:1}; const s=P.hl[id]; if(!s.v3){ s.pts=(s.pts||0)*3; s.hp=(s.hp||0)*3; s.atk=(s.atk||0)*3; s.spd=(s.spd||0)*3; s.v3=1 } return s }   /* 레벨마다 3포인트로 바뀌었어요: 이전 포인트는 3배로 (세기는 그대로) */
+function HS(id){ id=id||P.hero; P.hl=P.hl||{}; if(!P.hl[id]) P.hl[id]={lv:1,exp:0,pts:0,hp:0,atk:0,spd:0,dmg:0,tier:0,v3:1}; const s=P.hl[id]; if(!s.v3){ s.pts=(s.pts||0)*3; s.hp=(s.hp||0)*3; s.atk=(s.atk||0)*3; s.spd=(s.spd||0)*3; s.v3=1 }
+  if(!s.v4&&typeof STAT!=="undefined"){ s.v4=1; const K=["hp","atk","dmg","spd","bd","ied"], used=K.reduce((a,k)=>a+(s[k]||0),0), legit=Math.max(0,((s.lv||1)-1)*STAT.ppl); if(used+(s.pts||0)>legit+2){ for(const k of K) s[k]=0; s.pts=legit; if(typeof statAuto==="function"){ try{ s.pts-=statAuto(id,s,"1-0",s.pts) }catch(e){} } } }   /* 추천 찍기 오류로 늘어난 포인트를 바로잡아요 (레벨 × 3포인트로) */
+  return s }   /* 레벨마다 3포인트로 바뀌었어요: 이전 포인트는 3배로 (세기는 그대로) */
 const jobTitle = id=>JOBS[id].titles[HS(id).tier];
 /* 5차 각성 조건: Lv 120 + 그 용사로 별의 왕좌 어려움 이상 클리어 + 익힌 한자 100자 */
 const AWK_MASTER=100;
@@ -1802,7 +1804,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10250558"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10250604"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2496,4 +2498,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10250558"></script>
+<script src="game.js?v=10250604"></script>
