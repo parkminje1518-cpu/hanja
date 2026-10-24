@@ -58,7 +58,7 @@ function mpPanelHtml(){
   if(!netAvailable()) return "";
   const inRoom=netInRoom(), list=NET.lobby||[];
   const pw=p=>p.pw||0, top=list.length>1?Math.max(...list.map(pw)):-1, F=n=>Math.round(n||0).toLocaleString("ko-KR");
-  const pl=list.map(p=>`<div class="mpP ${list.length>1&&pw(p)===top&&top>0?"mpTop":""}">${avaHtml(p.hero,40)}<span><b>${list.length>1&&pw(p)===top&&top>0?"👑 ":""}${esc(p.name)}</b><small>${p.host?"방장 · ":""}${esc(heroById(p.hero).cls)} Lv ${p.lv}</small><em class="mpPw">⚔ ${F(p.pw)}</em><em class="mpK">📚 +${p.kd||0}% · 📜 -${p.ka||0}%</em></span></div>`).join("")
+  const pl=list.map(p=>`<div class="mpP ${list.length>1&&pw(p)===top&&top>0?"mpTop":""} ${(p.tier||0)>=5?"mpAwk":""}">${avaHtml(p.hero,40)}<span><b>${list.length>1&&pw(p)===top&&top>0?"👑 ":""}${esc(p.name)}</b>${(p.tier||0)>=5?'<i class="awkB">✦5차 각성</i>':""}<small>${p.host?"방장 · ":""}${esc(heroById(p.hero).cls)} Lv ${p.lv}</small><em class="mpPw">⚔ ${F(p.pw)}</em><em class="mpK">📚 +${p.kd||0}% · 📜 -${p.ka||0}%</em></span></div>`).join("")
     +(list.length>1?`<div class="mpParty">⚔ 우리 파티 전투력 <b class="big">${F(list.reduce((a,p)=>a+(p.pw||0),0))}</b> · 지식 <b>📚 +${list.reduce((a,p)=>a+(p.kd||0),0)}%</b> · 지혜 <b>📜 -${list.reduce((a,p)=>a+(p.ka||0),0)}%</b><small>👑 표시는 우리 파티 최강 용사예요. 퀴즈 범위를 넓히고 많이 외울수록 전투력이 올라가요!</small></div>`:"");
   let body;
   if(!inRoom) body=`<p class="mpHint">태블릿 2~4대가 한 방에 모여 같이 싸워요. 한 명이 <b>방 만들기</b>, 친구들은 <b>코드</b>를 넣어요.</p>

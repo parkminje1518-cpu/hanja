@@ -120,7 +120,7 @@ function jfAwakenAura(c,x,y,t,k,GL){
   c.restore();
   for(let i=0;i<6;i++){ const a=t*2.2+i*TAU/6, sx=x+Math.cos(a)*46, sy=y-24+Math.sin(a)*16, back=Math.sin(a)<0;
     c.save(); c.globalAlpha=k*(back?.55:.95); c.translate(sx,sy); c.rotate(Math.PI/2+Math.sin(t*3+i)*.1);
-    const HS_=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holysword;
+    const HS_=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&((window.__t5==="warrior"&&SKILL_IMG.lavasword)||SKILL_IMG.holysword);
     if(HS_){ c.rotate(-Math.PI/2); const h=40, w=h*HS_.width/HS_.height; c.drawImage(HS_,-w/2,-h*.55,w,h); c.globalCompositeOperation=GL; c.globalAlpha*=.35+.2*Math.sin(t*8+i); c.drawImage(HS_,-w/2,-h*.55,w,h) }   // 성검 그림 6자루가 칼끝을 아래로 빙글
     else { c.fillStyle="#fff4c8"; c.beginPath(); c.moveTo(-3,-20); c.lineTo(3,-20); c.lineTo(3,6); c.lineTo(0,12); c.lineTo(-3,6); c.closePath(); c.fill();
     c.fillStyle="#f6c544"; c.fillRect(-7,-22,14,3); c.fillStyle="#b8871a"; c.fillRect(-2,-29,4,7) } c.restore() }
@@ -364,7 +364,7 @@ function jfCutin(c,f,k,W,H,img,t,GL){
   c.restore(); c.globalAlpha=1;
 }
 function jfCutinText(c,f,W,H){
-  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=H*.2, x=cutinX(f,W)+W*.6;
+  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=f.ty||H*.2, x=cutinX(f,W)+W*(f.ty?.5:.6);
   c.save(); c.globalAlpha=al; c.textAlign="center"; c.textBaseline="middle";
   // 고급 MMORPG 느낌: 명조체(Noto Serif KR 900) · 금빛 그라데이션 · 은은한 빛 번짐
   const HF=window.__heroId?`"HF-${window.__heroId}",`:"", SF=HF+'"Noto Serif KR","Nanum Myeongjo","Batang",serif', W9=HF?"":"900 ", W6=HF?"":"600 ";
@@ -381,8 +381,8 @@ function jfCutinText(c,f,W,H){
 /* ---------- 전사 4차: 영웅의 각성 (하늘에서 성검이 꽂히고 화면을 다섯 번 가름) ---------- */
 function drawHolySword(c,x,tip,len,al,t,GL){
   // 제미나이 성검 그림: 칼끝이 tip에 오도록, 뒤에 금빛 광채
-  const SI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holysword; if(SI){ const H=len*.95, Wd=H*SI.width/SI.height;
-    c.save(); c.globalAlpha=al; c.globalCompositeOperation=GL; jGlow(c,x,tip-H*.45,Wd*1.4,"255,225,140",.35); c.globalCompositeOperation="source-over"; c.drawImage(SI,x-Wd/2,tip-H,Wd,H);
+  const SI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&((window.__t5==="warrior"&&SKILL_IMG.lavasword)||SKILL_IMG.holysword); if(SI){ const H=len*.95, Wd=H*SI.width/SI.height;
+    c.save(); c.globalAlpha=al; c.globalCompositeOperation=GL; jGlow(c,x,tip-H*.45,Wd*1.4,window.__t5==="warrior"?"255,140,60":"255,225,140",.35); c.globalCompositeOperation="source-over"; c.drawImage(SI,x-Wd/2,tip-H,Wd,H);
     c.globalCompositeOperation=GL; c.globalAlpha=al*(.25+.15*Math.sin(t*12)); c.drawImage(SI,x-Wd/2,tip-H,Wd,H); c.restore(); return }
   const w=len*.075;
   c.save(); c.globalAlpha=al; c.translate(x,tip);
@@ -411,7 +411,7 @@ function jfWorldSlash(c,f,k,W,H,GL,t){
     if(tau<.45){ c.globalCompositeOperation=GL; for(let i=0;i<7;i++){ const xx=cx+(i-3)*len*.03; c.fillStyle=`rgba(255,236,170,${.35})`; c.fillRect(xx-1,tip-len*1.4,2,len*.6) } c.globalCompositeOperation="source-over" }
     drawHolySword(c,cx,tip,len,al,t,GL) }
   // 꽂히는 순간: 금빛 마법진 + 하늘로 치솟는 빛기둥 (제미나이 그림)
-  const HC=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.holycircle;
+  const HC=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&((window.__t5==="warrior"&&SKILL_IMG.collapse5)||SKILL_IMG.holycircle);
   if(tau>.42&&tau<1.45){ const p=(tau-.42)/1.03, grow=1-Math.pow(1-Math.min(1,p*3.2),3), fade=p<.7?1:Math.max(0,1-(p-.7)/.3);
     if(HC){ const Wd=Math.min(W*.95,H*1.25)*(.55+.45*grow), Hd=Wd*HC.height/HC.width; c.save(); c.globalCompositeOperation=GL; c.globalAlpha=fade*.85; c.drawImage(HC,cx-Wd*.5,cy-Hd*.737,Wd,Hd);
       if(p<.2){ c.globalAlpha=(.2-p)*2; c.drawImage(HC,cx-Wd*.5,cy-Hd*.737,Wd,Hd) } c.restore() }
@@ -1080,9 +1080,11 @@ function drawNewShot(c,sh,a,t,GL){ const k=sh.k;
   if(k==="plasma"){ c.save(); c.globalCompositeOperation=GL; for(let j=1;j<=5;j++){ c.fillStyle=`rgba(110,220,255,${.22-j*.035})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j,sh.y-sh.vy*.02*j,18-j*2,0,7); c.fill() }
     jGlow(c,sh.x,sh.y,40,"120,230,255",.9); c.strokeStyle="rgba(220,250,255,.9)"; c.lineWidth=2; for(let i=0;i<2;i++){ c.beginPath(); c.ellipse(sh.x,sh.y,16,7,t*9+i*1.57,0,7); c.stroke() }
     c.fillStyle="#fff"; c.beginPath(); c.arc(sh.x,sh.y,8,0,7); c.fill(); c.restore(); return true }
+  if(k==="moonorb"&&window.__t5==="healer"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.moonorb5&&!window.__noArt){ const im=SKILL_IMG.moonorb5, L=(sh.sm?.75:1)*64, H=L*im.height/im.width; c.save(); c.globalCompositeOperation=GL; jGlow(c,sh.x,sh.y,30,"190,150,255",.55); c.translate(sh.x,sh.y); c.rotate(a); c.globalCompositeOperation="source-over"; c.drawImage(im,-L*.72,-H/2,L,H); c.restore(); return true }
   if(k==="moonorb"){ const s=sh.sm?.75:1; c.save(); c.globalCompositeOperation=GL; jGlow(c,sh.x,sh.y,26*s,"190,215,255",.6);
       for(let j=1;j<=3;j++){ c.fillStyle=`rgba(220,230,255,${.22/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j,sh.y-sh.vy*.02*j,9*s-j,0,7); c.fill() } c.restore();
     if(!nImg(c,"moonorb",sh.x,sh.y,30*s,false,t*2)){ c.fillStyle="#eef3ff"; c.beginPath(); c.arc(sh.x,sh.y,9*s,0,7); c.fill() } return true }
+  if(k==="ink"&&window.__t5==="calli"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.ink5&&!window.__noArt){ const im=SKILL_IMG.ink5, L=118, H=L*im.height/im.width, al=Math.min(1,sh.life/.15); c.save(); c.globalAlpha=al; c.translate(sh.x,sh.y); c.rotate(a); c.drawImage(im,-L*.78,-H/2,L,H); c.globalCompositeOperation="lighter"; c.globalAlpha=al*.35; c.drawImage(im,-L*.78,-H/2,L,H); c.restore(); return true }
   if(k==="ink"){ const life=sh.life, al=Math.min(1,life/.15); c.save(); c.globalAlpha=al;
     for(let j=1;j<=4;j++){ c.fillStyle=`rgba(20,16,24,${.18/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j+Math.sin(j*7)*8,sh.y-sh.vy*.02*j+Math.cos(j*5)*8,4-j*.5,0,7); c.fill() }
     if(!nImg(c,"ink",sh.x,sh.y,70,false,a)){ c.translate(sh.x,sh.y); c.rotate(a); c.strokeStyle="#151018"; c.lineWidth=7; c.beginPath(); c.arc(-14,0,30,-1.1,1.1); c.stroke() } c.restore(); return true }
@@ -1655,7 +1657,7 @@ function drawBoltStrand(c,L,T,al){ const S=boltStrand(); if(!S||L<4) return fals
   c.restore(); return true }
 
 /* ===== 바람 궁수 (제미나이 그림): 바람 화살 · 화살비 · 바람의 활 ===== */
-function drawWindArrow(c,x,y,a,L,al,glow){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windarrow; if(!im) return false; const H=L*im.height/im.width;
+function drawWindArrow(c,x,y,a,L,al,glow){ const A5=window.__t5==="archer"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.arrow5, im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&(A5||SKILL_IMG.windarrow); if(!im) return false; if(A5) L*=1.35; const H=L*im.height/im.width;
   c.save(); c.translate(x,y); c.rotate(a); c.globalAlpha=al==null?1:al; c.drawImage(im,-L*.9,-H/2,L,H); if(glow){ c.globalCompositeOperation="lighter"; c.globalAlpha*=.5; c.drawImage(im,-L*.9,-H/2,L,H) } c.restore(); return true }
 
 /* ===== 일렁이는 불꽃: 그림을 세로 조각으로 나눠, 꼬리 쪽일수록 위아래로 출렁이고 두께가 숨 쉬듯 바뀌어요 ===== */
@@ -1675,7 +1677,7 @@ function drawFlameImg(c,im,L,H,ax,ay,t,seed,tr,amp){ if(!im||!im.width) return f
   if(window.__fxLow){ c.drawImage(im,-L*ax,-H*ay,L,H); return true }
   const F=flameFrames(im,!!tr,amp), fi=((Math.floor(t*14+seed*3)%FLN)+FLN)%FLN; c.drawImage(F[fi],-L*ax,-H*ay-H*.2,L,H*1.4); return true }
 /* 날아가는 화염구 (캐릭터·보스 공통): 앞쪽 불꽃 핵을 탄 위치에 맞추고 꼬리가 일렁여요 */
-function drawFireballFx(c,x,y,a,L,t,al){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.fireballfx; if(!im) return false; const H=L*im.height/im.width, pul=1+Math.sin(t*20+x*.05)*.04;
+function drawFireballFx(c,x,y,a,L,t,al){ const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&((window.__t5==="mage"&&SKILL_IMG.sunorb5)||SKILL_IMG.fireballfx); if(!im) return false; const H=L*im.height/im.width, pul=1+Math.sin(t*20+x*.05)*.04;
   c.save(); c.translate(x,y); c.rotate(a); c.scale(pul,pul); c.globalCompositeOperation="lighter"; c.globalAlpha=al==null?1:al; drawFlameImg(c,im,L,H,.782,.537,t,x*.013+y*.007,false,.1); c.restore(); return true }
 
 /* ===== 마법사: 독 안개 · 메테오 낙하 마법진 (제미나이 그림) ===== */
