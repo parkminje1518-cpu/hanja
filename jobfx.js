@@ -61,6 +61,8 @@ function jfCrescent(c,x,y,R,a0,span,w,stops,alpha){
   c.fillStyle=g; c.beginPath(); c.arc(0,0,R,0,span); const m=span/2; c.arc(Math.cos(m)*R*w*.9,Math.sin(m)*R*w*.9,R*(1-w*.55),span-.05,.05,true); c.closePath(); c.fill(); c.restore();
 }
 function jfBigSlash(c,f,k,GL){
+  { const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.wslash; if(im){ const q=1-k, R=f.r*(.95+.15*Math.min(1,q*3)), W2=R/(im.width*.39)*im.width, rot=f.a+q*1.6;   // 광폭 연속 베기: 받아 온 금빛 바위 검기 그림이 휙 돌며 베요
+    c.save(); c.translate(f.x,f.y); c.rotate(rot); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,k*2); c.drawImage(im,-W2*.654,-W2*.5,W2,W2); if(q<.35){ c.globalAlpha=(.35-q)*2.4; c.drawImage(im,-W2*.654,-W2*.5,W2,W2) } c.restore(); return } }
   if(typeof slashSprite==="function"&&PFX._ok){ const q=1-k, R=f.r*(.8+.25*q), al=Math.min(1,k*2.2); if(heroArc(c,f.x,f.y,f.a+q*1.4,R,al,"hw",window.__fxLow?0:.8)){
       c.save(); c.globalCompositeOperation="lighter"; c.strokeStyle=`rgba(255,220,140,${.5*k})`; c.lineWidth=2; c.beginPath(); c.arc(f.x,f.y,R*1.02,0,7); c.stroke(); c.restore(); return } }
   const s=jSeed(f), q=1-k, R=f.r*(.85+.25*q), span=Math.PI*1.35;
@@ -345,8 +347,8 @@ const ease=u=>1-Math.pow(1-Math.max(0,Math.min(1,u)),3);
 /* 스킬 컷인: 직업 색 띠가 화면을 가로질러요 (글자는 선명한 층에서 따로) */
 function cutinX(f,W){ const q=1-f.life/f.max; return q<.2?(1-ease(q/.2))*W*1.1:q>.78?-ease((q-.78)/.22)*W*1.1:-(q-.2)*40 }
 function jfCutin(c,f,k,W,H,img,t,GL){
-  const q=1-k, al=Math.min(1,q/.12,(1-q)/.15), y=H*.3, h=Math.min(120,Math.max(84,H*.17)), x=cutinX(f,W);
-  c.fillStyle=`rgba(5,5,15,${.22*al})`; c.fillRect(0,0,W,H);
+  const q=1-k, al=Math.min(1,q/.12,(1-q)/.15), y=H*.2, h=Math.min(80,Math.max(56,H*.11)), x=cutinX(f,W);   // 작게 · 위쪽에 (전투 화면을 덜 가리게)
+  c.fillStyle=`rgba(5,5,15,${.1*al})`; c.fillRect(0,0,W,H);
   c.save(); c.translate(x,0);
   const band=()=>{ c.beginPath(); c.moveTo(-40,y-h/2+26); c.lineTo(W+40,y-h/2-26); c.lineTo(W+40,y+h/2-26); c.lineTo(-40,y+h/2+26); c.closePath() };
   const g=c.createLinearGradient(0,0,W,0); g.addColorStop(0,f.c1); g.addColorStop(.55,f.c2); g.addColorStop(1,f.c1);
@@ -362,12 +364,12 @@ function jfCutin(c,f,k,W,H,img,t,GL){
   c.restore(); c.globalAlpha=1;
 }
 function jfCutinText(c,f,W,H){
-  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=H*.3, x=cutinX(f,W)+W*.6;
+  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=H*.2, x=cutinX(f,W)+W*.6;
   c.save(); c.globalAlpha=al; c.textAlign="center"; c.textBaseline="middle";
   // 고급 MMORPG 느낌: 명조체(Noto Serif KR 900) · 금빛 그라데이션 · 은은한 빛 번짐
   const HF=window.__heroId?`"HF-${window.__heroId}",`:"", SF=HF+'"Noto Serif KR","Nanum Myeongjo","Batang",serif', W9=HF?"":"900 ", W6=HF?"":"600 ";
-  try{ c.letterSpacing="4px" }catch(e){} c.font=`${W6}15px ${SF}`; c.fillStyle="rgba(255,240,210,.92)"; c.shadowColor="rgba(0,0,0,.8)"; c.shadowBlur=6; c.fillText(f.sub,x,y-32);
-  const fs=Math.round(Math.min(48,W/13)); try{ c.letterSpacing="2px" }catch(e){} c.font=`${W9}${fs}px ${SF}`;
+  try{ c.letterSpacing="4px" }catch(e){} c.font=`${W6}12px ${SF}`; c.fillStyle="rgba(255,240,210,.92)"; c.shadowColor="rgba(0,0,0,.8)"; c.shadowBlur=6; c.fillText(f.sub,x,y-22);
+  const fs=Math.round(Math.min(34,W/17)); try{ c.letterSpacing="2px" }catch(e){} c.font=`${W9}${fs}px ${SF}`;
   c.shadowColor=f.c2||"#ffb84a"; c.shadowBlur=18; c.lineWidth=6; c.strokeStyle="#140c08"; c.strokeText(f.text,x,y+6); c.shadowBlur=0;
   const g=c.createLinearGradient(0,y+6-fs*.55,0,y+6+fs*.5); g.addColorStop(0,"#fffbe8"); g.addColorStop(.45,"#ffe39a"); g.addColorStop(.55,"#e8b54a"); g.addColorStop(1,"#a8701e"); c.fillStyle=g; c.fillText(f.text,x,y+6);
   c.lineWidth=1.2; c.strokeStyle="rgba(255,250,230,.7)"; c.strokeText(f.text,x,y+6);
@@ -452,7 +454,9 @@ function jfHurricane(c,P,t,k,GL,aim){
   for(let i=0;i<5;i++){ const ph=(t*2.6+i/5)%1, d=50+ph*320, r=22+ph*44; c.save(); c.globalCompositeOperation="source-over"; c.strokeStyle=`rgba(20,110,80,${(1-ph)*.5*k})`; c.lineWidth=5*(1-ph)+1; c.beginPath(); c.ellipse(d,0,r*.28,r,0,0,TAU); c.stroke(); c.restore(); c.strokeStyle=`rgba(190,255,225,${(1-ph)*.75*k})`; c.lineWidth=3*(1-ph)+1; c.beginPath(); c.ellipse(d,0,r*.28,r,0,0,TAU); c.stroke() }
   // 빛의 활
   const BI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windbow;
-  if(BI){ const Hd=200, Wd=Hd*BI.width/BI.height, vib=Math.sin(t*60)*1.5; c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=k; c.drawImage(BI,-Wd*.62+vib,-Hd/2,Wd,Hd); c.globalAlpha=k*(.3+.2*Math.sin(t*14)); c.drawImage(BI,-Wd*.62,-Hd/2,Wd,Hd); c.restore();
+  if(BI){ c.restore(); return }   // 활은 다른 효과 위에 따로 그려요 (jfHurricaneBow)
+  if(false){ const Hd=200, Wd=Hd*BI.width/BI.height, vib=0;
+    c.save(); c.drawImage(BI,-Wd*.62+vib,-Hd/2,Wd,Hd); c.globalAlpha=k*(.3+.2*Math.sin(t*14)); c.drawImage(BI,-Wd*.62,-Hd/2,Wd,Hd); c.restore();
     drawWindArrow(c,40,0,0,150,k,true); jGlow(c,52,0,30,"180,255,220",.7*k); c.restore(); return }
   const R=84, vib=Math.sin(t*60)*2;
   c.save(); c.translate(-26,0);
@@ -939,7 +943,16 @@ function pfxInitIce(){ if(PFX._okI) return; PFX._okI=1;
     c.fillStyle="rgba(120,160,210,.5)"; for(let i=0;i<5;i++){ c.beginPath(); c.arc(4+pfxR(i,5)*6-3,5+pfxR(i,6)*6-3,1.6,0,7); c.fill() } }) }
 function hexRgb(h){ const n=parseInt(h.slice(1),16); return `${n>>16},${n>>8&255},${n&255}` }
 const SHOCK_KEY={1:"th_flower",2:"th_leaf",3:"th_rock",4:"th_crystal",5:"flame",6:"wind",7:"th_light",8:"icespike",9:"th_bolt",10:"th_star"};
-function drawShock(c,b,t){ const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], a=Math.min(1,b.life*2.5), R=b.rad;
+/* 보스 충격파: 제미나이 고리 그림을 맵 색으로 물들이고, 맵마다 다른 파편(꽃잎·잎·돌·수정·불꽃·바람·깃털·얼음·번개·별)이 고리를 따라 날아가요 */
+const SHOCK_COL={1:"#ff8ac0",2:"#7adc6a",3:"#e8b070",4:"#b98aff",5:"#ff6a3a",6:"#8ad8ff",7:"#ffd36a",8:"#a8e8ff",9:"#ffe25a",10:"#c9a0ff"};
+function drawShockArt(c,b,t){ const S=typeof SKILL_IMG!=="undefined"&&!window.__noArt?SKILL_IMG:null; if(!S||!S.shockring) return false;
+  const m=b.map||5, T=typeof warnTex==="function"&&warnTex("shockring",SHOCK_COL[m]||"#ffffff"); if(!T) return false;
+  const a=Math.min(1,b.life*2.5), R=b.rad+b.band*.4, W=R*2.12, H=W*.75;
+  c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=a; c.drawImage(T,b.x-W/2,b.y-H/2,W,H); c.globalAlpha=a*.45; c.drawImage(S.shockring,b.x-W/2,b.y-H/2,W,H); c.restore();
+  const SD=S["sd_"+m]; if(SD){ const n=Math.max(8,Math.min(22,R/30|0)), z=32/Math.max(SD.width,SD.height); c.save(); c.globalAlpha=a;
+    for(let i=0;i<n;i++){ const an=i/n*6.283+b.x*.01, x=b.x+Math.cos(an)*R, y=b.y+Math.sin(an)*R*.75, s=z*(.8+pfxR(i,m)*.5); c.save(); c.translate(x,y); c.rotate(an+t*3+i); c.scale(s,s); c.drawImage(SD,-SD.width/2,-SD.height/2); c.restore() } c.restore() }
+  return true }
+function drawShock(c,b,t){ if(drawShockArt(c,b,t)) return; const m=b.map||5, C=WAVE_PAL[m]||WAVE_PAL[5], a=Math.min(1,b.life*2.5), R=b.rad;
   c.save(); c.translate(b.x,b.y); c.scale(1,.75);
   const g=c.createRadialGradient(0,0,Math.max(1,R-b.band*1.6),0,0,R+b.band); g.addColorStop(0,C[1]+"00"); g.addColorStop(.55,C[1]+"aa"); g.addColorStop(.8,C[0]+"cc"); g.addColorStop(1,C[1]+"00");
   c.globalAlpha=a*.7; c.fillStyle=g; const ri=Math.max(1,R-b.band*1.6); c.beginPath(); c.arc(0,0,R+b.band,0,TAU); c.moveTo(ri,0); c.arc(0,0,ri,0,TAU,true); c.fill();
@@ -1444,6 +1457,8 @@ function drawSig46Shot(c,b,t){ const K=b.kind;
   if(K==="planet"){ const r=b.r, PC=[["#ffd88a","#c8641a"],["#9ad8ff","#2a5ab8"],["#e0a8ff","#6a2ab0"]][b.pc||0];
     if(b.lead&&b.R>8){ const an=b.ga+b.w*b.ot; c.save(); c.strokeStyle="rgba(200,170,255,.4)"; c.lineWidth=3; c.setLineDash([10,10]); c.beginPath(); c.ellipse(b.cx,b.cy,b.R,b.R*.85,0,an+.4,an+6.283-.4); c.stroke(); c.setLineDash([]);
       c.strokeStyle="rgba(110,255,150,.9)"; c.lineWidth=7; c.lineCap="round"; c.beginPath(); c.ellipse(b.cx,b.cy,b.R,b.R*.85,0,an-.35,an+.35); c.stroke(); c.restore() }
+    const PI_=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG["pl_"+((b.pl||0)%8)];
+    if(PI_){ const H=r*2.3, W=H*PI_.width/PI_.height; c.save(); c.translate(b.x,b.y); c.globalCompositeOperation="lighter"; jGlow(c,0,0,r*1.7,"200,180,255",.35); c.globalCompositeOperation="source-over"; c.rotate(t*.6+(b.pl||0)); c.drawImage(PI_,-W/2,-H/2,W,H); c.restore(); return true }   // 진짜 행성 그림 (수성~해왕성)
     c.save(); c.translate(b.x,b.y); c.globalCompositeOperation="lighter"; jGlow(c,0,0,r*1.9,"200,180,255",.4); c.globalCompositeOperation="source-over";
     const g=c.createRadialGradient(-r*.35,-r*.35,r*.1,0,0,r); g.addColorStop(0,"#ffffff"); g.addColorStop(.35,PC[0]); g.addColorStop(1,PC[1]); c.fillStyle=g; c.beginPath(); c.arc(0,0,r,0,7); c.fill();
     c.strokeStyle="rgba(255,255,255,.75)"; c.lineWidth=2.5; c.beginPath(); c.ellipse(0,0,r*1.6,r*.45,-.35,0,7); c.stroke(); c.restore(); return true }
@@ -1846,3 +1861,13 @@ function drawStarAxe(c,b,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__
   c.globalCompositeOperation="source-over"; c.globalAlpha=1;
   c.save(); c.translate(b.x,b.y); c.rotate(sp); c.drawImage(im,-cx,-cy,w,h); c.globalCompositeOperation="lighter"; c.globalAlpha=.3; c.drawImage(im,-cx,-cy,w,h); c.restore();
   c.restore(); return true }
+
+/* 폭풍 연사의 거대한 활: 모든 효과 위에, 캐릭터 앞쪽에 또렷하게 (빛에 묻히지 않게) */
+function jfHurricaneBow(c,P,t,k,aim){ const BI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windbow; if(!BI) return;
+  const Hd=260, Wd=Hd*BI.width/BI.height, vib=Math.sin(t*60)*1.5, DK=typeof warnTex==="function"&&warnTex("windbow","#0e7a52");
+  c.save(); c.translate(P.x,P.y-10); c.rotate(aim||0); c.translate(Wd*.12+40,0);
+  c.globalCompositeOperation="source-over"; if(DK){ c.globalAlpha=k*.9; for(const [ox,oy] of [[-2,0],[2,0],[0,-2],[0,2]]) c.drawImage(DK,-Wd*.12+ox,-Hd/2+oy,Wd,Hd) }   // 진한 테두리 (밝은 빛 속에서도 보이게)
+  c.globalAlpha=k*.55; c.globalCompositeOperation="lighter"; jGlow(c,Wd*.3,0,Hd*.5,"120,255,200",.4*k);
+  c.globalCompositeOperation="source-over"; c.globalAlpha=k; c.drawImage(BI,-Wd*.12+vib,-Hd/2,Wd,Hd);
+  c.globalCompositeOperation="lighter"; c.globalAlpha=k*(.35+.15*Math.sin(t*14)); c.drawImage(BI,-Wd*.12,-Hd/2,Wd,Hd);
+  c.globalCompositeOperation="source-over"; c.globalAlpha=1; drawWindArrow(c,-Wd*.12+10,0,0,150,k,true); c.restore() }

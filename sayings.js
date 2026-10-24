@@ -841,7 +841,7 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P
   draw() }
 
 /* ----- 도감: 한자 / 사자성어 / 속담 ----- */
-function dexTabs(cur){ const n=c=>SAY_ALL[c].filter(sayMastered).length, nc=Object.keys(P.bcard||{}).length; return `<div class="ltabs">${[["H","한자"],["S","사자성어"],["P","속담"],["B","보스 카드"]].map(([k,nm])=>`<button class="ltab dtab ${cur===k?"on":""}" data-tab="${k}">${nm}${k==="S"||k==="P"?`<small>익힌 말 ${n(k)}/${SAY_ALL[k].length}</small>`:k==="B"?`<small>${nc}/40장</small>`:""}</button>`).join("")}</div>` }
+function dexTabs(cur){ const n=c=>SAY_ALL[c].filter(sayMastered).length, nc=typeof cardCount==="function"?cardCount():0; return `<div class="ltabs">${[["H","한자"],["S","사자성어"],["P","속담"],["B","보스 카드"]].map(([k,nm])=>`<button class="ltab dtab ${cur===k?"on":""}" data-tab="${k}">${nm}${k==="S"||k==="P"?`<small>익힌 말 ${n(k)}/${SAY_ALL[k].length}</small>`:k==="B"?`<small>${nc}/120장</small>`:""}</button>`).join("")}</div>` }
 function bindDexTabs(){ $app.querySelectorAll(".dtab").forEach(b=>b.onclick=()=>{ P.set.dtab=b.dataset.tab; saveP(); dex() }) }
 function sayDex(cat){ const L=SAY_ALL[cat], m=L.filter(sayMastered).length, seen=L.filter(x=>(P.seen||{})[x.h]).length, nm=SAY_NAME[cat];
   $app.innerHTML = topbar("도감") + dexTabs(cat) + `

@@ -621,7 +621,7 @@ const MOB_STYLE={ // [움직임, 키(몸 반지름의 몇 배), 그림이 보는
   rider:["trot",3.1,1], engine:["float",2.6,0], devourer:["sway",3.6,1], ruler:["march",3.5,0], behemoth:["march",2.9,1] };
 const MOB_STYLE_MAP={"8:crystal":["float",3.1,0]};   // 같은 모양 이름이라도 맵마다 다르게
 const mobArtOf=e=>{ loadMobArt(); return MOB_ART[e.mapId+":"+e.look] };
-const MOB_RIM={1:"rgba(255,255,235,.38)",2:"rgba(255,232,180,.5)",3:"rgba(60,25,10,.45)",4:"rgba(225,210,255,.42)",5:"rgba(255,190,120,.4)",6:"rgba(230,250,255,.45)",7:"rgba(40,50,80,.35)",8:"rgba(20,50,90,.4)",9:"rgba(60,40,20,.35)",10:"rgba(200,170,255,.4)"};   // 바닥에 묻히지 않게 몸 둘레에 밝은 테두리
+const MOB_RIM={1:"rgba(255,255,235,.38)",2:"rgba(255,232,180,.5)",3:"rgba(60,25,10,.45)",4:"rgba(225,210,255,.42)",5:"rgba(255,190,120,.4)",6:"rgba(230,250,255,.45)",7:"rgba(40,50,80,.35)",8:"rgba(20,50,90,.4)",9:"rgba(60,40,20,.35)",10:"rgba(205,160,255,.95)"};   // 바닥에 묻히지 않게 몸 둘레에 밝은 테두리
 function mobRim(A,col){ if(A.rim) return A.rim; const p=7, c=document.createElement("canvas"); c.width=A.im.width+p*2; c.height=A.im.height+p*2; const x=c.getContext("2d");
   for(let i=0;i<12;i++){ const a=i*Math.PI/6; x.drawImage(A.im,p+Math.cos(a)*3.5,p+Math.sin(a)*3.5) }
   x.globalCompositeOperation="source-in"; x.fillStyle=col; x.fillRect(0,0,c.width,c.height); A.rimP=p; return A.rim=c }
@@ -673,6 +673,7 @@ function drawMobArt(ctx,e,t,px,py){ const A=mobArtOf(e); if(!A) return false;
     ctx.fillStyle=`rgba(255,255,230,${al})`; ctx.beginPath(); ctx.arc(sx+ux/d*r*.5,sy+uy/d*r*.3,4,0,7); ctx.fill(); ctx.restore() }
   return true }
 function drawMonsterRaw(ctx,e,t,px,py,posed){
+  if(!isFinite(e.r)||!isFinite(e.x)||!isFinite(e.y)) return;   // 잘못된 값이 있으면 그리지 않아요 (화면 전체가 멈추지 않게)
   if(e.type!=="boss" && drawMobArt(ctx,e,t,px,py)) return;
   if(e.type==="boss" && artOf(e)){ ctx.fillStyle="rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(e.x,e.y+e.r*.95,e.r*1.2,e.r*.35,0,0,7); ctx.fill(); drawBossArt(ctx,e,t,px); return }
   const fly=FLYERS[e.look], ph=t*(fly?5:8)+e.wob*3;
