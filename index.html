@@ -525,7 +525,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .mgMe{border:2px solid #6ab0ff;background:rgba(106,176,255,.12)}.mgMe.ok{border-color:#3fcf8e;background:rgba(63,207,142,.12)}.mgMe.lo{border-color:#e9475f;background:rgba(233,71,95,.12)}
 .mgMe .mgPw{font-family:var(--f-title);font-size:20px!important;color:#ffd36a!important}
 .pkRange{display:flex;flex-direction:column;gap:4px;margin:8px 0;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.06)}.pkRange>b{font-family:var(--f-ui);font-size:14px;color:#ffd36a;margin-top:2px}
-.pkRange>div{display:flex;flex-wrap:wrap;gap:5px}.pkr{font-family:var(--f-ui);font-size:14px;padding:6px 10px;min-height:38px;border-radius:10px;border:2px solid #5a4a8a;background:#2a1d4a;color:#fff}.pkr.on{border-color:#ffd36a;background:#4a3a1a;color:#ffe9a0}
+.pkRange>div{display:flex;flex-wrap:wrap;gap:5px}.pkr{font-family:var(--f-ui);font-size:14px;padding:6px 10px;min-height:38px;border-radius:10px;border:2px solid #5a4a8a;background:#2a1d4a;color:#fff}.pkr.on{border-color:#ffd36a;background:#4a3a1a;color:#ffe9a0}.pkEf{display:block;text-align:left;font-family:var(--f-ui);font-size:13px;line-height:1.45;color:#d8ccf0;margin:2px 2px 4px}.pkEf em{font-style:normal;color:#8af0b0}
 .pkK{margin:4px 0 0;font-family:var(--f-ui);font-size:14px;color:#fff}.pkK small{color:#cfc4e8}
 .engHow{margin:4px 0 8px;background:#fff7e6;border:2px solid #f6c544;border-radius:12px;padding:6px 10px;color:#2a1d10}.engHow summary{font-family:var(--f-ui);font-size:15px;color:#8a4a00;cursor:pointer}
 .ehSteps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}.ehSteps>div{display:flex;flex-direction:column;align-items:center;text-align:center;background:#fff;border-radius:10px;padding:6px;font-family:var(--f-ui);font-size:13px;line-height:1.35}
@@ -1152,17 +1152,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10250447"></script>
-<script src="jobs.js?v=10250447"></script>
-<script src="maps.js?v=10250447"></script>
-<script src="art.js?v=10250447"></script>
-<script src="monsters.js?v=10250447"></script>
-<script src="jobfx.js?v=10250447"></script>
-<script src="words.js?v=10250447"></script>
-<script src="sayings.js?v=10250447"></script>
-<script src="sfx.js?v=10250447"></script>
+<script src="sprites.js?v=10250558"></script>
+<script src="jobs.js?v=10250558"></script>
+<script src="maps.js?v=10250558"></script>
+<script src="art.js?v=10250558"></script>
+<script src="monsters.js?v=10250558"></script>
+<script src="jobfx.js?v=10250558"></script>
+<script src="words.js?v=10250558"></script>
+<script src="sayings.js?v=10250558"></script>
+<script src="sfx.js?v=10250558"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10250447"></script>
+<script src="mp.js?v=10250558"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1802,7 +1802,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10250447"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10250558"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2496,4 +2496,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10250447"></script>
+<script src="game.js?v=10250558"></script>

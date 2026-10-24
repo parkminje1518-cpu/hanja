@@ -1084,7 +1084,9 @@ function drawNewShot(c,sh,a,t,GL){ const k=sh.k;
   if(k==="moonorb"){ const s=sh.sm?.75:1; c.save(); c.globalCompositeOperation=GL; jGlow(c,sh.x,sh.y,26*s,"190,215,255",.6);
       for(let j=1;j<=3;j++){ c.fillStyle=`rgba(220,230,255,${.22/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j,sh.y-sh.vy*.02*j,9*s-j,0,7); c.fill() } c.restore();
     if(!nImg(c,"moonorb",sh.x,sh.y,30*s,false,t*2)){ c.fillStyle="#eef3ff"; c.beginPath(); c.arc(sh.x,sh.y,9*s,0,7); c.fill() } return true }
-  if(k==="ink"&&window.__t5==="calli"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.ink5&&!window.__noArt){ const im=SKILL_IMG.ink5, L=118, H=L*im.height/im.width, al=Math.min(1,sh.life/.15); c.save(); c.globalAlpha=al; c.translate(sh.x,sh.y); c.rotate(a); c.drawImage(im,-L*.78,-H/2,L,H); c.globalCompositeOperation="lighter"; c.globalAlpha=al*.35; c.drawImage(im,-L*.78,-H/2,L,H); c.restore(); return true }
+  if(k==="ink"&&window.__t5==="calli"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.ink5&&!window.__noArt){ const im=SKILL_IMG.ink5, age=(sh.age=(sh.age||0)+.016), gr=Math.min(1,.55+age*3), L=92*gr, H=L*im.height/im.width, al=Math.min(1,sh.life/.15);   /* 5차: 둥근 쪽이 앞으로 날아가는 먹 초승달 */
+    c.save(); c.translate(sh.x,sh.y); c.rotate(a); for(let j=3;j>=1;j--){ c.globalAlpha=al*.16*(4-j)/3; c.drawImage(im,-L*.72-j*16,-H/2,L,H) }
+    c.globalAlpha=al; c.drawImage(im,-L*.72,-H/2,L,H); c.globalCompositeOperation="lighter"; c.globalAlpha=al*.3; c.drawImage(im,-L*.72,-H/2,L,H); c.restore(); return true }
   if(k==="ink"){ const life=sh.life, al=Math.min(1,life/.15); c.save(); c.globalAlpha=al;
     for(let j=1;j<=4;j++){ c.fillStyle=`rgba(20,16,24,${.18/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j+Math.sin(j*7)*8,sh.y-sh.vy*.02*j+Math.cos(j*5)*8,4-j*.5,0,7); c.fill() }
     if(!nImg(c,"ink",sh.x,sh.y,70,false,a)){ c.translate(sh.x,sh.y); c.rotate(a); c.strokeStyle="#151018"; c.lineWidth=7; c.beginPath(); c.arc(-14,0,30,-1.1,1.1); c.stroke() } c.restore(); return true }
