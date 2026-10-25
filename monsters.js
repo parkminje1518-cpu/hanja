@@ -1652,7 +1652,7 @@ function B11Make(A){
 
   /* ===== 패턴: 모두가 같은 시간표로 그리고, 각자 자기가 맞았는지 판단 ===== */
   function addPat(p){ p.hit={}; p.done=0; S.pats.push(p); if(p.an){ const e=boss(); if(e){ e.an=p.an; e.at=p.t0; if(p.fa!==undefined) e.f=p.fa } } if(p.say) A.showBanner(p.say); if(p.snd) A.sfx(p.snd) }
-  function pat(p){ p.id=S.seq++; p.t0=p.t0??g.t; if(p.w&&p.k!=="safe"&&p.k!=="fx"&&p.k!=="wall") p.w=Math.max(.6,p.w*TW*SL()); if(STG[p.k]&&p.d>0&&!p.nostg) p.w=stagger(p); addPat(p); send({p:Object.assign({},p,{hit:undefined,done:undefined})}); return p }
+  function pat(p){ p.id=S.seq++; p.t0=p.t0??g.t; if(p.w&&p.k!=="safe"&&p.k!=="fx"&&p.k!=="wall") p.w=Math.max(.6,p.w*TW*SL()); if(STG[p.k]&&p.d>0&&!p.nostg) p.w=stagger(p); if(p.k==="rays"||p.k==="cone"||p.k==="proj"||(p.an&&p.k==="line")){ const e=boss(); if(e&&Math.hypot(e.x-p.x,e.y-p.y)<90) e.actT=Math.max(e.actT||0,p.t0+p.w+.35) }   /* 보스 몸에서 나가는 공격(레이저·찌르기·검기)은 다 나갈 때까지 보스가 제자리 (순간이동·돌진 안 겹치게) */ addPat(p); send({p:Object.assign({},p,{hit:undefined,done:undefined})}); return p }
   const me=()=>g.p;
   const canHit=()=>!me().dead&&!g.god&&me().inv<=0;
   const GS=p=>p.gs||[{cx:p.cx,cy:p.cy,safe:p.safe}];   /* 암흑 낙인 칸 묶음 (같이하기는 친구마다 하나씩) */
@@ -1730,7 +1730,7 @@ function B11Make(A){
   function target(e){ const L=A.team(); if(!L.length) return g.p; let b=L[0], bd=1e18; for(const q of L){ const d=(q.x-e.x)**2+(q.y-e.y)**2; if(d<bd){ bd=d; b=q } } return b }
   function busy(e){ return e.actT>g.t }
   function act(e,dur){ e.actT=g.t+dur*SL() }
-  const D=()=>{ const e=boss(); return (e?e.dmg:60)*[1.17,1.35,1.54][HARD] };   /* 10단계보다 훨씬 아프게 */
+  const D=()=>{ const e=boss(); return (e?e.dmg:60)*[.54,.6,.62][HARD] };   /* 초4 기준 (2026-10-25): 이지 ≈ 6~14대 · 노멀 ≈ 5~10대 · 하드 ≈ 3~7대 버틸 수 있게 */   /* 10단계보다 훨씬 아프게 */
   function face(e,x){ e.f=x>=e.x?1:-1 }
   function hostTick(dt){ const e=boss(); if(!e) return; schedTick();
     /* 받은 피해 정리: 보호막 · 정오 약화 · 무적 · 경험치 구슬 */
@@ -1754,7 +1754,7 @@ function B11Make(A){
     if(busy(e)){ if(e.dashTo){ const q=Math.min(1,(g.t-e.dashTo.t0)/e.dashTo.d); e.x=e.dashTo.x0+(e.dashTo.x1-e.dashTo.x0)*q; e.y=e.dashTo.y0+(e.dashTo.y1-e.dashTo.y0)*q; if(q>=1) e.dashTo=null } return }
     const T=target(e), dx=T.x-e.x, dy=T.y-e.y, d=Math.hypot(dx,dy)||1;
     if(EX){ e.mv=0; return }   /* 안전 칸 패턴 중에는 다른 공격이 겹치지 않아요 */
-    if(S.timers.act<=0&&choose(e,T,d)) return;
+    if(S.timers.act<=0&&!(d>220&&g.t-(e.lastAtk||0)<2.4)&&choose(e,T,d)){ e.lastAtk=g.t; return }   /* 공격 뒤 멀리 있으면 2.4초는 뚜벅뚜벅 걸어와요 (걷는 모습이 보이게) */
     /* 걷기: 너무 가까우면 멈추고, 멀면 다가가요 */
     const sp=e.sp*SPM*(isNoon()?.7:1);
     if(d>150){ e.x+=dx/d*sp*dt; e.y+=dy/d*sp*dt; e.mv=1 } else e.mv=0;
@@ -1864,7 +1864,7 @@ function B11Make(A){
     let Q=null, qm=null; if(QM){ const perm=[...Array(n).keys()].sort(()=>Math.random()-.5), ql=new Array(n); qm={}; QM.qs.forEach((q,i)=>{ ql[perm[i]]=q.lab; if(IDS[i]!==undefined) qm[IDS[i]]=[q.h,perm[i]] }); let di=0; for(let i=0;i<n;i++) if(ql[i]===undefined) ql[i]=QM.dec[di++]||"?"; Q={h:QM.qs[0].h,lab:ql} }
     S.pats=S.pats.filter(p=>p.k==="fx"); send({s:"clr"}); S.wolves=[];
     e.actT=g.t+6.8; S.sphere={t0:g.t}; send({s:"sph"});
-    pat({k:"safe",x:sx,y:sy,r:R,dec,w:2+4.5,pct:.5,g:30,d:0,ig:1,an:"raise8",qh:Q?Q.h:"",ql:Q?Q.lab:null,qm,say:Q?(IDS.length>1?"🌑 어둠의 권능! 내 한자의 뜻이 적힌 기둥으로 들어가요! (친구마다 한자가 달라요)":`🌑 어둠의 권능! 「${Q.h}」의 뜻이 적힌 기둥으로 들어가요!`):"🌑 어둠의 권능! 빛나는 기둥 안으로 들어가요!",snd:"alarm"});
+    pat({k:"safe",x:sx,y:sy,r:R,dec,w:2+4.5,pct:.35,g:30,d:0,ig:1,an:"raise8",qh:Q?Q.h:"",ql:Q?Q.lab:null,qm,say:Q?(IDS.length>1?"🌑 어둠의 권능! 내 한자의 뜻이 적힌 기둥으로 들어가요! (친구마다 한자가 달라요)":`🌑 어둠의 권능! 「${Q.h}」의 뜻이 적힌 기둥으로 들어가요!`):"🌑 어둠의 권능! 빛나는 기둥 안으로 들어가요!",snd:"alarm"});
     sched(6.6,()=>{ S.sphere=null; send({s:"sphx"}); nextTod(e) }) }
   function nextTod(e){ const prev=B11_TOD[S.tod].k;
     if(prev!=="noon"&&S.todClean) { S.noonBonus=Math.min(10,S.noonBonus+5); A.say("✨ 저주 없이 버텼어요! 다음 정오가 5초 길어져요","win") }
@@ -2146,7 +2146,13 @@ function B11Make(A){
   function drawOver(c){ const t=g.t;
     { const e=boss(); if(e&&!S.deathT&&!S.intro&&teleA()>.5){ const k=S.ph===2?"r0":"c1", M=B11_META[k], h=M?M[3]*scaleOf(k):180, y=e.y+e.r*.95-h-22+Math.sin(t*4)*5;   /* 보스 머리 위 표시: 어디 있는지 한눈에 */
       c.save(); c.translate(e.x,y); c.fillStyle="rgba(20,4,30,.85)"; c.beginPath(); c.moveTo(-15,-14); c.lineTo(15,-14); c.lineTo(0,4); c.closePath(); c.fill(); c.fillStyle="#ffd36a"; c.beginPath(); c.moveTo(-11,-12); c.lineTo(11,-12); c.lineTo(0,1); c.closePath(); c.fill();
-      c.font='bold 13px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; c.lineWidth=3; c.strokeStyle="#1a0420"; c.strokeText("보스",0,-24); c.fillStyle="#ffe9a0"; c.fillText("보스",0,-24); c.restore() } }
+      c.font='bold 13px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; c.lineWidth=3; c.strokeStyle="#1a0420"; c.strokeText("보스",0,-24); c.fillStyle="#ffe9a0"; c.fillText("보스",0,-24);
+      { const k2=clamp(e.hp/e.max,0,1); S.hpTr=S.hpTr==null||S.hpTr<k2?k2:S.hpTr+(k2-S.hpTr)*.06; const BW=86, BH=8, by=12;   /* 보스 머리 위 작은 체력바 (깎인 만큼 하얀 꼬리가 천천히 따라와요) */
+        c.fillStyle="rgba(12,2,22,.88)"; c.fillRect(-BW/2-2,by-2,BW+4,BH+4); c.fillStyle="rgba(255,255,255,.75)"; c.fillRect(-BW/2,by,BW*S.hpTr,BH);
+        const hg=c.createLinearGradient(0,by,0,by+BH); hg.addColorStop(0,e.an==="groggy"?"#ffe36a":"#ff6a8a"); hg.addColorStop(1,e.an==="groggy"?"#e0a020":"#c8204a"); c.fillStyle=hg; c.fillRect(-BW/2,by,BW*k2,BH);
+        if(S.shield>0&&S.shMax){ c.fillStyle="rgba(120,200,255,.85)"; c.fillRect(-BW/2,by+BH-3,BW*clamp(S.shield/(S.shMax*.08),0,1),3) }
+        c.strokeStyle="rgba(255,226,150,.8)"; c.lineWidth=1.2; c.strokeRect(-BW/2-1.5,by-1.5,BW+3,BH+3); c.fillStyle="rgba(12,2,22,.5)"; for(let i=1;i<4;i++) c.fillRect(-BW/2+BW*i/4-.5,by,1,BH) }
+      c.restore() } }
     for(const p of S.pats){ const tt=t-p.t0, w=p.w||0; if(tt<w) continue; const k=tt-w;
       if(p.k==="pounce"){ const life=.55, k2=k-.3; if(k2<0||k2>life) continue; const q=k2/life, a=Math.atan2(p.ty-p.y,p.tx-p.x), fade=1-q;   /* 늑대 착지: 얼음빛 발톱 할퀴기 + 얼음 조각 (본체 공격과 다른 피격 효과) */
         c.save(); c.translate(p.tx,p.ty); c.globalCompositeOperation="lighter";
@@ -2298,7 +2304,12 @@ function B11Make(A){
     if(S.intro&&t<3.8){ const a=t<3?1:1-(t-3)/.8; c.save(); c.fillStyle=`rgba(0,0,0,${.7*a})`; c.fillRect(0,0,W,H);
       if(t>1.2){ const k=Math.min(1,(t-1.2)/.4); c.globalAlpha=k*a; c.textAlign="center"; c.textBaseline="middle"; c.font='16px "Do Hyeon",sans-serif'; c.fillStyle="#c9a6ff"; c.fillText("이계 마신군 제1군단장",W/2,H*.7); c.font='40px "Black Han Sans","Do Hyeon",sans-serif'; c.lineWidth=6; c.strokeStyle="#12001f"; c.strokeText("암흑의 검귀",W/2,H*.7+40); c.fillStyle="#f3e6ff"; c.fillText("암흑의 검귀",W/2,H*.7+40) } c.restore() } }
   /* 내 머리 위 암흑 게이지 (월드 좌표) */
-  function drawMyGauge(c){ const P=me(); if(P.dead||S.intro||g.cine) return;   /* 암흑 게이지: 세렌 태양 게이지처럼 캐릭터 옆 세로 캡슐 */
+  function drawMyHp(c){ const P=me(); if(P.dead) return; let mx=0; try{ mx=A.st().maxHp }catch(e){} if(!mx) return; const k=clamp(P.hp/mx,0,1), t=g.t, W=84, H=13, x=P.x-W/2, y=P.y-132, low=k<.35;   /* 내 체력바: 머리 위 이름표 위에 크게 · 낮으면 빨갛게 깜빡 */
+    S.myTr=S.myTr==null||S.myTr<k?k:S.myTr+(k-S.myTr)*.05; c.save(); c.fillStyle="rgba(8,0,16,.85)"; c.fillRect(x-2,y-2,W+4,H+4); c.fillStyle="rgba(255,255,255,.7)"; c.fillRect(x,y,W*S.myTr,H);
+    const gr=c.createLinearGradient(0,y,0,y+H); if(low){ gr.addColorStop(0,"#ff6a5a"); gr.addColorStop(1,"#c81e1e") } else { gr.addColorStop(0,"#7dff9a"); gr.addColorStop(1,"#1fae54") } c.fillStyle=gr; c.fillRect(x,y,W*k,H);
+    c.lineWidth=1.5; c.strokeStyle=low?`rgba(255,120,120,${.6+.4*Math.sin(t*10)})`:"rgba(230,255,235,.85)"; c.strokeRect(x-1.5,y-1.5,W+3,H+3);
+    c.font='bold 12px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; c.lineWidth=3; c.strokeStyle="#0a0012"; const tx=Math.ceil(P.hp)+" / "+Math.round(mx); c.strokeText(tx,P.x,y+H/2+.5); c.fillStyle="#fff"; c.fillText(tx,P.x,y+H/2+.5); c.restore() }
+  function drawMyGauge(c){ drawMyHp(c); const P=me(); if(P.dead||S.intro||g.cine) return;   /* 암흑 게이지: 세렌 태양 게이지처럼 캐릭터 옆 세로 캡슐 */
     S.gv=S.gv==null?S.gauge:S.gv+(S.gauge-S.gv)*.2; const k=clamp(S.gv/100,0,1), t=g.t, x=P.x+74, H=72, W=14, yb=P.y+22, yt=yb-H, hot=k>.75, pu=.5+.5*Math.sin(t*(hot?10:3)), cur=g.t-(S.curseT||-9)<3;
     c.save();
     if(hot){ c.globalCompositeOperation="lighter"; const gg=c.createRadialGradient(x,yt+H*(1-k),0,x,yt+H*(1-k),40); gg.addColorStop(0,`rgba(255,60,160,${.25+.25*pu})`); gg.addColorStop(1,"rgba(255,60,160,0)"); c.fillStyle=gg; c.fillRect(x-40,yt+H*(1-k)-40,80,80); c.globalCompositeOperation="source-over" }

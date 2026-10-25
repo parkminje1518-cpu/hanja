@@ -1,6 +1,6 @@
 /* ===== 소리: 효과음 + 배경음악 (파일 없이 브라우저가 직접 만들어요) ===== */
 const SND = (()=>{
-  let ac=null, master, sfxBus, musBus, noiseBuf, last={};
+  let ac=null, master, sfxBus, musBus, musDl, noiseBuf, last={};
   function init(){
     if(ac) return ac; const C=window.AudioContext||window.webkitAudioContext; if(!C) return null;
     try{ ac=new C() }catch(e){ return null }
@@ -9,7 +9,7 @@ const SND = (()=>{
     sfxBus=ac.createGain(); sfxBus.gain.value=.6; sfxBus.connect(master);
     musBus=ac.createGain(); musBus.gain.value=.2; musBus.connect(master);
     const dl=ac.createDelay(1), fb=ac.createGain(), wet=ac.createGain(); dl.delayTime.value=.27; fb.gain.value=.3; wet.gain.value=.3;
-    musBus.connect(dl); dl.connect(fb).connect(dl); dl.connect(wet).connect(master);
+    musDl=dl; musBus.connect(dl); dl.connect(fb).connect(dl); dl.connect(wet).connect(master);
     noiseBuf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
     return ac;
   }
@@ -152,6 +152,10 @@ const SND = (()=>{
     // 9 천상 신전: 믹솔리디안 · 큰 북(태고) · 금관 찌르기
     m9:{bpm:126, root:60, mode:"mixo", ch:[[60,64,67],[58,62,65],[65,69,72],[67,71,74]], lead:"square", lp:2400, brass:1, bass:"sawtooth", drum:2, taiko:1, seed:91},
     // 10 별의 왕좌: 장엄한 단조 · 신시사이저 쪼개 치기 · 우주 패드 · 무거운 북
+    /* 11 검귀의 달빛 결투장: 1페이즈 = 화성 단조 · 낮게 깔리는 울림 · 태고 북 (긴장감) */
+    m11:{bpm:118, root:62, mode:"harm", ch:[[62,65,69],[58,62,65],[60,64,67],[57,61,64]], lead:"sawtooth", lp:1900, vib:1, bass:"sawtooth", drum:2, taiko:1, seed:111, dark:1, pad:1, drone:38, density:.7},
+    /* 11 2페이즈 = 검은 달 각성: 더 빠르고 웅장하게 · 오르간 + 금관 + 쪼개 치기 */
+    m11b:{bpm:148, root:62, mode:"phrygD", ch:[[62,66,69],[63,67,70],[62,66,69],[60,63,67]], lead:"square", lp:2400, organ:1, brass:1, arp:2, bass:"sawtooth", drum:3, taiko:1, seed:117, dark:1, pad:1, sparkle:1},
     m10:{bpm:144, root:57, mode:"minor", ch:[[57,60,64],[53,57,60],[55,58,62],[52,56,59]], lead:"sawtooth", lp:3000, vib:1, arp:2, bass:"sawtooth", drum:3, seed:101, dark:1, pad:1, sparkle:1},
   };
   function mkMelody(T){ let r=T.seed*9301+49297; const rnd=()=>((r=(r*9301+49297)%233280)/233280);
@@ -206,7 +210,10 @@ const SND = (()=>{
     if(!want){ cur=null; clearInterval(timer); timer=0; return }
     const a=init(); if(!a) return;
     if(cur&&cur.name===want) return;
-    const T=TR[want]; if(!T) return; if(!T.mel) T.mel=mkMelody(T); T.name=want; cur=T; step=0; nextT=a.currentTime+.1; intensity=0;
+    const T=TR[want]||(/^m\d/.test(want)?TR.m10:null); if(!T) return; if(!T.mel) T.mel=mkMelody(T);   /* 음악이 없는 맵도 바탕화면 음악이 계속 나오지 않게 */
+    if(cur&&musBus){ const old=musBus, now=a.currentTime; try{ old.gain.setTargetAtTime(0,now,.12); setTimeout(()=>{ try{ old.disconnect() }catch(e){} },1500) }catch(e){}   /* 음악 바꿀 때: 앞 곡의 긴 화음이 섞이지 않게 살짝 줄이며 끊기 */
+      musBus=a.createGain(); musBus.gain.setValueAtTime(0,now); musBus.gain.linearRampToValueAtTime(.2,now+.6); musBus.connect(master); if(musDl) musBus.connect(musDl) }
+    T.name=want; cur=T; step=0; nextT=a.currentTime+.1; intensity=0;
     if(!timer) timer=setInterval(sched,30);
   }
   function setIntensity(v){ intensity=v?1:0 }

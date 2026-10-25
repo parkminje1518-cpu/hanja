@@ -413,7 +413,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .engH.on{background:#2a1d4a;border-width:3px}.engH.on .eh,.engH.on .ei,.engH.on small{color:#fff}
 .gs.know{background:linear-gradient(90deg,#8a5a00,#4a2a6a);color:#fff;font-weight:700;border:1px solid #ffd36a}
 .gs.eng i{font-style:normal;font-family:"Noto Serif KR",serif;font-weight:900;margin-left:2px}
-.burstBtn{display:none;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:29;width:96px;height:96px;border-radius:50%;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.potBtn{position:absolute;left:calc(50% + 74px);bottom:22px;z-index:29;width:62px;height:62px;border-radius:50%;border:3px solid #ffd36a;background:radial-gradient(circle at 35% 30%,#5a2a8a,#1c0a30 70%);box-shadow:0 0 12px rgba(255,90,150,.45),inset 0 0 10px rgba(0,0,0,.6);cursor:pointer;padding:0;overflow:visible;-webkit-tap-highlight-color:transparent;touch-action:manipulation}.potBtn .pi img{width:48px;height:48px;margin-top:4px;display:block;margin-left:auto;margin-right:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}.potBtn .pi{font-size:30px;line-height:56px;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}.potBtn .pn{position:absolute;right:-6px;top:-6px;min-width:24px;height:24px;border-radius:12px;background:#ff4a7a;color:#fff;font:700 15px/24px var(--f-ui),sans-serif;border:2px solid #fff;text-align:center}.potBtn .pc{position:absolute;left:0;bottom:0;width:100%;border-radius:0 0 31px 31px;background:rgba(10,0,20,.7);pointer-events:none}.potBtn small{position:absolute;left:50%;transform:translateX(-50%);top:64px;white-space:nowrap;font:700 12px var(--f-ui),sans-serif;color:#ffe9a8;text-shadow:0 1px 2px #000,0 0 3px #000}.potBtn.empty{filter:grayscale(1) brightness(.6)}.potBtn.low{animation:potPulse .7s ease-in-out infinite}@keyframes potPulse{0%,100%{box-shadow:0 0 10px rgba(255,90,150,.5)}50%{box-shadow:0 0 26px rgba(255,90,150,1),0 0 6px #fff}}.burstBtn{display:none;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:29;width:96px;height:96px;border-radius:50%;border:0;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .weakq{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;width:min(440px,92vw);background:linear-gradient(160deg,#2a1d4a,#1a1030);border:3px solid #ffd36a;border-radius:18px;padding:10px 12px 8px;color:#fff;text-align:center;box-shadow:0 0 24px rgba(255,211,106,.55);animation:wqIn .25s ease-out}
 .weakq.out{opacity:0;transition:opacity .25s}
 .weakq .wqh{font-family:var(--f-ui);font-size:15px;color:#ffe9b0}.weakq .wqh b{color:#ffd36a}
@@ -1153,17 +1153,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251551"></script>
-<script src="jobs.js?v=10251551"></script>
-<script src="maps.js?v=10251551"></script>
-<script src="art.js?v=10251551"></script>
-<script src="monsters.js?v=10251551"></script>
-<script src="jobfx.js?v=10251551"></script>
-<script src="words.js?v=10251551"></script>
-<script src="sayings.js?v=10251551"></script>
-<script src="sfx.js?v=10251551"></script>
+<script src="sprites.js?v=10251650"></script>
+<script src="jobs.js?v=10251650"></script>
+<script src="maps.js?v=10251650"></script>
+<script src="art.js?v=10251650"></script>
+<script src="monsters.js?v=10251650"></script>
+<script src="jobfx.js?v=10251650"></script>
+<script src="words.js?v=10251650"></script>
+<script src="sayings.js?v=10251650"></script>
+<script src="sfx.js?v=10251650"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251551"></script>
+<script src="mp.js?v=10251650"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1805,7 +1805,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251551"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251650"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2502,4 +2502,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251551"></script>
+<script src="game.js?v=10251650"></script>
