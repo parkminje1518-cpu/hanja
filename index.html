@@ -1143,7 +1143,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .cardmap{margin-top:12px}.cmh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:var(--f-ui);margin-bottom:6px}.cmh span{color:var(--muted);font-size:14px}
 .cardrow{display:flex;gap:8px;flex-wrap:wrap}
 .cardsum{font-family:var(--f-ui);font-size:16px;margin:8px 0}
-</style>
+.lvk.rec{box-shadow:0 0 0 3px #ffd36a,0 0 22px rgba(255,211,106,.55)!important;position:relative}.lvrec{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#ffe58a,#f0a820);color:#3a1a00;font:700 14px var(--f-ui),sans-serif;padding:3px 12px;border-radius:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}.lvpow{display:block;margin-top:4px;font-size:13px;color:#cfe8ff}.lvpow b{color:#7dff9a}.game.bx .gbanner{margin-top:64px}</style>
 
 <div id="moveBar"></div>
 <div id="app"></div>
@@ -1153,18 +1153,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251746"></script>
-<script src="jobs.js?v=10251746"></script>
-<script src="maps.js?v=10251746"></script>
-<script src="art.js?v=10251746"></script>
-<script src="art2.js?v=10251746"></script>
-<script src="monsters.js?v=10251746"></script>
-<script src="jobfx.js?v=10251746"></script>
-<script src="words.js?v=10251746"></script>
-<script src="sayings.js?v=10251746"></script>
-<script src="sfx.js?v=10251746"></script>
+<script src="sprites.js?v=10251816"></script>
+<script src="jobs.js?v=10251816"></script>
+<script src="maps.js?v=10251816"></script>
+<script src="art.js?v=10251816"></script>
+<script src="art2.js?v=10251816"></script>
+<script src="monsters.js?v=10251816"></script>
+<script src="jobfx.js?v=10251816"></script>
+<script src="words.js?v=10251816"></script>
+<script src="sayings.js?v=10251816"></script>
+<script src="sfx.js?v=10251816"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251746"></script>
+<script src="mp.js?v=10251816"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1806,7 +1806,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251746"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251816"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -1967,10 +1967,11 @@ const nowCoin = a=>{ const d=day(); return Math.max(1,Math.round(a*weekMul()*(d.
 
 /* ===== 퀴즈 ===== */
 function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") return makeSayQ(c,opt);
-  const others=shuffle(UNIQUE.filter(x=>x.h!==c.h));
+  let others=shuffle(UNIQUE.filter(x=>x.h!==c.h));
+  if(opt.hard){ const sim=o=>(o.eum===c.eum?3:0)+(o.eum&&c.eum&&o.eum[0]===c.eum[0]?1:0)+([...(o.hun||"")].some(ch=>(c.hun||"").includes(ch))?2:0); others=others.map(o=>[o,sim(o)+Math.random()]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]) }   /* 어려운 문제: 소리·뜻이 비슷한 보기부터 */
   const pick=key=>{const seen=new Set([key(c)]),out=[];for(const o of others){const k=key(o);if(!seen.has(k)){seen.add(k);out.push(o)}if(out.length===3)break}return shuffle([c,...out])};
   const W=typeof wordsOf==="function"?wordsOf(c.h):[];
-  const types=["he","toh","eum","hun"]; if(W.length){ types.push("inword"); if(!opt.short) types.push("word") }
+  const types=opt.hard?["toh","he","hun"]:["he","toh","eum","hun"]; if(W.length){ types.push("inword"); if(!opt.short) types.push("word"); if(opt.hard) types.push("word","inword") }
   const t=types[Math.random()*types.length|0];
   if(t==="inword"){ const w=W[Math.random()*W.length|0], wrong=shuffle(others.flatMap(o=>wordsOf(o.h)).filter(x=>!x[0].includes(c.h))).slice(0,3);
     return {c,tag:"낱말 찾기",big:null,q:`'${label(c)}'이 들어간 낱말은?`,opts:shuffle([w,...wrong]).map(x=>({text:x[0],hz:true,rd:x[1],ok:x===w})),word:w} }
@@ -2503,4 +2504,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251746"></script>
+<script src="game.js?v=10251816"></script>

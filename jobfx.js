@@ -809,7 +809,7 @@ function pfxInit3(){ if(PFX._ok3) return; PFX._ok3=1;
     c.fillStyle="rgba(255,255,255,.45)"; c.beginPath(); c.ellipse(2,-14,10,4,-.2,0,7); c.fill() });
   pfxMake("bubble",16,16,c=>{ c.lineWidth=1.6; c.strokeStyle="#2a5a20"; c.fillStyle="rgba(170,255,140,.55)"; c.beginPath(); c.arc(0,0,5.5,0,7); c.fill(); c.stroke(); c.fillStyle="#fff"; c.beginPath(); c.arc(-2,-2,1.5,0,7); c.fill() });
 }
-function pfxBoom(c,f,k){ const P=PFX.boom_fire0; if(!P) return false; const col=(f.col||"").toLowerCase(), p=col.includes("9a6bff")||col.includes("c08bff")||col.includes("c8a0ff")?"purple":col.includes("3fcf8e")||col.includes("8af0")?"green":col.includes("ffd36a")?"gold":col.includes("6ab0ff")||col.includes("9ad8ff")?"blue":col.includes("cfe0ff")?"moon":"fire";
+function pfxBoom(c,f,k){ const P=PFX.boom_fire0; if(!P) return false; const col=(f.col||"").toLowerCase(), p=col.includes("9a6bff")||col.includes("c08bff")||col.includes("c8a0ff")?"purple":col.includes("3fcf8e")||col.includes("8af0")?"green":col.includes("ffd36a")?"gold":col.includes("6ab0ff")||col.includes("9ad8ff")||col.includes("4aa0ff")||col.includes("5ac8ff")?"blue":col.includes("cfe0ff")?"moon":"fire";
   const q=1-k, fi=Math.min(5,Math.floor(q*6)), sc=f.r/56; pfxDraw(c,"boom_"+p+fi,f.x,f.y,(f.x*.013)%6.28,sc*1.15,Math.min(1,k*2.2));
   if(q<.7){ const rr=f.r*(.5+q*1.1), al=(1-q/.7)*.8, RC={fire:"255,200,120",purple:"220,170,255",green:"190,255,200",gold:"255,240,170",blue:"190,230,255",moon:"235,240,255"}[p]||"255,230,190"; c.save(); c.strokeStyle=`rgba(${RC},${al})`; c.lineWidth=3*(1-q)+1; c.beginPath(); c.ellipse(f.x,f.y,rr,rr*.72,0,0,7); c.stroke(); c.restore() }
   return true }
@@ -1830,7 +1830,7 @@ function drawClawFx(c,f,k){ const p=1-k, sw=Math.min(1,p/.35), fade=p<.35?1:Math
 /* ===== 청룡: 서예 도령의 묵룡처럼 머리·몸통 마디·발·꼬리가 이어져 물결치며 날아요 (푸른빛) ===== */
 function drawBlueDragon(c,m,t){ const S=typeof SKILL_IMG!=="undefined"?SKILL_IMG:{}; if(!S.dr_head||!S.dr_body||!S.dr_tail||typeof artTint!=="function") return false;
   const TC="#3a8cff", H_=artTint("dr_head",TC), B_=artTint("dr_body",TC), T_=artTint("dr_tail",TC), F_=S.dr_front&&artTint("dr_front",TC), K_=S.dr_back&&artTint("dr_back",TC); if(!H_||!B_||!T_) return false;
-  const tr=m._tr||(m._tr=[]); tr.unshift([m.x,m.y]); if(tr.length>84) tr.length=84;
+  const tr=m._tr||(m._tr=[]); if(!tr.length||Math.hypot(tr[0][0]-m.x,tr[0][1]-m.y)>1.5){ tr.unshift([m.x,m.y]); if(tr.length>84) tr.length=84 } else { tr[0]=[m.x,m.y] }   /* 멈춰 있을 땐 몸 모양 그대로 (머리만 뭉쳐 보이지 않게) */
   const N=11, NT=5, sc=.62, step=4, pts=[]; for(let i=0;i<=N+NT+1;i++){ const q=tr[Math.min(tr.length-1,i*step)]; pts.push([q[0]+Math.sin(t*7-i*.6)*4*Math.min(1.6,i/N),q[1]+Math.cos(t*7-i*.6)*4*Math.min(1.6,i/N)]) }
   const angAt=i=>{ const a=pts[Math.max(0,i)], b=pts[Math.min(pts.length-1,i+1)]; const an=Math.atan2(a[1]-b[1],a[0]-b[0]); return isNaN(an)?0:an };
   const part=(img,x,y,an,w,h,ox,oy,fy,cx0,cx1)=>{ c.save(); c.translate(x,y); c.rotate(an); if(fy) c.scale(1,-1); if(cx0!==undefined){ const sx=img.width*cx0, sw=img.width*(cx1-cx0); c.drawImage(img,sx,0,sw,img.height,-w*ox,-h*oy,w,h) } else c.drawImage(img,-w*ox,-h*oy,w,h); c.restore() };
