@@ -350,6 +350,19 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .bdMsg{margin:0;font-family:var(--f-ui);font-size:17px;color:#bfe8ff;display:flex;align-items:center;gap:8px}
 .bdMsg i{width:12px;height:12px;border-radius:50%;background:#3fcf8e;box-shadow:0 0 8px #3fcf8e;animation:gdBob 1.2s infinite}
 .bdSum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.bdTabs{display:flex;gap:8px}.bdTabs button{flex:1;font-family:var(--f-ui);font-size:17px;padding:10px;border-radius:12px;border:2px solid #4a3f8a;background:#221c48;color:#d8d0ff;cursor:pointer}.bdTabs button.on{background:#f6c544;color:#2a1a00;border-color:#f6c544}
+.bdStat{display:flex;flex-direction:column;gap:12px}.bdStat .bdSum{grid-template-columns:repeat(4,minmax(0,1fr))}
+.bdBox{background:rgba(255,255,255,.04);border:1px solid #3a3270;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}.bdBox>b,.bdBoxH b{font-family:var(--f-ui);font-size:17px;color:#ffe8a0;font-weight:400}.bdBoxH{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.btn.sm{padding:6px 12px;font-size:14px;min-height:0}
+.bdCols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bdCols h5{margin:0 0 4px;font-family:var(--f-ui);font-weight:400;color:#c9b8ff}
+.bdBar{display:grid;grid-template-columns:64px 1fr 48px auto;align-items:center;gap:8px;font-family:var(--f-ui);font-size:14px}.bdBar>div{height:12px;border-radius:6px;background:#2a2450;overflow:hidden}.bdBar>div i{display:block;height:100%;border-radius:6px}.bdBar small{color:#9a90c8;font-size:12px}
+.bdChips{display:flex;flex-wrap:wrap;gap:8px}.bdChip{display:flex;flex-direction:column;align-items:center;min-width:78px;padding:6px 10px;border-radius:12px;background:#fff8e8;color:#2a2018;border:2px solid #f0d9a0}.bdChip i{font-style:normal;font-size:28px;font-family:"Noto Serif KR",serif;line-height:1.1}.bdChip.say i{font-size:16px;font-family:var(--f-ui);max-width:220px;text-align:center}.bdChip em{font-style:normal;font-size:12px;color:#6a5a40;max-width:220px;text-align:center}.bdChip small{font-size:11px;color:#b04060}.bdChip.rv{border-color:#3fcf8e;background:#effcf4}.bdChip.today{border-color:#e0567a}
+.bdNeed{display:flex;flex-wrap:wrap;gap:8px}.bdNeed button{font-family:var(--f-ui);font-size:15px;padding:8px 12px;border-radius:10px;border:2px solid #e0567a;background:#3a1a30;color:#ffd8e4;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start}.bdNeed small{font-size:12px;color:#ffb0c8}
+.bdDays{display:flex;gap:6px;align-items:flex-end;height:140px;overflow-x:auto;padding-top:20px}.bdDays>div{flex:1;min-width:42px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;position:relative}.bdDays i{width:70%;border-radius:6px 6px 0 0;display:block}.bdDays small{font-size:11px;color:#9a90c8}.bdDays em{font-style:normal;font-size:10px;color:#c8c0f0;white-space:nowrap}
+.bdRow{cursor:pointer}.bdRow:hover td{background:rgba(255,211,106,.08)}.bdMore{font-size:11px;color:#f6c544}
+.bdStu h3 small{font-size:14px;color:var(--muted)}.bdStu h4{margin:12px 0 6px;font-family:var(--f-ui);font-weight:400}.bdStuRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.bdStuRow div{background:rgba(0,0,0,.05);border-radius:10px;padding:8px;text-align:center}.bdStuRow b{display:block;font-size:22px}.bdStuRow span{font-size:12px;color:var(--muted)}
+.bdStu .bdBar>div{background:#e8e0f0}.bdStu .bdBar small{color:var(--muted)}.bdStu .bdDays small,.bdStu .bdDays em{color:var(--muted)}
+.bdCard{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}.bdCT{font-family:var(--f-ui);font-size:16px;color:var(--muted);display:flex;flex-direction:column}.bdCT small{color:#b04060}.bdCB{font-size:min(30vw,190px);line-height:1.05;font-family:"Noto Serif KR",serif;font-weight:900}.bdCB.say{font-size:min(9vw,64px);font-family:var(--f-ui);font-weight:400}.bdCM{font-size:min(6vw,36px);font-family:var(--f-ui);min-height:1.4em;display:flex;flex-direction:column;align-items:center}.bdCM small{font-size:16px;color:var(--muted)}
+@media (max-width:720px){.bdStat .bdSum,.bdStuRow{grid-template-columns:repeat(2,minmax(0,1fr))}.bdCols{grid-template-columns:1fr}}
 .bdSum div{background:var(--bg2);border:2px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-family:var(--f-ui)}
 .bdSum b{font-family:var(--f-title);font-weight:400;font-size:30px;color:var(--gold);line-height:1.1}
 .bdSum span{font-size:15px;color:var(--muted)}
@@ -1020,6 +1033,11 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .gopt .gnum b{font-family:var(--f-ui);font-weight:400;color:#c8372d;font-size:18px;line-height:1.2}
 .grow{display:flex;align-items:center;gap:12px;font-family:var(--f-ui);font-size:20px;font-variant-numeric:tabular-nums}
 .grow .gtime{flex:1;text-align:center}
+.twStrip{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;width:100%;margin:10px 0;padding:12px 16px;border-radius:14px;border:2px solid #e0567a;background:linear-gradient(180deg,#fff4f6,#ffe3ea);color:#7a1630;font-family:var(--f-ui);font-size:18px;cursor:pointer}.twStrip small{font-size:14px;color:#a04060}.twStrip.all{border-color:#3fcf8e;background:linear-gradient(180deg,#f0fff6,#d8f7e6);color:#14603a}.twStrip.all small{color:#2a8050}
+.twHead{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.twHead b{font-family:var(--f-ui);font-size:22px}.twHead span{color:var(--muted);font-size:14px}.twBar{height:10px;border-radius:6px;background:#eee4d4;overflow:hidden}.twBar i{display:block;height:100%;background:linear-gradient(90deg,#3fcf8e,#7de0b0)}
+.twH{margin:12px 0 6px;font-family:var(--f-ui);font-size:17px}.note.tw.ok{border-color:#3fcf8e;background:#effcf4;color:#14603a}.note.tw.ok b,.note.tw.ok span{color:#14603a!important}.note.tw.ok small{color:#1f8a52}
+@media (max-width:560px){.grow{font-size:15px;gap:6px}.grow .gtime{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.gs{font-size:12px;padding:1px 6px}.gs.spd,.gs.cdr{display:none}.gstat{gap:5px}}
+@media (max-height:520px) and (orientation:landscape){.ghud{gap:3px}.grow{font-size:15px;gap:8px}.grow .gtime{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.gs{font-size:12px;padding:1px 6px}.gs.spd,.gs.cdr{display:none}.gstat{gap:5px}.potBtn{left:auto!important;right:18px;bottom:14px}.burstBtn{left:auto!important;right:90px;transform:none!important;bottom:4px}}   /* 휴대폰 가로: 위 상태칸은 작게 · 물약·궁극기 버튼은 오른쪽 아래로 (캐릭터를 가리지 않게) */
 .gtool{pointer-events:auto;width:48px;height:48px;border-radius:12px;border:2px solid #f6c544;background:#2a2347;color:#fff;font-size:20px;margin-right:6px}
 .gtoolbox{pointer-events:auto;position:absolute;right:10px;top:118px;z-index:30;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(30,26,52,.92);border:2px solid #f6c544;box-shadow:0 6px 20px rgba(0,0,0,.35);max-height:calc(100vh - 140px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .gtoolbox::-webkit-scrollbar{width:8px}.gtoolbox::-webkit-scrollbar-thumb{background:#f6c544;border-radius:4px}
@@ -1154,18 +1172,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10252300"></script>
-<script src="jobs.js?v=10252300"></script>
-<script src="maps.js?v=10252300"></script>
-<script src="art.js?v=10252300"></script>
-<script src="art2.js?v=10252300"></script>
-<script src="monsters.js?v=10252300"></script>
-<script src="jobfx.js?v=10252300"></script>
-<script src="words.js?v=10252300"></script>
-<script src="sayings.js?v=10252300"></script>
-<script src="sfx.js?v=10252300"></script>
+<script src="sprites.js?v=10260836"></script>
+<script src="jobs.js?v=10260836"></script>
+<script src="maps.js?v=10260836"></script>
+<script src="art.js?v=10260836"></script>
+<script src="art2.js?v=10260836"></script>
+<script src="monsters.js?v=10260836"></script>
+<script src="jobfx.js?v=10260836"></script>
+<script src="words.js?v=10260836"></script>
+<script src="sayings.js?v=10260836"></script>
+<script src="sfx.js?v=10260836"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10252300"></script>
+<script src="mp.js?v=10260836"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1301,9 +1319,13 @@ const $app = document.getElementById("app");
 const shuffle = a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pool = ()=>[...new Map([...P.set.sel].sort((a,b)=>a-b).flatMap(w=>WEEKS[w-1]).map(c=>[c.h,c])).values()];
-const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; if(/^[SP]:/.test(h)){ P.swrong=P.swrong||[]; if(!P.swrong.includes(h)) P.swrong.push(h); saveP(); return } if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
+/* 오늘 학습 기록: 오늘 틀린 문제 · 오늘 정답률 · 지난 14일 기록 (선생님 현황판에도 보내요) */
+function dlog(){ const tk=todayKey(); if(!P.dlog||P.dlog.d!==tk){ if(P.dlog&&P.dlog.d&&P.dlog.q){ P.hist=P.hist||{}; P.hist[P.dlog.d]={q:P.dlog.q,ok:P.dlog.ok,w:Object.keys(P.dlog.w||{}).length}; const ks=Object.keys(P.hist).sort((a,b)=>new Date(a)-new Date(b)); while(ks.length>14) delete P.hist[ks.shift()] } P.dlog={d:tk,w:{},r:{},q:0,ok:0,c:{H:[0,0],S:[0,0],P:[0,0]}} } return P.dlog }
+function todayWrongItems(){ const L=dlog(); return Object.keys(L.w).map(h=>{ const say=/^[SP]:/.test(h), it=say?(typeof sayFind==="function"?sayFind(h):null):UNIQUE.find(c=>c.h===h); return it?{h,say,it,n:L.w[h],done:!!L.r[h]}:null }).filter(Boolean).sort((a,b)=>(a.done-b.done)||(b.n-a.n)) }
+const addWrong = h=>{ P.wcnt=P.wcnt||{}; P.wcnt[h]=(P.wcnt[h]||0)+1; { const L=dlog(); L.w[h]=(L.w[h]||0)+1; delete L.r[h] } if(/^[SP]:/.test(h)){ P.swrong=P.swrong||[]; if(!P.swrong.includes(h)) P.swrong.push(h); saveP(); return } if(!P.wrong.includes(h)) P.wrong.push(h); saveP() };
 /* 학습 기록: 주차별 정답률 + 익힌 날짜 */
-function trackAns(c,ok){ if(!P||!c) return; if(window.__qHook) try{ window.__qHook(c,ok) }catch(e){} if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
+function trackAns(c,ok){ if(!P||!c) return; if(window.__qHook) try{ window.__qHook(c,ok) }catch(e){}
+  { const L=dlog(), ct=c.cat==="S"||c.cat==="P"?c.cat:"H"; L.q++; if(ok) L.ok++; const a=L.c[ct]||(L.c[ct]=[0,0]); a[0]++; if(ok) a[1]++; P.cacc=P.cacc||{H:[0,0],S:[0,0],P:[0,0]}; const b=P.cacc[ct]||(P.cacc[ct]=[0,0]); b[0]++; if(ok) b[1]++; if(ok&&c.h&&L.w[c.h]) L.r[c.h]=1 }   /* 오늘 틀린 문제를 다시 맞히면 '복습 완료' */ if(c.cat){ P.swk=P.swk||{}; const k=c.cat+c.w, a=P.swk[k]||[0,0]; a[0]++; if(ok) a[1]++; P.swk[k]=a; return } P.wk=P.wk||{}; const w=c.w||1, a=P.wk[w]||[0,0]; a[0]++; if(ok) a[1]++; P.wk[w]=a;
   if(ok){ P.mt=P.mt||{}; if((P.mastery[c.h]||0)>=MASTER_N && !P.mt[c.h]) P.mt[c.h]=Date.now() }
   /* 틀린 한자 극복: 한 번이라도 틀렸던 한자를 3번 연속 맞히면 '극복!' (오답 노트에서도 빠져요) */
   if((P.wcnt||{})[c.h]&&!(P.ovc||[]).includes(c.h)){ P.wst=P.wst||{}; if(ok){ P.wst[c.h]=(P.wst[c.h]||0)+1; if(P.wst[c.h]>=3){ delete P.wst[c.h]; P.ovc=P.ovc||[]; P.ovc.push(c.h); P.wrong=(P.wrong||[]).filter(x=>x!==c.h); overcomeFx(c) } } else P.wst[c.h]=0 } }
@@ -1439,6 +1461,36 @@ function importByCode(){ openModal(`<h3>예전 기록 가져오기</h3><p>예전
 
 
 /* ===== 선생님: 학생 현황판 ===== */
+function bdItem(h){ if(/^[SP]:/.test(h)){ const x=typeof sayFind==="function"?sayFind(h):null; return x?{say:1,big:x.k,sub:x.t,tag:(SAY_NAME[x.cat]||"")+" "+x.w+"주차"}:{say:1,big:h.slice(2),sub:"",tag:""} } const c=UNIQUE.find(x=>x.h===h)||{}; return {say:0,big:h,sub:((c.hun||"")+" "+(c.eum||"")).trim(),tag:c.w?c.w+"주차":""} }
+const bdPct=(a)=>a&&a[0]?Math.round(a[1]/a[0]*100):null;
+function bdIsToday(r){ const d=new Date(r.at); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`===todayKey() }
+function bdToday(r){ return bdIsToday(r)&&r.td&&r.td.q!==undefined?r.td:{q:0,ok:0,c:{},w:[]} }
+/* 반 전체 오답 모으기: 한자(전체 기간) · 사자성어·속담(전체 기간) · 오늘 */
+function bdAgg(rows){ const add=(T,h,n,rv)=>{ const t=T[h]||(T[h]={n:0,s:0,rv:0}); t.n+=n; t.s++; if(rv) t.rv++ }, H={}, S={}, D={};
+  for(const r of rows){ for(const [h,n] of (r.wtop2||r.wtop||[])) add(H,h,n); for(const [h,n] of (r.stop||[])) add(S,h,n); for(const [h,n,rv] of bdToday(r).w) add(D,h,n,rv) }
+  const top=(T,k)=>Object.entries(T).sort((a,b)=>b[1].s-a[1].s||b[1].n-a[1].n).slice(0,k); return {H:top(H,15),S:top(S,10),D:top(D,12)} }
+function bdBar(lab,p,n){ return `<div class="bdBar"><span>${lab}</span><div><i style="width:${p||0}%;background:${p==null?"#555":p<60?"#e0567a":p<80?"#f6c544":"#3fcf8e"}"></i></div><b>${p==null?"-":p+"%"}</b>${n!=null?`<small>${n}문제</small>`:""}</div>` }
+function bdChips(L,cls){ return L.length?`<div class="bdChips">${L.map(([h,t])=>{ const it=bdItem(h); return `<span class="bdChip ${it.say?"say":""} ${cls||""}"><i>${esc(it.big)}</i><em>${esc(it.sub)}</em><small>${t.s}명 · ${t.n}번${t.rv!=null&&cls==="today"?` · 복습 ${t.rv}명`:""}</small></span>` }).join("")}</div>`:`<p class="muted">아직 없어요.</p>` }
+/* 수업용 복습 카드: 반이 많이 틀린 문제를 크게 한 장씩 */
+function bdCards(list,title){ if(!list.length){ toast("보여 줄 문제가 아직 없어요"); return } let i=0, show=false;
+  const draw=()=>{ const [h,t]=list[i], it=bdItem(h); openModal(`<div class="bdCard"><div class="bdCT">${esc(title)} · ${i+1} / ${list.length}<small>${t.s}명이 ${t.n}번 틀렸어요</small></div>
+      <div class="bdCB ${it.say?"say":""}">${esc(it.big)}</div><div class="bdCM">${show?esc(it.sub||"")+(it.tag?`<small>${esc(it.tag)}</small>`:""):`<span class="muted">뜻을 함께 떠올려 봐요!</span>`}</div>
+      <div class="btns"><button class="btn ghost" id="bcP" ${i?"":"disabled"}>◀ 이전</button><button class="btn gold" id="bcS">${show?"뜻 숨기기":"뜻 보기"}</button><button class="btn ghost" id="bcN" ${i<list.length-1?"":"disabled"}>다음 ▶</button><button class="btn ghost" id="bcX">닫기</button></div></div>`,true);
+    document.getElementById("bcP").onclick=()=>{ i--; show=false; draw() }; document.getElementById("bcN").onclick=()=>{ i++; show=false; draw() }; document.getElementById("bcS").onclick=()=>{ show=!show; draw() }; document.getElementById("bcX").onclick=closeModal };
+  draw() }
+/* 학생 한 명 자세히 */
+function bdStudent(r){ const t=bdToday(r), days=Object.entries(r.hist||{}).sort((a,b)=>new Date(a[0])-new Date(b[0])).slice(-13); if(t.q) days.push([todayKey(),{q:t.q,ok:t.ok,w:t.w.length}]);
+  const C=r.cacc||{}, TC=t.c||{};
+  openModal(`<div class="bdStu"><h3>${r.n}번 ${esc(r.name||"")} <small>${esc(heroById(r.hero).cls)} Lv${r.lv}</small></h3>
+    <div class="bdStuRow"><div><b>${t.q?Math.round(t.ok/t.q*100)+"%":"-"}</b><span>오늘 정답률 (${t.q}문제)</span></div><div><b>${t.w.length}</b><span>오늘 틀린 문제</span></div><div><b>${t.w.filter(x=>x[2]).length}</b><span>그중 복습 완료</span></div><div><b>${r.q?Math.round(r.ok/r.q*100)+"%":"-"}</b><span>전체 정답률</span></div></div>
+    <h4>영역별 정답률 (전체 · 오늘)</h4>${bdBar("한자",bdPct(C.H),C.H&&C.H[0])}${bdBar("사자성어",bdPct(C.S),C.S&&C.S[0])}${bdBar("속담",bdPct(C.P),C.P&&C.P[0])}
+    <p class="meta" style="margin:2px 0 8px">오늘: 한자 ${bdPct(TC.H)??"-"}% · 사자성어 ${bdPct(TC.S)??"-"}% · 속담 ${bdPct(TC.P)??"-"}%</p>
+    <h4>오늘 틀린 문제</h4>${t.w.length?`<div class="bdChips">${t.w.map(([h,n,rv])=>{ const it=bdItem(h); return `<span class="bdChip ${it.say?"say":""} ${rv?"rv":""}"><i>${esc(it.big)}</i><em>${esc(it.sub)}</em><small>${n}번${rv?" · ✔ 복습":""}</small></span>` }).join("")}</div>`:`<p class="muted">오늘 틀린 문제가 없어요.</p>`}
+    <h4>자주 틀리는 한자 (전체 기간)</h4>${(r.wtop2||r.wtop||[]).length?`<div class="bdChips">${(r.wtop2||r.wtop).slice(0,12).map(([h,n])=>{ const it=bdItem(h); return `<span class="bdChip"><i>${esc(it.big)}</i><em>${esc(it.sub)}</em><small>${n}번</small></span>` }).join("")}</div>`:`<p class="muted">없어요.</p>`}
+    ${(r.stop||[]).length?`<h4>자주 틀리는 사자성어·속담</h4><div class="bdChips">${r.stop.slice(0,8).map(([h,n])=>{ const it=bdItem(h); return `<span class="bdChip say"><i>${esc(it.big)}</i><em>${esc(it.sub)}</em><small>${n}번</small></span>` }).join("")}</div>`:""}
+    <h4>최근 2주 공부 기록</h4>${days.length?`<div class="bdDays">${days.map(([d,v])=>{ const p=v.q?Math.round(v.ok/v.q*100):0; return `<div title="${d}"><i style="height:${Math.min(100,8+v.q*2)}%;background:${p<60?"#e0567a":p<80?"#f6c544":"#3fcf8e"}"></i><small>${d.split("-").slice(1).join("/")}</small><em>${v.q}문제 ${p}%</em></div>` }).join("")}</div>`:`<p class="muted">아직 기록이 없어요. (새 버전부터 쌓여요)</p>`}
+    <div class="btns"><button class="btn ghost" id="bsX">닫기</button></div></div>`,true);
+  document.getElementById("bsX").onclick=closeModal }
 function board(){
   const sel=LS.get("boardSel",{g:4,c:1}), key=sel.g+"-"+sel.c;
   const can=typeof netAvailable==="function"&&netAvailable();
@@ -1459,13 +1511,30 @@ function board(){
     <p class="bdMsg">${can?`<i></i>${esc(BOARD.msg||"")}`:"학생 현황은 새 주소(github.io)에서만 볼 수 있어요."}</p>
     <div class="bdSum"><div><b>${rows.length}</b><span>기록이 들어온 학생</span></div><div><b>${todayN}</b><span>오늘 공부·게임한 학생</span></div>
       <div><b>${avg(acc)}%</b><span>평균 퀴즈 정답률</span></div><div><b>${avg(r=>r.mastered)}</b><span>평균 익힌 한자 (/${UNIQUE.length})</span></div><div><b>${avg(r=>(r.sws||0)+(r.swp||0))}</b><span>평균 외운 사자성어·속담 주차 (/21)</span></div></div>
-    ${(()=>{ const T={}; for(const r of rows) for(const [hh,n] of (r.wtop||[])){ const t=T[hh]||(T[hh]={n:0,s:0}); t.n+=n; t.s++ } const top=Object.entries(T).sort((a,b)=>b[1].s-a[1].s||b[1].n-a[1].n).slice(0,5);
-      return top.length?`<div class="bdWeak"><b>🔎 우리 반이 가장 많이 틀린 한자</b><div>${top.map(([hh,t])=>{ const c=UNIQUE.find(x=>x.h===hh)||{}; return `<span><i>${hh}</i>${esc((c.hun||"")+" "+(c.eum||""))}<small>${t.s}명 · ${t.n}번 틀림</small></span>` }).join("")}</div><p class="meta">다음 수업에서 이 한자들을 한 번 더 다뤄 주면 좋아요.</p></div>`:"" })()}
-    ${rows.length?`<div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>사자성어 외운 주차</th><th>속담 외운 주차</th><th>오답</th><th>약한 한자</th><th>극복</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
+    ${(()=>{ const tab=LS.get("boardTab","list"); return `<div class="bdTabs"><button data-bt="list" class="${tab==="list"?"on":""}">👥 학생 목록</button><button data-bt="stat" class="${tab==="stat"?"on":""}">📊 반 오답 통계</button></div>` })()}
+    ${LS.get("boardTab","list")==="stat"?(()=>{ const A=bdAgg(rows), tq=rows.reduce((a,r)=>a+bdToday(r).q,0), tok=rows.reduce((a,r)=>a+bdToday(r).ok,0), tw=rows.reduce((a,r)=>a+bdToday(r).w.length,0), trv=rows.reduce((a,r)=>a+bdToday(r).w.filter(x=>x[2]).length,0);
+      const sumC=k=>{ let q=0,o=0; for(const r of rows){ const a=(r.cacc||{})[k]; if(a){ q+=a[0]; o+=a[1] } } return [q,o] }, sumT=k=>{ let q=0,o=0; for(const r of rows){ const a=(bdToday(r).c||{})[k]; if(a){ q+=a[0]; o+=a[1] } } return [q,o] };
+      const need=rows.map(r=>{ const t=bdToday(r); return {r,left:t.w.filter(x=>!x[2]).length,acc:t.q?t.ok/t.q:null} }).filter(x=>x.left>=3||(x.acc!=null&&x.acc<.6)).sort((a,b)=>b.left-a.left).slice(0,8);
+      const days={}; for(const r of rows){ for(const [d,v] of Object.entries(r.hist||{})){ const t=days[d]||(days[d]={q:0,ok:0,n:0}); t.q+=v.q; t.ok+=v.ok; t.n++ } const t0=bdToday(r); if(t0.q){ const t=days[todayKey()]||(days[todayKey()]={q:0,ok:0,n:0}); t.q+=t0.q; t.ok+=t0.ok; t.n++ } }
+      const DL=Object.entries(days).sort((a,b)=>new Date(a[0])-new Date(b[0])).slice(-14);
+      return `<div class="bdStat">
+        <div class="bdSum"><div><b>${tq?Math.round(tok/tq*100)+"%":"-"}</b><span>오늘 반 정답률 (${tq}문제)</span></div><div><b>${tw}</b><span>오늘 반 전체 틀린 문제</span></div><div><b>${tw?Math.round(trv/tw*100)+"%":"-"}</b><span>그중 복습 완료</span></div><div><b>${need.length}</b><span>도움이 필요한 학생</span></div></div>
+        <div class="bdBox"><b>📚 영역별 반 정답률</b><div class="bdCols"><div><h5>전체 기간</h5>${bdBar("한자",bdPct(sumC("H")),sumC("H")[0])}${bdBar("사자성어",bdPct(sumC("S")),sumC("S")[0])}${bdBar("속담",bdPct(sumC("P")),sumC("P")[0])}</div><div><h5>오늘</h5>${bdBar("한자",bdPct(sumT("H")),sumT("H")[0])}${bdBar("사자성어",bdPct(sumT("S")),sumT("S")[0])}${bdBar("속담",bdPct(sumT("P")),sumT("P")[0])}</div></div></div>
+        <div class="bdBox"><div class="bdBoxH"><b>📝 오늘 우리 반이 많이 틀린 문제</b><button class="btn gold sm" data-cards="D">📺 수업용 복습 카드</button></div>${bdChips(A.D,"today")}</div>
+        <div class="bdBox"><div class="bdBoxH"><b>🔎 우리 반이 가장 많이 틀린 한자 (전체 기간)</b><button class="btn gold sm" data-cards="H">📺 복습 카드</button></div>${bdChips(A.H)}</div>
+        <div class="bdBox"><div class="bdBoxH"><b>📜 우리 반이 가장 많이 틀린 사자성어·속담</b><button class="btn gold sm" data-cards="S">📺 복습 카드</button></div>${bdChips(A.S)}</div>
+        <div class="bdBox"><b>🙋 오늘 도움이 필요한 학생</b><p class="meta">오늘 틀리고 아직 복습하지 않은 문제가 3개 이상이거나, 오늘 정답률이 60% 아래인 학생이에요.</p>${need.length?`<div class="bdNeed">${need.map(x=>`<button data-stu="${esc(x.r.id)}">${x.r.n}번 ${esc(x.r.name||"")}<small>복습 안 한 문제 ${x.left}개${x.acc!=null?` · 정답률 ${Math.round(x.acc*100)}%`:""}</small></button>`).join("")}</div>`:`<p class="muted">없어요 👍</p>`}</div>
+        <div class="bdBox"><b>📈 최근 2주 우리 반 공부</b>${DL.length?`<div class="bdDays">${DL.map(([d,v])=>{ const p=v.q?Math.round(v.ok/v.q*100):0; return `<div title="${d}"><i style="height:${Math.min(100,6+v.n*6)}%;background:${p<60?"#e0567a":p<80?"#f6c544":"#3fcf8e"}"></i><small>${d.split("-").slice(1).join("/")}</small><em>${v.n}명 · ${p}%</em></div>` }).join("")}</div><p class="meta">막대 높이 = 공부한 학생 수 · 색 = 정답률 (초록 80% 이상 · 노랑 60~80% · 빨강 60% 아래)</p>`:`<p class="muted">아직 기록이 없어요. 학생들이 새 버전을 쓰면 날마다 쌓여요.</p>`}</div>
+      </div>` })():""}
+    ${LS.get("boardTab","list")==="stat"?"":(()=>{ const T={}; for(const r of rows) for(const [hh,n] of (r.wtop||[])){ const t=T[hh]||(T[hh]={n:0,s:0}); t.n+=n; t.s++ } const top=Object.entries(T).sort((a,b)=>b[1].s-a[1].s||b[1].n-a[1].n).slice(0,5);
+      return top.length?`<div class="bdWeak"><b>🔎 우리 반이 가장 많이 틀린 한자</b><div>${top.map(([hh,t])=>{ const c=UNIQUE.find(x=>x.h===hh)||{}; return `<span><i>${hh}</i>${esc((c.hun||"")+" "+(c.eum||""))}<small>${t.s}명 · ${t.n}번 틀림</small></span>` }).join("")}</div><p class="meta">다음 수업에서 이 한자들을 한 번 더 다뤄 주면 좋아요. 자세한 통계는 「📊 반 오답 통계」에서 볼 수 있어요.</p></div>`:"" })()}
+    ${LS.get("boardTab","list")==="stat"?"":rows.length?`<p class="meta" style="margin:0">학생 이름을 누르면 그 학생의 오늘 틀린 문제와 2주 기록을 자세히 볼 수 있어요.</p><div class="bdWrap"><table class="bdT"><thead><tr><th>번호</th><th>이름</th><th>용사</th><th>오늘 학습</th><th>오늘 게임</th><th>오늘 획순</th><th>오늘 정답률</th><th>오늘 틀림 (복습)</th><th>퀴즈 정답률</th><th>푼 문제</th><th>익힌 한자</th><th>사자성어 외운 주차</th><th>속담 외운 주차</th><th>오답</th><th>약한 한자</th><th>극복</th><th>만점 도장</th><th>전체 학습</th><th>전체 게임</th><th>최고 기록</th><th>코인 (모은 코인)</th><th>마지막</th></tr></thead><tbody>
       ${rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}, a=acc(r);
-        return `<tr><td>${r.n}</td><td class="nm"><span class="${live(r)?"on":"off"}"></span>${esc(r.name||"-")}</td>
+        const td=bdToday(r), tp=td.q?Math.round(td.ok/td.q*100):null, trv=td.w.filter(x=>x[2]).length;
+        return `<tr class="bdRow" data-stu="${esc(r.id)}"><td>${r.n}</td><td class="nm"><span class="${live(r)?"on":"off"}"></span>${esc(r.name||"-")} <small class="bdMore">자세히 ›</small></td>
         <td><span class="hero">${avaHtml(r.hero,28)}${esc(heroById(r.hero).cls)} Lv${r.lv}${r.tier?` · ${r.tier}차`:""}</span></td>
         <td class="${t.sets?"hi":""}">${t.sets}세트</td><td>${t.plays}판</td><td>${t.trace}</td>
+        <td class="${tp==null?"":tp<60?"low":tp>=85?"hi":""}">${tp==null?"-":tp+"%"}</td><td class="${td.w.length-trv>=3?"low":""}">${td.w.length?`${td.w.length} (${trv})`:"-"}</td>
         <td class="${r.q?(a<60?"low":a>=85?"hi":""):""}">${r.q?a+"%":"-"}</td><td>${r.q}</td><td>${r.mastered}</td><td>${r.sws||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S:11}</td><td>${r.swp||0}/${typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.P:10}</td><td class="${r.wrong>15?"low":""}">${r.wrong}</td><td class="wkc">${(r.wk||[]).join(" ")||"-"}</td><td>${r.ovc||0}</td><td>${r.stamps}/26</td>
         <td>${r.sets}세트</td><td>${r.games}판</td><td>${r.best?`${fmtT(r.best.t)}${r.best.win?" 승리":""}`:"-"}</td><td>${r.coins} (${r.earned})</td><td>${ago(r.at)}</td></tr>` }).join("")}
     </tbody></table></div>`:`<p class="muted" style="text-align:center;margin:20px 0">아직 들어온 기록이 없어요. 학생들이 새 주소에서 앱을 켜 두면 30초 안에 들어와요.</p>`}
@@ -1474,9 +1543,12 @@ function board(){
   document.getElementById("back").onclick=()=>{ if(typeof boardClose==="function") boardClose(); run0(); home() };
   const chg=()=>{ LS.set("boardSel",{g:+document.getElementById("bdG").value,c:+document.getElementById("bdC").value}); board() };
   document.getElementById("bdG").onchange=chg; document.getElementById("bdC").onchange=chg;
+  $app.querySelectorAll("[data-bt]").forEach(b=>b.onclick=()=>{ LS.set("boardTab",b.dataset.bt); board() });
+  $app.querySelectorAll("[data-stu]").forEach(b=>b.onclick=()=>{ const r=rows.find(x=>String(x.id)===b.dataset.stu); if(r) bdStudent(r) });
+  { const A=bdAgg(rows); $app.querySelectorAll("[data-cards]").forEach(b=>b.onclick=()=>{ const k=b.dataset.cards; bdCards(A[k],k==="D"?"오늘 많이 틀린 문제":k==="H"?"많이 틀린 한자":"많이 틀린 사자성어·속담") }) }
   document.getElementById("bdClr").onclick=()=>{ const a=LS.get("board",{}); delete a[key]; LS.set("board",a); toast("이 반 기록을 지웠어요"); board() };
-  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","약한 한자","극복한 한자","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
-    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,(r.wk||[]).join(" "),r.ovc||0,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
+  document.getElementById("bdCsv").onclick=()=>{ const head=["학년","반","번호","이름","직업","레벨","전직","오늘 학습 세트","오늘 게임","오늘 획순 코인","오늘 정답률(%)","오늘 틀린 문제","오늘 복습 완료","오늘 틀린 문제 목록","한자 정답률(%)","사자성어 정답률(%)","속담 정답률(%)","퀴즈 정답률(%)","푼 문제","익힌 한자","사자성어 외운 주차","속담 외운 주차","오답","약한 한자","극복한 한자","만점 도장","전체 학습 세트","전체 게임","보유 코인","모은 코인","마지막 기록"];
+    const lines=[head].concat(rows.map(r=>{ const t=isToday(r)?r.today:{sets:0,plays:0,trace:0}; const td=bdToday(r), C=r.cacc||{}; return [r.g,r.c,r.n,r.name,heroById(r.hero).cls,r.lv,r.tier,t.sets,t.plays,t.trace,td.q?Math.round(td.ok/td.q*100):"",td.w.length,td.w.filter(x=>x[2]).length,td.w.map(x=>bdItem(x[0]).big).join(" / "),bdPct(C.H)??"",bdPct(C.S)??"",bdPct(C.P)??"",acc(r),r.q,r.mastered,r.sws||0,r.swp||0,r.wrong,(r.wk||[]).join(" "),r.ovc||0,r.stamps,r.sets,r.games,r.coins,r.earned,new Date(r.at).toLocaleString("ko-KR")] }));
     const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
     const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`지혜탐험대_${sel.g}학년${sel.c}반_${tk}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove() },500) };
   if(typeof BOARD!=="undefined") BOARD.onUpdate=()=>{ if(document.getElementById("bdG")) board() };
@@ -1703,6 +1775,7 @@ function home(){
     <button data-go="set">${ico("gear","mic")}설정<small>학생·소리</small></button>
     ${isAdmin()?`<button data-go="board">${ico("trophy","mic")}학생 현황<small>선생님 전용</small></button>`:""}
   </div>
+  ${(()=>{ const L=todayWrongItems(), dn=L.filter(x=>x.done).length; return L.length?`<button class="twStrip ${dn===L.length?"all":""}" id="goTW">📝 오늘 틀린 문제 ${L.length}개 다시 보기<small>${dn===L.length?"🎉 모두 복습했어요!":`${dn}/${L.length} 복습 완료`}</small></button>`:"" })()}
   <div style="height:92px" aria-hidden="true"></div>`;
   document.getElementById("who").onclick=settings;
   document.getElementById("heroChip").onclick=()=>{sfx("tap");grow()};
@@ -1713,6 +1786,7 @@ function home(){
   document.getElementById("thGo").onclick=()=>{ sfx("tap"); openStroke(todayHanja(),{memo:true,today:true}) };
   if(!P.guideSeen && !isAdmin()) setTimeout(()=>{ if(modal.hidden) guide(0) },400);
   document.getElementById("goGame").onclick=()=>{sfx("tap");gameLobby()};
+  { const t=document.getElementById("goTW"); if(t) t.onclick=()=>{ sfx("tap"); todayWrong() } }
   $app.querySelectorAll(".menu4 button").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board()})[b.dataset.go]()});
 }
 
@@ -1807,12 +1881,12 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10252300"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10260836"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
       for(let yy=0;yy<N;yy++) for(let xx=0;xx<N;xx++) if(d[(yy*N+xx)*4+3]>40){ if(xx<l) l=xx; if(xx>r) r=xx } dx=r<0?0:(N/2-(l+r+1)/2)/N*100 }catch(e){ dx=0 } ART_CX[k]=dx } img.style.transform=`translateX(${dx}%)` }; if(img.complete&&img.naturalWidth) go(); else img.addEventListener("load",go,{once:true}) }
-new MutationObserver(()=>document.querySelectorAll(".gpic img:not([data-ctr])").forEach(i=>{ i.dataset.ctr=1; centerArt(i) })).observe(document.documentElement,{childList:true,subtree:true});
+new MutationObserver(ms=>{ if(document.querySelector(".game")) return; document.querySelectorAll(".gpic img:not([data-ctr])").forEach(i=>{ i.dataset.ctr=1; centerArt(i) }) }).observe(document.documentElement,{childList:true,subtree:true});   /* 게임 중엔 건너뛰어요 (렉 줄이기) */
 function grow(id,back){
   id=id||P.hero; loadClips(()=>{ const pg=document.querySelector(".jtrack"); if(pg&&document.body.contains(pg)&&grow.cur===id) grow(id,back) }); grow.cur=id; const h=heroById(id), s=HS(id), J=JOBS[id];
   const need=expNeed(s.lv), own=P.heroes.includes(id);
@@ -2401,15 +2475,31 @@ function dex(){
 }
 
 /* ===== 오답 노트 ===== */
+/* ===== 오늘 틀린 문제 다시 보기 ===== */
+function todayWrong(back){ const L=todayWrongItems(), H=L.filter(x=>!x.say), S=L.filter(x=>x.say), done=L.filter(x=>x.done).length;
+  $app.innerHTML = topbar("오늘 틀린 문제") + `<section class="panel">
+    ${L.length?`<div class="twHead"><b>오늘 틀린 문제 ${L.length}개</b><span>${done?`✔ ${done}개 복습 완료 · `:""}다시 풀어서 맞히면 ✔가 붙어요</span><div class="twBar"><i style="width:${Math.round(done/L.length*100)}%"></i></div></div>
+    ${H.length?`<h3 class="twH">한자 ${H.length}개</h3><div class="notelist">${H.map(x=>`<button class="note tw ${x.done?"ok":""}" data-h="${esc(x.h)}"><b>${esc(x.h)}</b><span>${esc(label(x.it))}</span><small>${x.done?"✔ 복습 완료":`${x.n}번 틀림 · 눌러서 획순`}</small></button>`).join("")}</div>`:""}
+    ${S.length?`<h3 class="twH">사자성어·속담 ${S.length}개</h3><div class="notelist sayNotes">${S.map(x=>`<button class="note saynote tw ${x.done?"ok":""}" data-h="${esc(x.h)}"><b style="font-size:19px">${esc(x.it.k)}</b><span>${esc(x.it.t)}</span><small>${x.done?"✔ 복습 완료":`${SAY_NAME[x.it.cat]} · ${x.n}번 틀림`}</small></button>`).join("")}</div>`:""}
+    <div class="btns">${H.length?`<button class="btn gold" id="twH">한자 다시 풀기</button>`:""}${["S","P"].filter(c=>S.some(x=>x.it.cat===c)).map(c=>`<button class="btn gold twS" data-c="${c}">${SAY_NAME[c]} 다시 풀기</button>`).join("")}</div>`
+    :`<div style="text-align:center;padding:30px 10px"><h2>오늘 틀린 문제가 없어요 🎉</h2><p class="muted">게임이나 퀴즈에서 틀린 한자·사자성어·속담이 여기에 모여요.</p></div>`}
+  </section>`;
+  document.getElementById("back").onclick=()=>{ (back||home)() };
+  $app.querySelectorAll(".note.tw:not(.saynote)").forEach(b=>b.onclick=()=>openStroke(UNIQUE.find(c=>c.h===b.dataset.h)));
+  $app.querySelectorAll(".saynote.tw").forEach(b=>b.onclick=()=>sayDetail(sayFind(b.dataset.h)));
+  const hb=document.getElementById("twH"); if(hb) hb.onclick=()=>quiz(shuffle(H.map(x=>x.it)),{fromNotes:true});
+  $app.querySelectorAll(".twS").forEach(b=>b.onclick=()=>{ const c=b.dataset.c; sayQuiz(S.filter(x=>x.it.cat===c).map(x=>x.it),c,{fromNotes:true}) });
+}
 function notes(){
   const list=P.wrong.map(h=>UNIQUE.find(c=>c.h===h)).filter(Boolean);
-  $app.innerHTML = topbar("오답 노트") + `<section class="panel">${list.length?`
+  const TW=todayWrongItems();
+  $app.innerHTML = topbar("오답 노트") + (TW.length?`<button class="twStrip" id="goTW2">📝 오늘 틀린 문제 ${TW.length}개 다시 보기<small>${TW.filter(x=>x.done).length}개 복습 완료</small></button>`:"") + `<section class="panel">${list.length?`
     <p class="meta" style="margin:0">헷갈렸거나 틀린 한자예요. 오답 퀴즈에서 맞히거나 카드에서 "알아요"를 누르면 노트에서 빠져요.</p>
     <div class="notelist">${list.map(c=>`<button class="note" data-h="${esc(c.h)}"><b>${esc(c.h)}</b><span>${esc(label(c))}</span><small>${c.w}주차 · 눌러서 획순</small></button>`).join("")}</div>
     <div class="btns"><button class="btn ghost" id="nc">카드로 다시 보기</button><button class="btn gold" id="nq">오답 퀴즈</button></div>`
     :`<div style="text-align:center;padding:30px 10px;display:flex;flex-direction:column;gap:8px;align-items:center"><span style="width:72px;height:72px;display:block">${ICO.empty}</span><h2>오답 노트가 비어 있어요</h2><span class="muted">퀴즈에서 틀리거나 카드에서 "헷갈려요"를 누른 한자가 여기에 모여요.</span></div>`}</section>`;
   if(typeof sayNotesHtml==="function") $app.insertAdjacentHTML("beforeend",sayNotesHtml());
-  bindBack(); if(typeof bindSayNotes==="function") bindSayNotes(); if(!list.length) return;
+  bindBack(); if(typeof bindSayNotes==="function") bindSayNotes(); { const t=document.getElementById("goTW2"); if(t) t.onclick=()=>todayWrong(notes) } if(!list.length) return;
   $app.querySelectorAll(".note").forEach(b=>b.onclick=()=>openStroke(UNIQUE.find(c=>c.h===b.dataset.h)));
   document.getElementById("nc").onclick=()=>cards(shuffle(list),{fromNotes:true});
   document.getElementById("nq").onclick=()=>quiz(list,{fromNotes:true});
@@ -2505,4 +2595,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10252300"></script>
+<script src="game.js?v=10260836"></script>
