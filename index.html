@@ -836,7 +836,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .realmHead{display:flex;align-items:baseline;gap:10px;margin:14px 0 6px;font-family:var(--f-ui)}
 .realmHead b{font-size:21px}.realmHead span{font-size:14px;color:var(--muted)}
 .realmHead.sky b{color:#8ad8ff}.realmHead.ground b{color:#8adc6a}.realmHead.boss b{color:#c9a6ff}
-.b11g{margin:8px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(160deg,#2a1440,#140a22);border:2px solid #b07aff;color:#f3e8ff;text-align:left}.b11g summary{font-family:var(--f-ui);font-size:18px;color:#ffd36a;cursor:pointer}.b11gs{margin-top:10px}.b11gs>b{display:block;font-family:var(--f-ui);font-size:16px;color:#d8b8ff;margin-bottom:4px}.b11gs p{margin:3px 0;font-size:14px;line-height:1.5}.b11gs em{font-style:normal;font-weight:700;color:#fff2b0;margin-right:6px}
+.b11v{margin:8px 0;padding:10px;border-radius:16px;background:linear-gradient(160deg,#2a1440,#140a22);border:2px solid #b07aff;color:#f3e8ff;text-align:left}.b11vh{font-family:var(--f-ui);font-size:19px;color:#ffd36a;margin:0 2px 6px}.b11vh small{font-size:13px;color:#d8c4ff;margin-left:6px}.b11row{margin-top:8px}.b11row>b{display:block;font-family:var(--f-ui);font-size:16px;color:#d8b8ff;margin:0 2px 5px}.b11cards{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}.b11c{flex:0 0 168px;scroll-snap-align:start;background:#1b1030;border:1.5px solid rgba(190,150,255,.45);border-radius:12px;padding:6px;text-align:center}.b11c canvas{width:100%;height:auto;border-radius:8px;display:block}.b11c em{display:block;font-style:normal;font-family:var(--f-ui);font-size:15px;color:#fff2b0;margin-top:5px}.b11c span{display:block;font-size:12.5px;line-height:1.35;color:#eadcff;margin-top:2px}.b11v .b11g{margin:10px 0 0;padding:8px 10px;border-width:1px}.b11v .b11g summary{font-size:14px;color:#cbb6ff}.b11g{margin:8px 0;padding:10px 12px;border-radius:14px;background:linear-gradient(160deg,#2a1440,#140a22);border:2px solid #b07aff;color:#f3e8ff;text-align:left}.b11g summary{font-family:var(--f-ui);font-size:18px;color:#ffd36a;cursor:pointer}.b11gs{margin-top:10px}.b11gs>b{display:block;font-family:var(--f-ui);font-size:16px;color:#d8b8ff;margin-bottom:4px}.b11gs p{margin:3px 0;font-size:14px;line-height:1.5}.b11gs em{font-style:normal;font-weight:700;color:#fff2b0;margin-right:6px}
 .mapc.msoon{border-style:dashed;justify-content:center;align-items:center;text-align:center;background:linear-gradient(160deg,#2a3a5a,#1a2238)}
 .mapc .mmedal{display:flex;gap:3px;align-items:center;font-size:14px}.mapc .mmedal i{font-style:normal;opacity:.25;filter:grayscale(1)}.mapc .mmedal i.on{opacity:1;filter:none}.mapc .mmedal em{font-style:normal;font-family:var(--f-ui);font-size:11px;color:#fff;border-radius:6px;padding:0 6px;margin-left:4px}
 .difrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:8px}
@@ -1153,17 +1153,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251509"></script>
-<script src="jobs.js?v=10251509"></script>
-<script src="maps.js?v=10251509"></script>
-<script src="art.js?v=10251509"></script>
-<script src="monsters.js?v=10251509"></script>
-<script src="jobfx.js?v=10251509"></script>
-<script src="words.js?v=10251509"></script>
-<script src="sayings.js?v=10251509"></script>
-<script src="sfx.js?v=10251509"></script>
+<script src="sprites.js?v=10251551"></script>
+<script src="jobs.js?v=10251551"></script>
+<script src="maps.js?v=10251551"></script>
+<script src="art.js?v=10251551"></script>
+<script src="monsters.js?v=10251551"></script>
+<script src="jobfx.js?v=10251551"></script>
+<script src="words.js?v=10251551"></script>
+<script src="sayings.js?v=10251551"></script>
+<script src="sfx.js?v=10251551"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251509"></script>
+<script src="mp.js?v=10251551"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1805,7 +1805,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251509"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251551"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2502,4 +2502,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251509"></script>
+<script src="game.js?v=10251551"></script>
