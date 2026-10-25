@@ -199,7 +199,7 @@ const skOK=(k,mid)=>mid>=11?!SK_BOSSOFF[k]:!SK[k].boss;   /* 보스 맵에서는
 const SK_ICON = {};
 function skIcon(k){
   if(k==="main") return SPRITE_URLS[P.hero]||"";
-  { const AK={body:"ic_body",spd:"ic_spd",str:"ic_str",qi:"ic_qi",pull:"ic_pull",wind:"cardwind",fire:"cardfire",stone:"cardstone",ice:"ic_ice",elec:"ic_elec"}[k];   // 제미나이 아이콘 그림
+  { const AK={bhunt:"ic_bhunt",bpierce:"ic_bpierce",bguard:"ic_bguard",body:"ic_body",spd:"ic_spd",str:"ic_str",qi:"ic_qi",pull:"ic_pull",wind:"cardwind",fire:"cardfire",stone:"cardstone",ice:"ic_ice",elec:"ic_elec"}[k];   // 제미나이 아이콘 그림
     if(AK&&typeof SKILL_ART_FILES!=="undefined"&&SKILL_ART_FILES[AK]) return SKILL_ART_FILES[AK] }
   if(SK_ICON[k]) return SK_ICON[k];
   const cv=document.createElement("canvas"); cv.width=cv.height=64; const c=cv.getContext("2d");
@@ -703,10 +703,22 @@ function startGame(opts){ opts=opts||{};
       ["minion",()=>"👥 보스 부하 부르기",()=>{ const e=g.en.find(x=>x.type==="boss"&&x.hp>0); if(!e){ showBanner("먼저 보스를 불러 주세요"); return } const T=BOSS_SKILLS[MAP.id]&&BOSS_SKILLS[MAP.id][(BOSSES[e.bid]||{}).tier||0], sk=T&&T.k.find(x=>x[0]==="summon"); e.atk={k:"summon",t0:g.t,wind:0,sp:1,ult:0,name:sk?sk[1]:"부하 부르기"}; bossAct(e,"summon",g.p,x=>x,{n:1,cd:1,sp:1},BOSSES[e.bid]||{}); tb.hidden=true }],
       ["warp",()=>"🌀 보스 순간이동 보기",()=>{ const e=g.en.find(x=>x.type==="boss"&&x.hp>0); if(!e){ showBanner("먼저 보스를 불러 주세요"); return } e.x=g.p.x+W; e.y=g.p.y; e.gapCD=0; e.farT=1; tb.hidden=true }],
       ["ovc",()=>"🏅 오답 극복 연출 보기",()=>{ const c=QPOOL[Math.random()*QPOOL.length|0]; if(c&&typeof overcomeFx==="function") overcomeFx(c); tb.hidden=true }],
-      ["clear",()=>"🧹 몬스터 모두 없애기",()=>{ g.en=g.en.filter(e=>e.type==="boss"); }]];
-    const render=()=>{ const sy=tb.scrollTop; tb.innerHTML=`<div class="tbjump"><button data-j="boss">👑 보스 부르기 ▾</button><button data-j="top">▲ 맨 위</button></div>`+(NM?"":`<b class="tbh">🔄 용사 바꿔서 같은 맵 다시 시작</b><div class="tbheroes">${HEROES.map(h=>`<button data-hero="${h.id}" class="${h.id===HERO.id?"on":""}">${avaHtml(h.id,30)}<span>${h.name.replace(/^\S+ /,"")}</span></button>`).join("")}</div>`)+acts.map(([k,l])=>`<button data-k="${k}">${l()}</button>`).join("")+`<small>선생님 확인용 · 기록에는 그대로 남아요</small>`;
+      ["clear",()=>"🧹 몬스터 모두 없애기",()=>{ g.en=g.en.filter(e=>e.type==="boss"); }],
+      ...(MAP.id===11?[   /* 군단장 시험 도구 */
+        ["b_burst",()=>"💥 강화 궁극기 바로 보기",()=>{ g.burstReady=1; tb.hidden=true; fireBurst() }],
+        ["b_ult5",()=>"✨ 5차 궁극기 쿨타임 없애기",()=>{ const U=ACT.find(k=>k.ult)||ACT[ACT.length-1]; if(U) U.t=0; showBanner("5차 궁극기를 바로 쓸 수 있어요") }],
+        ["b_gro",()=>"😵 그로기 바로 (문제 없이)",()=>{ const e=g.en.find(x=>x.b11&&x.hp>0); if(!e||g.cine){ showBanner("지금은 쓸 수 없어요 (연출 중)"); return } e.weakT0=0; applyWeak(e); tb.hidden=true }],
+        ["b_wq",()=>"🎯 그로기 문제 바로 띄우기",()=>{ const e=g.en.find(x=>x.b11&&x.hp>0); if(!e){ return } g.wq11=60; tb.hidden=true }],
+        ["b_p2",()=>BX.S.ph>=1?"🌑 2페이즈 (이미 2페이즈예요)":"🌑 2페이즈로 바로 가기",()=>{ if(BX.S.ph>=1||NM==="client") return; const e=g.en.find(x=>x.b11&&x.hp>0); if(!e) return; e.hp=0; kill(e); tb.hidden=true }],
+        ...[["🌑 자정",0],["🌅 여명",1],["☀️ 정오",2],["🌆 황혼",3]].map(([n,i])=>["b_tod"+i,()=>`${n}으로 바로 가기`,()=>{ if(BX.S.ph!==2){ showBanner("2페이즈에서만 쓸 수 있어요 (먼저 2페이즈로 가요)"); return } if(NM==="client") return; BX.setTod(i); tb.hidden=true }]),
+        ["b_heal",()=>"🧪 물약 쿨타임 없애기",()=>{ g.potT=0 }]]:[])];
+    const GRP=MAP.id===11?[["⚔ 군단장 시험",["b_burst","b_ult5","b_gro","b_wq","b_p2","b_tod0","b_tod1","b_tod2","b_tod3","b_heal"]],["🛠 기본",["god","qs","clear"]],["⬆ 레벨 · 시간",["lv1","lv5","lv10","t60"]]]
+      :[["🛠 기본",["god","qs","clear"]],["⬆ 레벨 · 시간",["lv1","lv5","lv10","t60"]],["👑 보스 부르기",["boss","sb0","sb1","sb2","sb3"]],["👀 보스 기술 보기",["ult","weak","minion","warp","ovc"]]];
+    const OPEN=window.__tbOpen||(window.__tbOpen=new Set([GRP[0][0]]));   /* 선생님 도구: 묶음별로 접고 펴기 */
+    const render=()=>{ const sy=tb.scrollTop; tb.innerHTML=`<div class="tbjump"><button data-j="top">▲ 맨 위</button></div>`+(NM?"":`<details class="tbg" data-g="hero" ${OPEN.has("hero")?"open":""}><summary>🔄 용사 바꿔서 다시 시작</summary><div class="tbheroes">${HEROES.map(h=>`<button data-hero="${h.id}" class="${h.id===HERO.id?"on":""}">${avaHtml(h.id,30)}<span>${h.name.replace(/^\S+ /,"")}</span></button>`).join("")}</div></details>`)+GRP.map(([gn,ks])=>`<details class="tbg" data-g="${gn}" ${OPEN.has(gn)?"open":""}><summary>${gn}</summary>${ks.map(k=>acts.find(a=>a[0]===k)).filter(Boolean).map(([k,l])=>`<button data-k="${k}">${l()}</button>`).join("")}</details>`).join("")+`<small>선생님 확인용 · 기록에는 그대로 남아요</small>`;
       tb.querySelectorAll("[data-hero]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const id=b.dataset.hero; if(id===HERO.id) return; const cur=HS(); P.hero=id; const n=HS(id); n.tier=Math.max(n.tier||0,cur.tier||0); n.lv=Math.max(n.lv||1,cur.lv||1); saveP(); if(typeof refreshHeroSprites==="function") refreshHeroSprites(h=>((P.hl||{})[h]||{}).tier); cleanup(); startGame() });   /* 전직 단계를 옮겼으니 그림도 새로 */
       tb.querySelectorAll("button[data-k]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const a=acts.find(x=>x[0]===b.dataset.k); a[2](); render() });
+      tb.querySelectorAll("details.tbg").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open) OPEN.add(d.dataset.g); else OPEN.delete(d.dataset.g) }));
       tb.querySelectorAll("[data-j]").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); if(b.dataset.j==="top") tb.scrollTo({top:0,behavior:"smooth"}); else { const t=tb.querySelector('[data-k="sb0"]'); if(t) tb.scrollTo({top:t.offsetTop-50,behavior:"smooth"}) } });
       tb.scrollTop=sy };
     btn.onclick=ev=>{ ev.stopPropagation(); tb.hidden=!tb.hidden; if(!tb.hidden) render() };
@@ -1107,7 +1119,7 @@ function startGame(opts){ opts=opts||{};
       if(!qs.length) return null; const dec=shuffle(L.filter(x=>!usedH.has(x.h)&&!used.has(lab(x)))).slice(0,n-qs.length).map(lab); while(dec.length<n-qs.length) dec.push("?"); return {qs,dec} },
     ids:()=>NM?[NET.myId,...Object.keys(RP).filter(id=>!RP[id].gone)]:["me"], myId:()=>NM?NET.myId:"me",
     pillarAns:(h,ok)=>{ const c=QPOOL.find(x=>x.h===h); if(!c||g.p.dead) return; g.qN++; if(ok){ g.qOk++; P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP() } else addWrong(c.h); trackAns(c,ok) }}):null;
-  if(BX){ g.need=1e12; g.lvl=10; g.sk.main=3; Object.assign(g.sk,{str:2,qi:2,bhunt:1,body:1}); g.pending.push({t:4.2,run:()=>showBanner("⚔ 군단장 맵은 레벨 업이 없어요! 시작 기술 세트로 싸우고, 2페이즈가 되면 카드를 1장 골라요")}) }
+  if(BX){ g.need=1e12; g.lvl=10; g.sk.main=3; Object.assign(g.sk,{str:1,qi:1,body:1}); g.b11Q=3; g.pot=3; g.potT=0; g.b11Rdy=0; g.b11R={}; g.b11W0=performance.now(); setTimeout(()=>{ if(!g.over&&!g.paused) b11Next() },700) }   /* 군단장 맵: 출발 전에 문제 3개 → 맞힐 때마다 이 판에서 쓸 카드 1장 (같이하기도 각자) */
   if(BX){ const D=MAP.dif||0, n=NM?nPlayers():1; const MB=mapById(MAP.id).hp; BX.setMul(MB*1.25*[1,1.5,2][D]*n,(1+(MB-1)*.35)*[1,1.15,1.3][D],1.85) }
   function plainFx(f){ const c={}; for(const k in f){ const v=f[k]; if(typeof v!=="object"&&typeof v!=="function") c[k]=v } return c }
   function patchArrs(){ if(!NM) return;
@@ -1151,7 +1163,7 @@ function startGame(opts){ opts=opts||{};
     if(m.t!=="c") return;
     if(m.me) setRP(from,m.me);
     if(m.or) originRes(from,m.or.id,!!m.or.ok);
-    if(m.lvd&&g.lvR&&m.lvd===g.lvR.id) g.lvR.done[from]=1;
+    if(m.lvd&&g.lvR&&m.lvd===g.lvR.id) g.lvR.done[from]=1; if(m.rdy&&g.b11R) g.b11R[from]=1;
     if(m.ch){ const n=(RP[from]&&RP[from].st&&RP[from].st.n)||"친구", e=String(m.ch).slice(0,4); hostEv.push({t:"cheer",n,e}); cheerShow(n,e) }
     if(RP[from]){ const r=RP[from]; if(m.pz){ if(!r.pzT) r.pzT=performance.now() } else r.pzT=0 }
     if(m.cc&&m.cc.length){ const by=new Map(g.en.map(e=>[e.id,e])), cl=v=>Math.max(-260,Math.min(260,v||0));
@@ -1225,7 +1237,7 @@ function startGame(opts){ opts=opts||{};
       wipeT = alive?0:wipeT+1/15; if(wipeT>1.5){ endAll(false) }
     } else {
       const c=NET.hostConn; if(!c||!c.open) return;
-      try{ c.send({t:"c",pz:(g.paused&&!g.over)?1:0,lvd:netOut.lvd||0,ch:netOut.ch||"",me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[],weak:netOut.weak||[],or:netOut.or||null,b11:netOut.b11||[],cc:Object.entries(netOut.cc).slice(0,120).map(([id,c])=>[+id,+c[0].toFixed(2),+c[1].toFixed(2),Math.round(c[2]),Math.round(c[3])])}) }catch(e){}
+      try{ c.send({t:"c",rdy:g.b11Rdy?1:0,pz:(g.paused&&!g.over)?1:0,lvd:netOut.lvd||0,ch:netOut.ch||"",me:meState(),d:Object.entries(netOut.d).map(([id,v])=>[+id,Math.round(v*10)/10]),g:netOut.g,it:netOut.it,sh:netOut.sh,fx:netOut.fx,duel:netOut.duel||[],weak:netOut.weak||[],or:netOut.or||null,b11:netOut.b11||[],cc:Object.entries(netOut.cc).slice(0,120).map(([id,c])=>[+id,+c[0].toFixed(2),+c[1].toFixed(2),Math.round(c[2]),Math.round(c[3])])}) }catch(e){}
       netOut.lvd=0; netOut.ch=""; netOut.d={}; netOut.g=[]; netOut.it=[]; netOut.sh=[]; netOut.fx=[]; netOut.duel=[]; netOut.weak=[]; netOut.or=null; netOut.cc={}; netOut.b11=[] } }
   function endAll(win){ if(g.over) return; if(NM==="host"){ const m={t:"s",tm:g.t,k:g.kills,en:[],gm:[],it:[],pl:{},ev:[{t:"end",win}]}; for(const id of NET.ing){ const c=NET.conns[id]; try{ c&&c.send(m) }catch(e){} } } finish(win) }
   function down(){ const q=g.p; q.dead=true; q.hp=0; g.rescue=0; modal.hidden=true; g.paused=false; showBanner(`쓰러졌어요! 친구가 옆에 ${RESCUE}초 동안 서 있으면 다시 일어나요`); }
@@ -1244,9 +1256,19 @@ function startGame(opts){ opts=opts||{};
   /* ===== 전직 스킬 엔진 ===== */
   function onScreenEnemies(){ return g.en.filter(e=>e.hp>0&&onScreen(e)) }
   const inR=(x,y,r,e)=>(e.x-x)**2+(e.y-y)**2<(r+e.r)**2;
+  /* 군단장 맵 회복 물약: 개수 제한 없음 · 누르면 체력 40% 회복 · 15초 쿨타임 · 단축키 Q */
+  const POT_CD=15;
+  function potUI(){ if(!BX) return; let b=root.querySelector(".potBtn"); if(!b){ b=document.createElement("button"); b.className="potBtn"; b.setAttribute("aria-label","회복 물약"); b.innerHTML=`<span class="pi">${typeof SKILL_ART_FILES!=="undefined"&&SKILL_ART_FILES.ic_potion?`<img src="${SKILL_ART_FILES.ic_potion}" alt="">`:"🧪"}</span><b class="pn"></b><i class="pc"></i><small>물약 (Q)</small>`; b.onclick=ev=>{ ev.stopPropagation(); drinkPot() }; root.appendChild(b) }
+    const cd=Math.max(0,(g.potT||0)-g.t), pn=b.querySelector(".pn"); pn.textContent=cd>0?Math.ceil(cd):""; pn.style.display=cd>0?"block":"none"; b.classList.toggle("empty",cd>0); b.classList.toggle("low",cd<=0&&g.p.hp<st().maxHp*.4); b.querySelector(".pc").style.height=(cd/POT_CD*100)+"%" }
+  function potAdd(){}
+  function drinkPot(){ if(!BX||!g||g.over||g.paused||g.p.dead) return; if(g.t<(g.potT||0)){ showBanner(`🧪 물약은 ${Math.ceil(g.potT-g.t)}초 뒤에 다시 마실 수 있어요`); return } const mx=st().maxHp; if(g.p.hp>=mx){ showBanner("🧪 체력이 이미 가득해요"); return }
+    g.potT=g.t+POT_CD; const h=mx*.4; g.p.hp=Math.min(mx,g.p.hp+h); sfx("heal"); g.fx.push({k:"num",x:g.p.x,y:g.p.y-30,v:Math.round(h),me:true,heal:true,life:.9,max:.9}); g.fx.push({k:"ring",x:g.p.x,y:g.p.y,life:.5,max:.5}); g.fx.push({k:"label",x:g.p.x,y:g.p.y-70,text:"🧪 체력 회복!",life:1,max:1}) }
+  window.addEventListener("keydown",ev=>{ if((ev.code==="KeyQ"||ev.code==="KeyH")&&g&&BX&&!g.over){ drinkPot() } });
   function burstBtn(on){ let b=root.querySelector(".burstBtn"); if(!b){ b=document.createElement("button"); b.className="burstBtn"; b.setAttribute("aria-label","강화 궁극기 쓰기"); b.onclick=e=>{ e.stopPropagation(); fireBurst() }; root.appendChild(b) } b.style.display=on?"block":"none"; window.__burstReady=on?1:0; if(on){ sfx("alarm"); showBanner("💥 보스가 쓰러졌어요! 아래 궁극기 버튼이 반짝이면 눌러요! (스페이스)") } }
+  const B5_UNDER={mage:1,healer:1,pirate:1,mech:1,warrior:1};   /* 불기둥 · 빛기둥 · 물기둥 · 레이저는 보스 뒤에 그려서 보스를 안 가려요 */
+  const b5Img=c=>{ const P=typeof B5_SET!=="undefined"&&B5_SET[c]; return !!(P&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG[P[0]+"_impact"]&&SKILL_IMG[P[0]+"_impact"].width) };   /* 그림 이펙트가 있는 직업은 전부 보스 뒤에 */
   function fireBurst(){ if(!g||!g.burstReady||g.over) return; g.burstReady=0; burstBtn(false); const U=ACT.find(k=>k.ult)||ACT[ACT.length-1]; if(!U) return;
-    g.burstUntil=g.t+4.5; g.shake=1.2; sfx("ultboom"); g.fx.push({k:"flash",col:"#fff4c0",life:.5,max:.5}); g.fx.push({k:"label",x:g.p.x,y:g.p.y-90,text:"✨ 각성 극딜! 피해 ×2.5",life:1.6,max:1.6}); cast(U); U.t=U.tt||U.cd }   /* 강화 스킬: 4.5초 동안 모든 피해 ×2.5 */
+    g.burstUntil=g.t+4.5; g.shake=1.2; sfx("ultboom"); g.fx.push({k:"flash",col:"#fff4c0",life:.5,max:.5}); { const bb=g.en.find(e=>e.b11&&e.hp>0); if(bb){ const f={cls:HERO.id,t0:g.t,dur:2.4,x:bb.x,y:bb.y,R:260,seed:1+Math.random()*9,tg:bb}; (g.bfx||(g.bfx=[])).push(f); g.pending.push({t:.77,run:()=>{ g.hitstop=Math.max(g.hitstop||0,.12); g.slowU=.35; g.shake=Math.max(g.shake,1.6); g.fx.push({k:"flash",col:"#ffffff",life:.35,max:.35}); sfx("bigboom") }}) } }   /* 직업마다 다른 강화 궁극기 애니메이션 (모으기 → 쾅 → 여운) */ g.fx.push({k:"label",x:g.p.x,y:g.p.y-90,text:"✨ 각성 극딜! 피해 ×2.5",life:1.6,max:1.6}); g._b5Big=1; try{ cast(U) }finally{ g._b5Big=0 } U.t=U.tt||U.cd }   /* 강화 스킬: 4.5초 동안 모든 피해 ×2.5 */
   window.addEventListener("keydown",ev=>{ if((ev.code==="Space"||ev.code==="Enter")&&g&&g.burstReady&&!g.over){ ev.preventDefault(); fireBurst() } });
   function burstStars(x,y,n,dmg){ if(BX){ const bb=g.en.find(e=>e.b11&&e.hp>0); if(bb){ const m=Math.max(2,Math.ceil(n/3)), a0=Math.atan2(bb.y-y,bb.x-x); for(let i=0;i<m;i++){ const a=a0+(i-(m-1)/2)*.22; g.shots.push({k:"star",x,y,vx:Math.cos(a)*560,vy:Math.sin(a)*560,dmg:dmg*n/m*.32,pierce:1,life:1.2,hit:new Set()}) } return } }   /* 보스맵: 사방으로 흩뿌리지 않고 보스 쪽으로 적게 · 대신 세게 */
     const off=Math.random()*Math.PI; for(let i=0;i<n;i++){ const a=off+i*Math.PI*2/n; g.shots.push({k:"star",x,y,vx:Math.cos(a)*480,vy:Math.sin(a)*480,dmg,pierce:1,life:.9,hit:new Set()}) } }
@@ -1294,6 +1316,7 @@ function startGame(opts){ opts=opts||{};
         else { const B=g.en.filter(e=>e.type==="boss"&&e.hp>0&&!e.hidden&&!e.b11inv&&near(e)).sort((a,b)=>((a.x-P.x)**2+(a.y-P.y)**2)-((b.x-P.x)**2+(b.y-P.y)**2))[0];
           if(B) TX={x:B.x,y:B.y-B.r*BOSS_DY};
           else { const tp=smartTargets(R*.6,1).pts[0]; TX=tp&&near(tp)?{x:tp.x,y:tp.y}:{x:P.x,y:P.y} } } } return TX };
+      if(BX&&!g._b5Big){ const bb=g.en.find(e=>e.b11&&e.hp>0); if(bb){ const dur=2.1; (g.bfx||(g.bfx=[])).push({cls:HERO.id,t0:g.t+Math.max(0,AD-.32*dur),dur,x:bb.x,y:bb.y,R:215,seed:1+Math.random()*9,tg:bb}) } }   /* 보스맵: 보통 5차 궁극기도 직업별 그림 애니메이션 (강화 궁극기보다 조금 작게) */
       g.pending.push({t:AD-(k.drop?.55:.12),run:()=>{ const T=tgt(); g.fx.push({k:"collapse",img:k.fx||"collapse5",col:k.col||"255,140,50",x:T.x,y:T.y,r:R,drop:k.drop?.43:0,rings:k.rings||2,life:k.drop?2.1:1.7,max:k.drop?2.1:1.7}) }});
       g.pending.push({t:AD,run:()=>{ const T=tgt(), cx=T.x, cy=T.y; g.shake=1.1; g.hitstop=.16; g.bigNumT=g.t+.4; sfx("ultboom"); sfx(({warrior:"lava",archer:"thunder",thief:"marks",mage:"fireball",pirate:"hurricane",healer:"fullmoon",calli:"glyph",zodiac:"dragon",mech:"robot"})[HERO.id]||"bigboom"); g.fx.push({k:"flash",col:k.fl||"#ff7a2a",life:.6,max:.6});
         g.en.forEach(e=>{ if(inR(cx,cy,R,e)){ hurt(e,dmg); ccS(e,k.stun||2); const dx=e.x-cx, dy=e.y-cy, d=Math.hypot(dx,dy)||1; if(e.type!=="boss"){ccP(e,dx/d*(k.knock||70),dy/d*(k.knock||70))} } });
@@ -1505,7 +1528,8 @@ function startGame(opts){ opts=opts||{};
       if(e.mark>0) jfMark(ctx,e,g.t,GLOW);
       if(e.burn>0) jfBurn(ctx,e,g.t) }
     if(g.shield>0) drawShieldBubble(ctx,P,g.t,Math.min(1,g.shieldT/.5));
-    for(const m of g.sum){ if(drawNewSum(ctx,m,g.t,GLOW)) continue;
+    for(const m of g.sum){ if(m.kind==="clone"){ const bx=g.p.x-26, by=g.p.y+6, d=Math.hypot(m.x-bx,m.y-by); if(d>140){ m.x=bx; m.y=by } else if(g.paused||g.cine){ m.x+=(bx-m.x)*.2; m.y+=(by-m.y)*.2 } }   /* 그림자 분신: 연출·멈춤 중에도 늘 내 곁에 */
+      if(drawNewSum(ctx,m,g.t,GLOW)) continue;
       if(m.kind==="phoenix"){ const dir=-Math.sin(m.a)>=0?1:-1, fl=Math.sin(g.t*11);   // 궁수 2차: 초록 바람새 — 날갯짓하며 바람 결을 끌고 빙글빙글
         ctx.save(); ctx.globalCompositeOperation=GLOW; jGlow(ctx,m.x,m.y,56,window.__t5==="archer"?"120,170,255":"90,255,180",.5);
         ctx.lineCap="round"; for(let i=0;i<3;i++){ const r=34+i*10, a0=g.t*(4-i*.6)+i*2.1; ctx.strokeStyle=`rgba(${170+i*30},255,${215+i*12},${.55-i*.12})`; ctx.lineWidth=3.2-i*.8; ctx.beginPath(); ctx.ellipse(m.x,m.y+6,r,r*.42,0,a0,a0+2.4); ctx.stroke() }
@@ -1943,13 +1967,13 @@ function startGame(opts){ opts=opts||{};
     else { const lab=x=>`${x.hun} ${x.eum}`, others=shuffle(QPOOL.filter(x=>x.h!==c.h&&lab(x)!==lab(c))).slice(0,2); big=c.h; ask="이 한자의 뜻과 소리는?"; opts=shuffle([{t:lab(c),ok:1},...others.map(x=>({t:lab(x),ok:0}))]) }
     const KIND=c.cat==="S"?"사자성어":c.cat==="P"?"속담":"한자";
     const d=document.createElement("div"); d.className="weakq"+(c.cat?" say":""); d.innerHTML=`<div class="wqh">${X?X.title:`🎯 <b>${esc(e.name)}</b>의 약점 ${KIND}!`}</div><div class="wqc ${String(big).length>8?"longer":String(big).length>2?"long":""}">${esc(big)}</div><div class="wqa">${esc(ask)}</div><div class="wqo ${opts.length>3?"four":""}">${opts.map((o,i)=>`<button data-i="${i}">${esc(o.t)}</button>`).join("")}</div><div class="wqt"><i></i></div><small>맞히면 보스가 3초 동안 기절해요!</small>`;
-    const PZ=!NM&&!(X&&X.nopause), TT=(PZ?9000:X&&X.nopause?9000:6000)+(c.cat?4000:0);   /* 사자성어·속담은 문장이 길어서 시간을 더 줘요 */ d.querySelector(".wqt i").style.animationDuration=TT/1000+"s"; if(PZ){ d.querySelector("small").textContent=X?"게임이 잠깐 멈췄어요. "+X.small:"게임이 잠깐 멈췄어요. 천천히 읽고 골라요! 맞히면 보스가 3초 동안 기절해요"; g.paused=true; stamp(X?"문제!":"약점<br>발견!") } else if(X) d.querySelector("small").textContent=X.small;
+    const PZ=!NM&&!(X&&X.nopause), TT=(PZ?9000:X&&X.nopause?9000:6000)+(c.cat?4000:0);   /* 사자성어·속담은 문장이 길어서 시간을 더 줘요 */ d.querySelector(".wqt i").style.animationDuration=TT/1000+"s"; if(PZ){ d.querySelector("small").textContent=X?"게임이 잠깐 멈췄어요. "+X.small:"게임이 잠깐 멈췄어요. 천천히 읽고 골라요! "+(BX?"맞히면 보스가 6초 동안 쓰러지고 극딜 타임(+50%)!":"맞히면 보스가 3초 동안 기절해요"); g.paused=true; stamp(X?"문제!":"약점<br>발견!") } else if(X) d.querySelector("small").textContent=X.small;
     root.appendChild(d); sfx("alarm"); if(e) g.fx.push({k:"label",x:e.x,y:e.y-e.r*2.6,text:"약점 "+(c.cat?KIND:c.h),life:6,max:6});
     weakUI={d,tm:setTimeout(()=>closeWeak(),TT),eid:e?e.id:-1,pz:PZ};
     d.querySelectorAll("button").forEach(b=>b.onclick=()=>{ if(!weakUI||weakUI.d!==d) return; const o=opts[+b.dataset.i]; d.querySelectorAll("button").forEach((x,i)=>{ x.disabled=true; if(opts[i].ok) x.classList.add("ok") });
       g.qN++; trackAns(c,!!o.ok);
       if(o.ok&&X){ g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP(); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),600); X.ok&&X.ok() }
-      else if(o.ok){ g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP(); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),500); const t=NM==="client"?EN[e.id]:e; if(NM==="client"){ netOut.weak=netOut.weak||[]; netOut.weak.push(e.id); g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:BX?"정답! 친구들도 맞히면 그로기!":"약점 공격!",life:1.4,max:1.4}) } else weakVote(t,NM?NET.myId:"me") }
+      else if(o.ok){ g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP(); if(BX&&e.b11) potAdd(1,"약점 정답"); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),500); const t=NM==="client"?EN[e.id]:e; if(NM==="client"){ netOut.weak=netOut.weak||[]; netOut.weak.push(e.id); g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:BX?"정답! 친구들도 맞히면 그로기!":"약점 공격!",life:1.4,max:1.4}) } else weakVote(t,NM?NET.myId:"me") }
       else { b.classList.add("no"); sfx("no"); addWrong(c.h); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),1300) } }) }
   /* 같이하기 군단장: 살아 있는 친구 모두가 맞혀야 그로기 (20초 안의 정답만 셈) */
   function weakVote(e,who){ if(!e) return; if(!BX||!NM){ applyWeak(e); return } const V=g.wkV||(g.wkV=new Map()); for(const [k,t] of V) if(g.t-t>20) V.delete(k); V.set(who,g.t);
@@ -1996,9 +2020,11 @@ function startGame(opts){ opts=opts||{};
       if(n>0){ if(show){ modal.hidden=false; mcard.className="gcard lvcard"; mcard.innerHTML=`<div class="lvcount">${n}</div><div class="lvsub">모두 준비 완료! 다시 출발해요</div>` } else showBanner(`다시 출발까지 ${n}`); sfx("pick"); n--; setTimeout(tick,650) }
       else { if(show){ modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() } g.lvOn=0; g.lvGoing=0; if(NM==="host") g.lvR=null } };
     tick() }
-  function levelUp(free){
-    g.paused=true; sfx("lvup"); const MPL=!!NM&&!free; let closed=false, tmr=null; if(MPL) g.lvOn=1;
-    const BUFK={bhunt:1,bpierce:1,bguard:1,str:1,qi:1};   /* 보스맵 각성 보상: 버프 카드만 */
+  function b11Next(){ if(g.over) return; if(g.b11Q>0){ g.b11Q--; levelUp(false,1); return } if(!g.b11Rdy){ g.b11Rdy=1; showBanner(NM?"✅ 준비 끝! 친구들이 다 고르면 결투가 시작돼요":"⚔ 준비 끝! 군단장이 나타나요 · 2페이즈가 되면 카드를 1장 더 골라요") } }
+  function b11AllRdy(){ if(!NM) return !!g.b11Rdy; if(!g.b11Rdy) return false; if(performance.now()-(g.b11W0||0)>90000) return true; for(const id in RP){ const r=RP[id]; if(!r.gone&&!(g.b11R&&g.b11R[id])) return false } return true }
+  function levelUp(free,b11s){
+    g.paused=true; sfx("lvup"); const MPL=!!NM&&!free&&!b11s; let closed=false, tmr=null; if(MPL) g.lvOn=1;
+    const BUFK={bhunt:1,bpierce:1,bguard:1,str:1,qi:1,main:1,body:1};   /* 보스맵 각성 보상: 버프 카드만 */
     const all=Object.keys(SK).filter(k=>lv(k)<MAXLV&&skOK(k,MAP.id)&&(!BX||BUFK[k]));
     if(!all.length){ g.p.hp=Math.min(st().maxHp,g.p.hp+30); if(MPL){ lvWait(); return } g.paused=false; last=performance.now(); return }
     const N=Math.min(all.length,PK.cards+QR.cards), cards=shuffle(all).slice(0,N);
@@ -2007,8 +2033,8 @@ function startGame(opts){ opts=opts||{};
     const qs=cards.map((_,i)=>{ const c=picks[i]||QPOOL[Math.random()*QPOOL.length|0]; used.add(c.h); return {c,q:makeQ(c,{short:true}),st:"ask"} });
     modal.classList.add("lvmodal");
     mcard.className="gcard lvcard";
-    mcard.innerHTML = `<div class="lvhead"><div class="lvsub">★ LEVEL UP ★</div><h3 class="lvbig">${BX?"각성 보상!":`LV.${g.lvl} 달성!`}</h3>
-        <div class="lvtip">${BX?"✦ 검귀가 각성했어요! 보스와 싸울 카드를 1장 골라요 ✦":free?"✦ 쉬는 레벨! 문제 없이 원하는 기술을 바로 골라요 · 다음 레벨에는 다 같이 문제를 풀어요 ✦":"✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 ✦"}</div>${free?coopNote():""}${MPL?`<div class="lvtip coopNote">👫 다 같이 레벨업! 모두 풀 때까지 몬스터도 멈춰요 · <b id="lvhint">10초가 지나면 힌트가 나와요</b></div><div class="lvtime"><i id="lvbar"></i><b id="lvsec">${LV_T}</b></div>`:""}</div>
+    mcard.innerHTML = `<div class="lvhead"><div class="lvsub">${b11s?"★ 군단장 결투 준비 ★":"★ LEVEL UP ★"}</div><h3 class="lvbig">${b11s?`출발 준비 ${3-g.b11Q} / 3`:BX?"각성 보상!":`LV.${g.lvl} 달성!`}</h3>
+        <div class="lvtip">${b11s?"✦ 문제를 맞히면 이 판에서 쓸 카드를 골라요! (틀리면 다른 카드 문제에 도전) ✦":BX?"✦ 검귀가 각성했어요! 보스와 싸울 카드를 1장 골라요 ✦":free?"✦ 쉬는 레벨! 문제 없이 원하는 기술을 바로 골라요 · 다음 레벨에는 다 같이 문제를 풀어요 ✦":"✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 ✦"}</div>${free?coopNote():""}${MPL?`<div class="lvtip coopNote">👫 다 같이 레벨업! 모두 풀 때까지 몬스터도 멈춰요 · <b id="lvhint">10초가 지나면 힌트가 나와요</b></div><div class="lvtime"><i id="lvbar"></i><b id="lvsec">${LV_T}</b></div>`:""}</div>
       <div class="lvcards c${N}">${cards.map((k,i)=>{ const s=SK[k], l=lv(k)+1, Q=qs[i].q;
         return `<div class="lvk" data-i="${i}">
           <div class="lvic">${skImg(k,60)}</div>
@@ -2041,7 +2067,7 @@ function startGame(opts){ opts=opts||{};
     });
     document.getElementById("lvskip").onclick=()=>{ g.p.hp=Math.min(st().maxHp,g.p.hp+st().maxHp*.1); close() };
     if(g.qskip||free){ els.forEach((el,i)=>{ qs[i].st="ok"; el.classList.add("ok"); const pk=el.querySelector(".lvpick"); pk.disabled=false; pk.textContent=free?"이 기술 고르기":"선택하기 (선생님)"; if(free){ const q=el.querySelector(".lvq"); if(q) q.remove() } }); upd(); if(free) document.getElementById("lvstat").textContent="원하는 기술을 하나 골라요" }   // 선생님 · 쉬는 레벨: 문제 없이 바로 고르기
-    function close(){ if(closed) return; closed=true; clearInterval(tmr); if(MPL){ g.lvForce=null; lvWait(); return } modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now() }
+    function close(){ if(closed) return; closed=true; clearInterval(tmr); if(MPL){ g.lvForce=null; lvWait(); return } modal.hidden=true; modal.classList.remove("lvmodal"); mcard.className="gcard"; g.paused=false; last=performance.now(); if(b11s) setTimeout(b11Next,250) }
     if(MPL){ bindCheer(); const T0=performance.now(); let hinted=false;
       const timeUp=()=>{ if(closed) return; const okI=qs.map((q,i)=>q.st==="ok"?i:-1).filter(i=>i>=0);
         if(okI.length){ const i=okI[Math.random()*okI.length|0]; apply(cards[i]); showBanner(`⏰ 시간이 다 됐어요! ${skName(cards[i])} 카드를 대신 골랐어요`) }
@@ -2216,7 +2242,7 @@ function startGame(opts){ opts=opts||{};
     if(!g.engShown&&g.t>1.2){ g.engShown=1; const L=engOf(P.hero); if(L.length){ L.forEach((h,i)=>g.fx.push({k:"label",x:P.x+(i-(L.length-1)/2)*56,y:P.y-95,text:h,life:2.2,max:2.2})); const cb=engCombos(L); showBanner(cb.length?`✨ 룬 공명! ${cb.map(c=>c[0]+"+"+c[1]+" "+c[2]).join(" · ")}`:`💎 한자 룬의 힘! ${L.map(h=>h+"("+engInfo(h).hun+" "+engInfo(h).eum+")").join(" · ")}`); if(cb.length){ g.resT=g.t; sfx("awaken") } } }
     if(g0eng.regen&&!P.dead&&P.hp>0&&!(g.healBlk>g.t)) P.hp=Math.min(s.maxHp,P.hp+s.maxHp*g0eng.regen*dt);   /* 한자 룬 회복 */
     if(g.bbuff){ g.bbuff.t-=dt; P.hp=Math.min(s.maxHp,P.hp+(g.bbuff.regen||0)*dt); if(g.bbuff.t<=0) g.bbuff=null }
-    if(BX){ if(NM!=="client"){ if(!g.b11Start){ g.b11Start=1; BX.start() } BX.hostTick(dt) } BX.tick(dt)
+    if(BX){ { const want=BX.S.ph>=1?"m11b":"m11"; if(g._bgmW!==want&&!(P.set&&P.set.bgm===false)){ g._bgmW=want; SND.bgm(want) } }   /* 군단장 음악: 1페이즈 → 각성하면 2페이즈 음악 */ if(g.t-(g._potU||0)>.1||g.t<(g._potU||0)){ g._potU=g.t; potUI() } if(NM!=="client"){ if(!g.b11Start){ if(b11AllRdy()){ g.b11Start=1; BX.start() } } if(g.b11Start) BX.hostTick(dt) } BX.tick(dt)
       { const bb=g.en.find(e=>e.b11&&e.hp>0), gro=!!(bb&&bb.an==="groggy"), U=ACT.find(k=>k.ult)||ACT[ACT.length-1];   /* 그로기 = 각성 극딜 버튼 */
         if(gro&&!g._groP&&U){ g.burstReady=1; U.t=999; burstBtn(true) }
         if(!gro&&g._groP){ if(g.burstReady&&U){ U.t=0 } g.burstReady=0; burstBtn(false) }
@@ -2678,9 +2704,10 @@ function startGame(opts){ opts=opts||{};
         try{ for(const f of g.fx){ if(!UK[f.k]) continue; ctx.save(); if(drawSkillFx(f,f.life/f.max)) f._pre=g._fr; ctx.restore() } }finally{ ctx=old }
         ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=.6; ctx.drawImage(LY,0,0); ctx.restore() } }
     for(const e of HDL){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; if(e.b11&&BX){ if(!HDFX) BX.drawBoss(ctx,e); continue } const fy=e.y+e.r*.6; ctx.save(); ctx.translate(e.x,fy); ctx.scale(BOSS_VIS,BOSS_VIS); ctx.translate(-e.x,-fy); drawMonster(ctx,e,g.t,P.x,P.y); ctx.restore() }   /* 보스는 그림을 30% 크게 */
-    if(BX&&!HDFX){ ctx.imageSmoothingEnabled=true; BX.drawOver(ctx); BX.drawMyGauge(ctx) }
+    if(BX&&!HDFX){ ctx.imageSmoothingEnabled=true; BX.drawOver(ctx); if(g.bfx&&typeof drawBurst5==="function") for(const f of g.bfx){ if(B5_UNDER[f.cls]||b5Img(f.cls)) continue; try{ drawBurst5(ctx,f,g.t,1) }catch(e){} } BX.drawMyGauge(ctx) }
     if(HDFX){ ctx.imageSmoothingEnabled=true; actionLayer() }
-    if(BX&&HDFX){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; BX.drawGround(ctx); /* 보스 경고 범위는 내 화살·스킬 이펙트 위에 (늘 또렷하게) */ for(const e of HDL) if(e.b11) BX.drawBoss(ctx,e); BX.drawOver(ctx); BX.drawMyGauge(ctx) }   /* 보스맵: 화살·스킬 이펙트 위에 보스를 그려서 늘 또렷하게 (용사는 그 위에) */
+    if(BX&&g.bfx&&g.bfx.length&&typeof drawBurst5==="function"){ g.bfx=g.bfx.filter(f=>g.t-f.t0<f.dur); for(const f of g.bfx){ if(f.tg&&f.tg.hp>0){ f.x=f.tg.x; f.y=f.tg.y } try{ drawBurst5(ctx,f,g.t,0); if(B5_UNDER[f.cls]||b5Img(f.cls)) drawBurst5(ctx,f,g.t,1) }catch(e){} } }   /* 강화 궁극기: 바닥 쪽 (보스 아래) · 빛기둥 같은 큰 건 보스 뒤로 */
+    if(BX&&HDFX){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; BX.drawGround(ctx); /* 보스 경고 범위는 내 화살·스킬 이펙트 위에 (늘 또렷하게) */ for(const e of HDL) if(e.b11) BX.drawBoss(ctx,e); BX.drawOver(ctx); if(g.bfx&&typeof drawBurst5==="function") for(const f of g.bfx){ if(B5_UNDER[f.cls]||b5Img(f.cls)) continue; ctx.save(); ctx.globalAlpha=.8; try{ drawBurst5(ctx,f,g.t,1) }catch(e){} ctx.restore() } BX.drawMyGauge(ctx) }   /* 보스맵: 화살·스킬 이펙트 위에 보스를 그려서 늘 또렷하게 (용사는 그 위에) */
     ctx.imageSmoothingEnabled=true;
     for(const q of REMOTE_HD){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); const T=q.T; ctx.setTransform(T.a*PX*dpr,T.b*PX*dpr,T.c*PX*dpr,T.d*PX*dpr,T.e*PX*dpr,T.f*PX*dpr); const rs=q.r.hrs||(q.r.hrs={}); rs.dt=g.t-(rs.t??g.t); rs.t=g.t; rs.mv=q.mv; rs.ph=g.t*14; rs.aq=-1; drawHeroRig(ctx,q.r.img,HSZ,rs); ctx.restore() }
     // 무적일 때: 금빛 보호막 (육각 무늬가 빙글 돌며 반짝여요)
@@ -2695,10 +2722,10 @@ function startGame(opts){ opts=opts||{};
     for(const e of g.en){ if(e.elite && e.hp>0 && vis(e)){ ctx.font='13px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=3; ctx.strokeStyle="#25211b"; ctx.strokeText("정예",e.x,e.y-e.r*1.5); ctx.fillStyle="#f6c544"; ctx.fillText("정예",e.x,e.y-e.r*1.5) } }
     if(NM) drawRemoteNames();
     if(TOP&&TOP.id===NET.myId&&!g.p.dead) drawTopCrown(g.p.x,g.p.y);
-    if(!g.p.dead&&g.livePow){ const tx="⚔ "+fmtPow(g.livePow), y=g.p.y-(TOP&&NM&&TOP.id===NET.myId?92:70), up=g.t-(g.powUpT||-9)<1;   /* 내 머리 위 전투력 */
-      ctx.save(); ctx.font='bold 17px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; const w=ctx.measureText(tx).width+16;
+    if(!g.p.dead&&g.livePow){ const tx="⚔ "+fmtPow(g.livePow), y=g.p.y-(BX?100:(TOP&&NM&&TOP.id===NET.myId?92:70)), up=g.t-(g.powUpT||-9)<1;   /* 내 머리 위 전투력 (보스맵: 체력바 위에 옅게) */
+      ctx.save(); if(BX) ctx.globalAlpha=.32; ctx.font='bold 17px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; const w=ctx.measureText(tx).width+16;
       ctx.fillStyle=up?"rgba(31,122,74,.9)":"rgba(138,31,42,.85)"; ctx.beginPath(); ctx.roundRect?ctx.roundRect(g.p.x-w/2,y-17,w,22,11):ctx.rect(g.p.x-w/2,y-17,w,22); ctx.fill(); ctx.strokeStyle="#ffd36a"; ctx.lineWidth=1.5; ctx.stroke();
-      ctx.fillStyle="#ffe9a0"; ctx.fillText(tx,g.p.x,y); ctx.restore(); if(HSt.tier>=5) drawAwkTag(g.p.x,y-28) }
+      ctx.fillStyle="#ffe9a0"; ctx.fillText(tx,g.p.x,y); ctx.restore(); if(HSt.tier>=5){ ctx.save(); if(BX) ctx.globalAlpha=.32; drawAwkTag(g.p.x,y-28); ctx.restore() } }
     if(g.stream&&typeof jfHurricaneBow==="function"&&HERO.id==="archer") jfHurricaneBow(ctx,g.p,g.t,Math.min(1,g.stream.t/.3),g.stream.va||0);
     for(const f of g.fx){ if(!TXTK[f.k]) continue; const k=f.life/f.max;
       if(f.k==="label"&&f.sk){ const C=CUTC[f.sk]||CUTC.warrior, q=1-k, y=f.y-q*22, sc=1+.25*Math.max(0,1-q/.15);   /* 스킬 이름: 직업마다 컨셉 글꼴 + 직업 색 금속 그라데이션 */
@@ -2727,7 +2754,7 @@ function startGame(opts){ opts=opts||{};
       ctx.font='12px "Do Hyeon",sans-serif'; ctx.lineWidth=3; ctx.strokeText("5차 궁극기",cx,cy+R+14); if(BR){ ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.strokeStyle=`rgba(255,220,120,${.5+.5*bp})`; ctx.lineWidth=6; for(let i=0;i<2;i++){ const rr=R+10+i*10+((g.t*40)%10); ctx.globalAlpha=(1-i*.5)*(.5+.5*bp); ctx.beginPath(); ctx.arc(cx,cy,rr,0,7); ctx.stroke() } ctx.restore();   /* 그로기: 궁극기 버튼이 커지며 반짝반짝 · 눌러요 안내 */
     }
      else if(BX&&!g.cine){ const wl=Math.max(0,Math.ceil(60-(g.wq11||0))); ctx.font='bold 14px "Do Hyeon",sans-serif'; const tx2=`🎯 약점 문제까지 ${wl}초`; ctx.strokeText(tx2,cx,cy-R-14); ctx.fillStyle=wl<=5?"#ffb0b0":"#fff"; ctx.fillText(tx2,cx,cy-R-14) }   /* 다음 약점 문제 */ ctx.fillStyle="#ffd36a"; ctx.fillText("5차 궁극기",cx,cy+R+14); ctx.restore() } }
-    if(BX) BX.ambience(ctx,W,H);
+    if(BX) BX.ambience(ctx,W,H,ox,oy);
     { const bs=g.en.filter(e=>e.type==="boss"&&e.hp>0); let y=148;
       bs.forEach(b=>{ const w=Math.min(560,W-32), x=(W-w)/2, pct=Math.max(0,b.hp/b.max), BT=(BOSSES[b.bid]||{}), fin=BT.tier===3, tn=(BT.tn||(STAGE_TIER[BT.tier]||{}).tn||"보스");   // 보스 이름·체력: 크고 또렷하게
         b._lag=b._lag===undefined?pct:Math.max(pct,b._lag-(b._lag-pct)*.04-.001);
@@ -2736,7 +2763,7 @@ function startGame(opts){ opts=opts||{};
         ctx.textAlign="center"; ctx.font='22px "Black Han Sans","Do Hyeon",sans-serif'; ctx.lineWidth=4; ctx.strokeStyle="rgba(0,0,0,.85)"; ctx.strokeText(b.name,W/2,y+14); ctx.fillStyle="#fff2b0"; ctx.fillText(b.name,W/2,y+14);
         ctx.textAlign="right"; ctx.font='14px "Do Hyeon",sans-serif'; ctx.fillStyle="#fff"; ctx.fillText(Math.ceil(pct*100)+"%",x+w,y+12);
         ctx.fillStyle="#2a1018"; ctx.fillRect(x,y+20,w,16); ctx.fillStyle="rgba(255,255,255,.55)"; ctx.fillRect(x,y+20,w*b._lag,16);
-        const hg=ctx.createLinearGradient(0,y+20,0,y+36); hg.addColorStop(0,b.enraged?"#ff6a4a":"#ff6a85"); hg.addColorStop(1,b.enraged?"#a0200a":"#b0183a"); ctx.fillStyle=hg; ctx.fillRect(x,y+20,w*pct,16);
+        const hg=ctx.createLinearGradient(0,y+20,0,y+36); const HC=hpCol(pct); hg.addColorStop(0,HC[0]); hg.addColorStop(1,HC[1]); ctx.fillStyle=hg; ctx.fillRect(x,y+20,w*pct,16);
         ctx.fillStyle="rgba(255,255,255,.25)"; ctx.fillRect(x,y+20,w*pct,4); ctx.strokeStyle="rgba(0,0,0,.6)"; ctx.lineWidth=1; for(let i=1;i<10;i++){ ctx.beginPath(); ctx.moveTo(x+w*i/10,y+20); ctx.lineTo(x+w*i/10,y+36); ctx.stroke() }
         y+=56 });
       if(BX) BX.drawHUD(ctx,W,H,y);
@@ -2754,7 +2781,7 @@ function startGame(opts){ opts=opts||{};
       ctx.fillStyle="rgba(37,33,27,.3)"; ctx.beginPath(); ctx.arc(joy.ox+dx*k,joy.oy+dy*k,22,0,7); ctx.fill() }
     // HUD
     $(".gxp i").style.width = (g.xp/g.need*100)+"%";
-    $(".ghp i").style.width = (Math.max(0,P.hp)/s.maxHp*100)+"%";
+    $(".ghp i").style.width = (Math.max(0,P.hp)/s.maxHp*100)+"%"; { const hk=P.hp/s.maxHp, band=hk>.6?0:hk>.3?1:2; if(g._hpB!==band){ g._hpB=band; const HC=hpCol(hk); $(".ghp i").style.background=`linear-gradient(180deg,${HC[0]},${HC[1]})` } }
     if(!g.hudT||g.t-g.hudT>.15){ g.hudT=g.t;
       const atk=s.dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1);
       $(".ghpt").textContent=`${Math.ceil(Math.max(0,P.hp))} / ${Math.round(s.maxHp)}`;
@@ -2772,10 +2799,11 @@ function startGame(opts){ opts=opts||{};
   function loop(now){
     if(now-last<14.5&&!window.__ts){ raf=requestAnimationFrame(loop); return }   /* 120Hz 화면도 초당 60번만 그려요 (렉 줄이기) */
     const dt=Math.min(.05,(now-last)/1000)*(window.__ts||1); last=now; if(!g.over&&!g.paused) perfTick((now-(loop.p||now))/1000||dt); loop.p=now;
+    if(BX){ const pb=root.querySelector(".potBtn"); if(pb){ const hide=g.paused||g.over||!modal.hidden||!!document.querySelector(".weakq,.gmodal:not([hidden])"), v=hide?"none":"block"; if(pb.style.display!==v) pb.style.display=v } }   /* 카드 고르기 · 문제 창이 뜨면 물약 버튼 숨기기 */
     raf=requestAnimationFrame(loop);   // 그리다 오류가 나도 게임이 멈추지 않게 먼저 다음 프레임을 예약해요
     try{
-    if(g.hitstop>0){ g.hitstop-=dt }
-    if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(g.hitstop>0?dt*.06:dt);   /* 5차 궁극기가 터지는 순간 아주 잠깐 멈춰요 */
+    if(g.hitstop>0){ g.hitstop-=dt } else if(g.slowU>0) g.slowU-=dt;
+    if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(g.hitstop>0?dt*.06:g.slowU>0&&!NM?dt*.4:dt);   /* 5차 궁극기가 터지는 순간 아주 잠깐 멈춰요 */
     if(NM && !g.over) netTick(dt);
     draw();
     }catch(err){ if(!loop.errN||loop.errN<3){ loop.errN=(loop.errN||0)+1; console.error(err) } try{ ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over"; ctx.filter="none" }catch(e){} }

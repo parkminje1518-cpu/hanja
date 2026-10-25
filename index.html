@@ -1023,7 +1023,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .gtoolbox{pointer-events:auto;position:absolute;right:10px;top:118px;z-index:30;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(30,26,52,.92);border:2px solid #f6c544;box-shadow:0 6px 20px rgba(0,0,0,.35);max-height:calc(100vh - 140px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .gtoolbox::-webkit-scrollbar{width:8px}.gtoolbox::-webkit-scrollbar-thumb{background:#f6c544;border-radius:4px}
 .gtoolbox button{font-family:var(--f-ui);font-size:15px;padding:8px 12px;border-radius:10px;border:0;background:#fffdf6;color:#25211b;text-align:left;min-width:170px}
-.tbjump{position:sticky;top:-10px;z-index:2;display:flex;gap:6px;margin:-10px -10px 4px;padding:8px 10px;background:rgba(30,26,52,.97);border-bottom:1px solid #f6c544}.tbjump button{min-width:0!important;flex:1;text-align:center!important;background:#f6c544!important;font-weight:700}
+.tbg{margin:0 0 6px;border:1px solid rgba(246,197,68,.45);border-radius:10px;background:rgba(255,255,255,.04);padding:2px 6px 4px}.tbg>summary{cursor:pointer;color:#ffd36a;font-weight:700;font-size:14px;padding:6px 2px;list-style:none}.tbg>summary::-webkit-details-marker{display:none}.tbg>summary::before{content:"▸ ";display:inline-block;transition:transform .15s}.tbg[open]>summary::before{transform:rotate(90deg)}.tbg>button{margin-top:4px}.tbjump{position:sticky;top:-10px;z-index:2;display:flex;gap:6px;margin:-10px -10px 4px;padding:8px 10px;background:rgba(30,26,52,.97);border-bottom:1px solid #f6c544}.tbjump button{min-width:0!important;flex:1;text-align:center!important;background:#f6c544!important;font-weight:700}
 .gtoolbox small{color:#d8cfbb;font-size:11px;text-align:center}
 .gpause{pointer-events:auto;width:48px;height:48px;border-radius:12px;border:2px solid #d8cfbb;background:#fffdf6;color:#25211b;font-family:var(--f-ui);font-size:18px}
 .gbanner{align-self:center;margin-top:8px;background:#25211b;color:#fffdf6;border-radius:999px;padding:8px 18px;font-family:var(--f-ui);font-size:19px;text-align:center;max-width:100%}
@@ -1153,17 +1153,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251650"></script>
-<script src="jobs.js?v=10251650"></script>
-<script src="maps.js?v=10251650"></script>
-<script src="art.js?v=10251650"></script>
-<script src="monsters.js?v=10251650"></script>
-<script src="jobfx.js?v=10251650"></script>
-<script src="words.js?v=10251650"></script>
-<script src="sayings.js?v=10251650"></script>
-<script src="sfx.js?v=10251650"></script>
+<script src="sprites.js?v=10251746"></script>
+<script src="jobs.js?v=10251746"></script>
+<script src="maps.js?v=10251746"></script>
+<script src="art.js?v=10251746"></script>
+<script src="art2.js?v=10251746"></script>
+<script src="monsters.js?v=10251746"></script>
+<script src="jobfx.js?v=10251746"></script>
+<script src="words.js?v=10251746"></script>
+<script src="sayings.js?v=10251746"></script>
+<script src="sfx.js?v=10251746"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251650"></script>
+<script src="mp.js?v=10251746"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1805,7 +1806,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251650"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251746"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2502,4 +2503,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251650"></script>
+<script src="game.js?v=10251746"></script>
