@@ -550,6 +550,7 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .pkHead em{flex:none;font-style:normal;font-family:var(--f-ui);font-size:13px;color:#ffd36a}.pkBody{padding:0 10px 10px}.pkEh{font-style:normal;font-family:"Noto Serif KR",serif;font-weight:900;font-size:16px;margin-right:2px}
 .engRec{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:4px 0 8px;padding:8px 12px;border-radius:12px;background:linear-gradient(90deg,#5a3a00,#2a1d4a);border:2px solid #ffd36a;font-family:var(--f-ui);font-size:15px;color:#fff}
 .engRec b{color:#ffd36a}.engRec small{color:#e8dcc0}.engRec .erH{flex-basis:100%;font-family:"Noto Serif KR",var(--f-ui);font-size:14px;color:#ffe9a0}.engRec .btn{margin-left:auto}
+.egT{cursor:pointer;display:flex!important;align-items:center;gap:6px}.egA{margin-left:auto;font-style:normal;font-size:12px;color:#d8c8ff;background:rgba(255,255,255,.1);border-radius:8px;padding:2px 8px}.engGrp.shut .engGL{display:none}.engGrp.shut{opacity:.85}
 .engGrp.rec{border:2px solid #ffd36a;border-radius:12px;padding:6px;background:rgba(255,211,106,.08)}.recB{font-style:normal;font-size:12px;background:#ffd36a;color:#3a2200;border-radius:8px;padding:1px 6px;margin-left:4px}
 .weakq .wqc.longer{font-family:var(--f-ui);font-weight:700;font-size:19px;line-height:1.4;padding:4px 2px;text-shadow:none}
 .weakq .wqc.long{font-size:30px;line-height:1.3;padding:4px 0}.weakq .wqa{font-family:var(--f-ui);font-size:15px;color:#ffe9b0;margin:2px 0 4px;line-height:1.35}
@@ -1153,18 +1154,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251852"></script>
-<script src="jobs.js?v=10251852"></script>
-<script src="maps.js?v=10251852"></script>
-<script src="art.js?v=10251852"></script>
-<script src="art2.js?v=10251852"></script>
-<script src="monsters.js?v=10251852"></script>
-<script src="jobfx.js?v=10251852"></script>
-<script src="words.js?v=10251852"></script>
-<script src="sayings.js?v=10251852"></script>
-<script src="sfx.js?v=10251852"></script>
+<script src="sprites.js?v=10252300"></script>
+<script src="jobs.js?v=10252300"></script>
+<script src="maps.js?v=10252300"></script>
+<script src="art.js?v=10252300"></script>
+<script src="art2.js?v=10252300"></script>
+<script src="monsters.js?v=10252300"></script>
+<script src="jobfx.js?v=10252300"></script>
+<script src="words.js?v=10252300"></script>
+<script src="sayings.js?v=10252300"></script>
+<script src="sfx.js?v=10252300"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251852"></script>
+<script src="mp.js?v=10252300"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1806,7 +1807,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251852"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10252300"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2504,4 +2505,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251852"></script>
+<script src="game.js?v=10252300"></script>
