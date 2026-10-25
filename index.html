@@ -1152,17 +1152,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10251202"></script>
-<script src="jobs.js?v=10251202"></script>
-<script src="maps.js?v=10251202"></script>
-<script src="art.js?v=10251202"></script>
-<script src="monsters.js?v=10251202"></script>
-<script src="jobfx.js?v=10251202"></script>
-<script src="words.js?v=10251202"></script>
-<script src="sayings.js?v=10251202"></script>
-<script src="sfx.js?v=10251202"></script>
+<script src="sprites.js?v=10251341"></script>
+<script src="jobs.js?v=10251341"></script>
+<script src="maps.js?v=10251341"></script>
+<script src="art.js?v=10251341"></script>
+<script src="monsters.js?v=10251341"></script>
+<script src="jobfx.js?v=10251341"></script>
+<script src="words.js?v=10251341"></script>
+<script src="sayings.js?v=10251341"></script>
+<script src="sfx.js?v=10251341"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10251202"></script>
+<script src="mp.js?v=10251341"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1804,7 +1804,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251202"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10251341"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -1833,6 +1833,7 @@ function grow(id,back){
       <p class="muted" style="margin:0;font-size:14px">학습으로 코인을 받으면 코인의 1.5배, 게임을 하면 물리친 몬스터와 버틴 시간만큼 경험치가 쌓여요.</p>
       <div class="row" style="gap:8px;justify-content:flex-start">${P.hero===id?`<span class="badge">◆ 출전 중</span>`:own?`<button class="btn ghost sm" id="gpick">이 용사로 출전</button>`:""}<button class="btn ghost sm" id="gall">다른 용사 보기</button>
       ${isAdmin()?`<button class="btn red sm" id="lv1">+1 레벨</button><button class="btn red sm" id="lv10">+10 레벨</button>`:""}</div>
+      ${isAdmin()?`<div class="row tierSw" style="gap:6px;justify-content:flex-start;margin-top:6px"><span class="muted" style="font-size:13px">👩‍🏫 차수 바로 보기</span>${["기본","1차","2차","3차","4차","5차"].map((t,i)=>`<button class="btn ${s.tier===i?"gold":"ghost"} sm" data-tsw="${i}">${t}</button>`).join("")}</div>`:""}
     </div>
   </section>
   <section class="panel">
@@ -1887,7 +1888,9 @@ function grow(id,back){
     const upLv=k=>{ const h=HS(id); let ups=0; for(let i=0;i<k&&h.lv<MAX_LV;i++){ h.lv++; h.pts+=STAT.ppl; ups++ } h.exp=0; saveP();
       if(ups){ sfx("lvup"); toast(`${heroById(id).name} Lv ${h.lv} · 능력치 포인트 +${ups*STAT.ppl}${canAdvance(id)?" · 전직할 수 있어요!":""}`) } grow(id,back) };
     document.getElementById("lv1").onclick=()=>upLv(1);
-    document.getElementById("lv10").onclick=()=>upLv(10); }
+    document.getElementById("lv10").onclick=()=>upLv(10);
+    /* 선생님 모드: 기본~5차를 자유롭게 바꿔 보기 (레벨이 모자라면 그 차수 레벨까지 맞춰요) */
+    document.querySelectorAll("[data-tsw]").forEach(b=>b.onclick=()=>{ const h=HS(id), n=+b.dataset.tsw; h.tier=n; if(n>0&&h.lv<JOB_LV[n-1]){ const add=JOB_LV[n-1]-h.lv; h.lv=JOB_LV[n-1]; h.pts+=add*STAT.ppl; h.exp=0 } saveP(); sfx("lvup"); toast(`${heroById(id).name} → ${n?n+"차 "+JOBS[id].titles[n]:"기본 "+JOBS[id].titles[0]}`); grow(id,back) }); }
 }
 // 스킬 미리보기 영상 (게임 화면을 짧게 녹화한 움직이는 그림)
 function clipHtml(id,k){ const C=typeof SKILL_CLIPS!=="undefined"&&SKILL_CLIPS[id+"_"+k]; return C?`<div class="jclip"><img src="${C}" alt="스킬 미리보기" loading="lazy"><span>▶ 미리보기</span></div>`:"" }
@@ -2498,4 +2501,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10251202"></script>
+<script src="game.js?v=10251341"></script>

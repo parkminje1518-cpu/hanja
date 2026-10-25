@@ -35,7 +35,7 @@ const MAPS = [
 MAPS.forEach(m=>{ if(!m.realm) m.realm="ground" });
 /* ===== 시즌 2: 군단장 보스 맵 (보스만 나와요) ===== */
 const S2MAPS = [
-  { id:11, realm:"boss", name:"검귀의 달빛 결투장", diff:"시즌 2 · 군단장 1", lv:100, tier:4, exp:7, hp:7.2, spawn:0, spd:1.35, boss11:1,
+  { id:11, realm:"boss", name:"검귀의 달빛 결투장", diff:"심연편 · 군단장 1", lv:100, tier:4, exp:7, hp:7.2, spawn:0, spd:1.35, boss11:1,
     desc:"이계 마신군 제1군단장 「암흑의 검귀」가 기다리는 결투장이에요. 몬스터 없이 보스와 1:1! 시간대(자정·여명·정오·황혼)마다 패턴이 바뀌어요.",
     sky:["#2a1048","#0c0418"], hud:"#f3effd", dark:0.3, enemy:{body:"#3a2a5a",shade:"#1a1030",eye:"#c88aff",acc:"horn",name:"그림자"}, bossName:"암흑의 검귀", tag:"#b07aff" },
 ];

@@ -1705,7 +1705,7 @@ function mixHex(a,b,t){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), 
 /* 위험 색: 맵(보스) 색에 빨강을 섞어 '위험'이 바로 보이게 */
 /* 맵 분위기를 살린 위험 색 (테두리 깜빡임은 모든 맵 붉은빛으로 통일) */
 const DANGER_COL={1:"#ff4f8f",2:"#ff8a3a",3:"#e8923a",4:"#e04ad8",5:"#ff3a30",6:"#ff6a6a",7:"#ffa040",8:"#a87cff",9:"#ffb030",10:"#c060ff",11:"#e040ff"};
-function dangerCol(th){ return DANGER_COL[window.__mapId]||"#ff4a4a" }
+function dangerCol(th){ return window.__dcOv||DANGER_COL[window.__mapId]||"#ff4a4a" }   /* 11단계: 시간대마다 경고 색이 바뀌어요 */
 const OWN_COL="#ffd36a", SAFE_COL="#5af08a";
 const WGEO={warncircle:[.5,.477,.495,.516],warndonut:[.499,.484,.496,.506],warnsafe:[.5,.538,.491,.448],warnown:[.5,.537,.487,.446]};
 /* 타원 문양을 (x,y)에 가로 반지름 rx, 세로 반지름 ry로 */
