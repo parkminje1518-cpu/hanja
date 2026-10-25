@@ -927,7 +927,7 @@ function startGame(opts){ opts=opts||{};
     else if(act==="pull"){ const R=520, dur=2.4; g.fx.push({k:"blackhole",x:e.x,y:e.y,r:R,life:dur,max:dur}); say("🌀 블랙홀이 끌어당겨요! 반대로 움직여요!","alarm");
       g.bh={x:e.x,y:e.y,r:R,t:dur,pow:220*SPD}; g.pending.push({t:dur,run:()=>{ aoeC(e.x,e.y,e.r*2.2,e.dmg*1.6); g.fx.push({th:e.th,k:"boom",x:e.x,y:e.y,r:e.r*2.2,col:"#9a5aff",life:.5,max:.5}); g.shake=.5 }}) }
   }
-  function hurt(e,d,dot){ if(e.hp<=0||e.hidden||e.b11inv) return; let m=st().dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1); if(!dot && M.crit && Math.random()<M.crit){ m*=2; sfx("crit"); g.fx.push({k:"crit",x:e.x,y:e.y-e.r,life:.35,max:.35}) } if(F.poison && !dot){ e.burn=3; e.burnD=Math.max(e.burnD||0,d*.12) } if(e.type==="boss"){ if(M.boss) m*=M.boss; m*=1+.1*lv("bhunt"); if(BDEF) m*=bossMul(BDEF,1-(1-BST.ied)*(1-.08*lv("bpierce"))) } if(M.inkb&&e.slow>0) m*=M.inkb; m*=auraMul(); if(e.vulT>g.t) m*=e.vulM||1; const dealt=d*m; if(NM==="client"){ netOut.d[e.id]=(netOut.d[e.id]||0)+dealt; e.hitT2=g.t } else e.hp-=dealt; if(!dot){ sfx("hit"); if(HDFX&&g.t!==g._spkF){ g._spkF=g.t; g._spkN=0 } if(HDFX&&g._spkN<1&&g.t-(g._spkL||0)>.045&&Math.abs(e.x-g.p.x)<W*.6&&Math.abs(e.y-g.p.y)<H*.6){ g._spkN++; g._spkL=g.t; g.fx.push({k:"hitspk",x:e.x+(Math.random()-.5)*e.r*.8,y:e.y-e.r*(.2+Math.random()*.5),a:Math.random()*6.28,s:Math.min(1.6,.7+e.r/40),life:.22,max:.22}) } } e.flash=.08; if(!dot||Math.random()<.5){ e.dmgAcc=(e.dmgAcc||0)+dealt; if(!e.dmgT||g.t-e.dmgT>.12||e.hp<=0){ g.fx.push({k:"num",x:e.x+(Math.random()-.5)*e.r,y:e.y-e.r,v:Math.round(e.dmgAcc),crit:m>st().dmg*1.9,dot,big:g.bigNumT>g.t,life:g.bigNumT>g.t?1.1:.7,max:g.bigNumT>g.t?1.1:.7}); e.dmgAcc=0; e.dmgT=g.t } } if(!dot){ e.hitT=g.t; const a=Math.atan2(e.y-g.p.y,e.x-g.p.x); e.hx=Math.cos(a); e.hy=Math.sin(a); if(Math.random()<.35) g.fx.push({k:"spark",x:e.x,y:e.y-e.r*.3,life:.22,max:.22,a:Math.random()*6}) } if(e.hp<=0) kill(e) }
+  function hurt(e,d,dot){ if(e.hp<=0||e.hidden||e.b11inv) return; let m=st().dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1); if(BX) m*=({pirate:.62,mech:.86,warrior:.85,zodiac:1.15})[HERO.id]||1;   /* 보스맵: 빨리 잡는 직업 맞춤 (5분 기준) */ if(!dot && M.crit && Math.random()<M.crit){ m*=2; sfx("crit"); g.fx.push({k:"crit",x:e.x,y:e.y-e.r,life:.35,max:.35}) } if(F.poison && !dot){ e.burn=3; e.burnD=Math.max(e.burnD||0,d*.12) } if(e.type==="boss"){ if(M.boss) m*=M.boss; m*=1+.1*lv("bhunt"); if(BDEF) m*=bossMul(BDEF,1-(1-BST.ied)*(1-.08*lv("bpierce"))) } if(M.inkb&&e.slow>0) m*=M.inkb; m*=auraMul(); if(e.vulT>g.t) m*=e.vulM||1; const dealt=d*m; if(NM==="client"){ netOut.d[e.id]=(netOut.d[e.id]||0)+dealt; e.hitT2=g.t } else e.hp-=dealt; if(!dot){ sfx("hit"); if(HDFX&&g.t!==g._spkF){ g._spkF=g.t; g._spkN=0 } if(HDFX&&g._spkN<1&&g.t-(g._spkL||0)>.045&&Math.abs(e.x-g.p.x)<W*.6&&Math.abs(e.y-g.p.y)<H*.6){ g._spkN++; g._spkL=g.t; g.fx.push({k:"hitspk",x:e.x+(Math.random()-.5)*e.r*.8,y:e.y-e.r*(.2+Math.random()*.5),a:Math.random()*6.28,s:Math.min(1.6,.7+e.r/40),life:.22,max:.22}) } } e.flash=.08; if(!dot||Math.random()<.5){ e.dmgAcc=(e.dmgAcc||0)+dealt; if(!e.dmgT||g.t-e.dmgT>.12||e.hp<=0){ g.fx.push({k:"num",x:e.x+(Math.random()-.5)*e.r,y:e.y-e.r,v:Math.round(e.dmgAcc),crit:m>st().dmg*1.9,dot,big:g.bigNumT>g.t,life:g.bigNumT>g.t?1.1:.7,max:g.bigNumT>g.t?1.1:.7}); e.dmgAcc=0; e.dmgT=g.t } } if(!dot){ e.hitT=g.t; const a=Math.atan2(e.y-g.p.y,e.x-g.p.x); e.hx=Math.cos(a); e.hy=Math.sin(a); if(Math.random()<.35) g.fx.push({k:"spark",x:e.x,y:e.y-e.r*.3,life:.22,max:.22,a:Math.random()*6}) } if(e.hp<=0) kill(e) }
   function kill(e){ if(e.b11&&BX&&!e._realKill){ BX.onKill(e); return } sfx("kill"); if(NM==="host") hostEv.push({t:"kd",id:e.id,x:Math.round(e.x),y:Math.round(e.y),r:e.r});
     g.kills++;
     if(onScreen(e)) g.fx.push({k:"poof",x:e.x,y:e.y,r:e.r,c:e.c||"#ffffff",life:.45,max:.45,seed:Math.random()*6});
@@ -1048,7 +1048,7 @@ function startGame(opts){ opts=opts||{};
     if(m.fx) for(const f of m.fx){ addRemoteFx(Object.assign({},f)); hostEv.push({t:"fx",f,from}) }
     if(m.b11&&m.b11.length&&BX) BX.fromClient(m.b11);
     if(m.weak&&m.weak.length){ const by=new Map(g.en.map(e=>[e.id,e])); for(const id of m.weak) applyWeak(by.get(id)) }
-    if(m.duel){ const by=new Map(g.en.map(e=>[e.id,e])), pct=.09/(1+.5*(nPlayers()-1)); for(const id of m.duel){ const e=by.get(id); if(e&&e.hp>0){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) } } } }
+    if(m.duel){ const by=new Map(g.en.map(e=>[e.id,e])), pct=.09/(1+.5*(nPlayers()-1)); for(const id of m.duel){ const e=by.get(id); if(e&&e.hp>0&&!e.b11inv){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) } } } }
   function clientRecv(m){
     if(m.t!=="s") return;
     g.t=m.tm; g.kills=m.k; g.lvSt=m.lr||null; if(m.b11&&BX) BX.recv(m.b11); if(m.sg!==undefined){ g.stageN=m.sg; STAGE_PH=Math.min(3,m.sg); setVph(Math.min(3,m.sg+(m.bu?1:0))); g.nextBossT=m.nb; g.bossUp=!!m.bu }
@@ -1689,7 +1689,7 @@ function startGame(opts){ opts=opts||{};
   /* 보스 한자 결투: 보스가 나오면 한자 3문제! 맞힐 때마다 보스 체력이 크게 깎여요 */
   function duelHit(e){ const n=NM?nPlayers():1, pct=.09/(1+.5*(n-1));
     if(NM==="client"){ netOut.duel=(netOut.duel||[]); netOut.duel.push(e.id) }
-    else if(e&&e.hp>0){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) }
+    else if(e&&e.hp>0&&!e.b11inv){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) }
     if(e){ g.fx.push({k:"bolt",x:e.x,y:e.y,life:.45,max:.45}); g.fx.push({k:"boom",x:e.x,y:e.y,r:e.r*1.4,col:"#ffd36a",life:.5,max:.5}); g.fx.push({k:"num",x:e.x,y:e.y-e.r,v:"한자 번개!",crit:true,life:1,max:1}) } g.shake=Math.max(g.shake,.3) }
   /* 같이 하기: 고르는 동안 몬스터가 다른 친구에게 간다는 안내 */
   const coopNote=()=>NM?`<div class="lvtip coopNote">🛡 고르는 동안 몬스터는 다른 친구에게 가요 · 내 용사는 <b>무적</b>! 모두 고르는 중이면 몬스터도 멈춰요 (30초 안에 골라요)</div>`:"";
@@ -1757,7 +1757,7 @@ function startGame(opts){ opts=opts||{};
       const P=g.p; P.inv=Math.max(P.inv,2.5); if(!P.dead) P.hp=Math.min(st().maxHp,P.hp+st().maxHp*.4);
       if(NM!=="client"){ const T=teamPlayers(); T.push(g.p);
         for(const e of g.en){ if(e.hp<=0) continue; if(!T.some(q=>Math.abs(e.x-q.x)<1300&&Math.abs(e.y-q.y)<1000)) continue;
-          if(e.type==="boss"){ e.hp-=e.max*.25; e.flash=.3; if(e.hp<=0) kill(e) } else { e.hp=0; kill(e) } }
+          if(e.type==="boss"){ if(!e.b11inv){ e.hp-=e.max*.25; e.flash=.3; if(e.hp<=0) kill(e) } } else { e.hp=0; kill(e) } }
         g.eshots.length=0 }
       showBanner(`${oName()}! 화면의 몬스터를 쓸어버렸어요! 체력 회복 +40%`) }}) }
   function hanjaDuel(ref){ if(g.qskip){ return }   // 선생님: 한자 결투 건너뛰기
@@ -1814,7 +1814,7 @@ function startGame(opts){ opts=opts||{};
       else if(o.ok){ g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; saveP(); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),500); const t=NM==="client"?EN[e.id]:e; if(NM==="client"){ netOut.weak=netOut.weak||[]; netOut.weak.push(e.id); g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"약점 공격!",life:1.2,max:1.2}) } else applyWeak(t) }
       else { b.classList.add("no"); sfx("no"); addWrong(c.h); clearTimeout(weakUI.tm); weakUI.tm=setTimeout(()=>closeWeak(),1300) } }) }
   function applyWeak(e){ if(!e||e.hp<=0) return; if(e.weakT0&&g.t-e.weakT0<4) return; e.weakT0=g.t; const n=NM?nPlayers():1, pct=.08/(1+.5*(n-1));
-    e.hp-=e.max*pct; e.flash=.3; e.stun=Math.max(e.stun||0,3); g.shake=Math.max(g.shake,.45);
+    if(!e.b11inv){ e.hp-=e.max*pct; if(e.hp<=0) kill(e) } e.flash=.3; e.stun=Math.max(e.stun||0,3); g.shake=Math.max(g.shake,.45);
     g.fx.push({k:"boom",x:e.x,y:e.y,r:e.r*2.2,col:"#ffd36a",life:.6,max:.6}); g.fx.push({k:"bolt",bt:"boss",x:e.x,y:e.y,life:.35,max:.35}); g.fx.push({k:"label",x:e.x,y:e.y-e.r*2.2,text:"약점 공격! 기절",life:1.6,max:1.6});
     say(`🎯 약점 공격! ${e.name}이(가) 3초 동안 꼼짝 못 해요!`,"thunder"); if(e.hp<=0) kill(e); if(NM) evAll({t:"weakok"}); closeWeak() }
   /* ===== 같이하기: 경험치 통 공유 · 2레벨마다 다 같이 문제 ===== */
@@ -2141,6 +2141,9 @@ function startGame(opts){ opts=opts||{};
         if(F.combo && hitAny) g.combo=Math.min(5,g.combo+1);
         if(hitAny) P.hp=Math.min(s.maxHp,P.hp+s.maxHp*.012);   // 탱커: 베면 체력이 조금 차요
         g.fx.push({k:"slash",x:P.x,y:P.y,a:ang,r:R,arc,life:.22,max:.22});
+        if(HSt.tier>=5&&HERO.id==="warrior"){   /* 5차: 베면 불꽃 검기가 앞으로 날아가요 (가까이서 벤 적은 또 맞지 않아요) */
+          const hs=new Set(); g.en.forEach(e=>{ const dx=e.x-P.x, dy=e.y-P.y, d=Math.hypot(dx,dy); if(d<R+e.r){ let q=Math.atan2(dy,dx)-ang; q=Math.atan2(Math.sin(q),Math.cos(q)); if(Math.abs(q)<arc/2||d<P.r+e.r+10) hs.add(e) } });
+          g.shots.push({k:"swave",x:P.x+Math.cos(ang)*34,y:P.y+Math.sin(ang)*34,vx:Math.cos(ang)*640,vy:Math.sin(ang)*640,dmg:dmg*.8,pierce:99,life:.62,hit:hs,rad:34,kb:16}) }
       }
       if(K==="arrow" && cd("main",.24-.012*L)){   // 궁수: 쉬지 않고 쭉 쏘는 속사 · 꿰뚫어요
         const t0=near(P.x,P.y,1)[0];
@@ -2174,7 +2177,8 @@ function startGame(opts){ opts=opts||{};
           fan.forEach(o=>g.shots.push({k:"ink",x:P.x+Math.cos(a+o)*20,y:P.y+Math.sin(a+o)*20,vx:Math.cos(a+o)*560,vy:Math.sin(a+o)*560,dmg:12+4.2*L,pierce:99,life:.66,hit:new Set(),rad:26,kb:9,slowT:F.ink2?1.4:.8})) }
       }
       if(K==="charm" && cd("main",.42-.02*L)){   // 조련사: 끝까지 쫓아가는 방울 부적
-        const n=1+Math.floor((L+1)/3), T=near(P.x,P.y,n); if(T.length){ sfx("charm"); g.atk={t:g.t,a:Math.atan2(T[0].y-P.y,T[0].x-P.x)};
+        const n=1+Math.floor((L+1)/3), T=near(P.x,P.y,n); if(BX&&T.length){ const bb=g.en.find(e=>e.b11&&e.hp>0); if(bb&&!T.includes(bb)) T[0]=bb }   /* 보스맵: 방울 하나는 꼭 보스에게 */
+        if(T.length){ sfx("charm"); g.atk={t:g.t,a:Math.atan2(T[0].y-P.y,T[0].x-P.x)};
           T.forEach((t,i)=>{ const a=Math.atan2(t.y-P.y,t.x-P.x)+(i?(i%2?.5:-.5):0); g.shots.push({k:"charm",x:P.x,y:P.y-8,vx:Math.cos(a)*460,vy:Math.sin(a)*460,dmg:13+4*L,pierce:0,boom:48,boomMul:.5,life:1.6,hit:new Set(),seek:t}) }) }
       }
       if(K==="punch" && cd("main",.5-.028*L)){   // 메카닉: 로켓 주먹 · 꿰뚫고 밀쳐 내요
@@ -2229,6 +2233,7 @@ function startGame(opts){ opts=opts||{};
           if(sh.pierce--<=0){ sh.life=0; break } } }
     }
     g.shots=g.shots.filter(x=>x.life>0);
+    for(const e of g.en) if(e.hp<=0&&e.b11&&BX&&!e._realKill&&NM!=="client"){ e.hp=1; kill(e) }   /* 안전장치: 보스가 연출 없이 사라지지 않게 */
     g.en=g.en.filter(e=>e.hp>0);
     // 경험치 구슬
     if(g.gems.length>350){ const old=g.gems.splice(0,100); const v=old.reduce((a,b)=>a+b.v,0); g.gems.push({x:old[0].x,y:old[0].y,v}) }
