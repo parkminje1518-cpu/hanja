@@ -1907,7 +1907,7 @@ function drawStarAxe(c,b,t){ const im=typeof SKILL_IMG!=="undefined"&&!window.__
 
 /* 폭풍 연사의 거대한 활: 모든 효과 위에, 캐릭터 앞쪽에 또렷하게 (빛에 묻히지 않게) */
 function jfHurricaneBow(c,P,t,k,aim){ const BI=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.windbow; if(!BI) return;
-  const Hd=260, Wd=Hd*BI.width/BI.height, vib=Math.sin(t*60)*1.5, DK=typeof warnTex==="function"&&warnTex("windbow","#0e7a52");
+  const Hd=260, Wd=Hd*BI.width/BI.height, vib=Math.sin(t*60)*1.5, DK=typeof warnTex==="function"&&warnTex("windbow",window.__t5==="archer"?"#1e3a9a":"#0e7a52");
   c.save(); c.translate(P.x,P.y-10); c.rotate(aim||0); c.translate(Wd*.12+40,0);
   c.globalCompositeOperation="source-over"; if(DK){ c.globalAlpha=k*.9; for(const [ox,oy] of [[-2,0],[2,0],[0,-2],[0,2]]) c.drawImage(DK,-Wd*.12+ox,-Hd/2+oy,Wd,Hd) }   // 진한 테두리 (밝은 빛 속에서도 보이게)
   c.globalAlpha=k*.55; c.globalCompositeOperation="lighter"; jGlow(c,Wd*.3,0,Hd*.5,"120,255,200",.4*k);
