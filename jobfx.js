@@ -1108,7 +1108,7 @@ function drawNewShot(c,sh,a,t,GL){ const k=sh.k;
   if(k==="missile"){ c.save(); for(let j=1;j<=5;j++){ c.fillStyle=`rgba(200,200,210,${.3-j*.05})`; c.beginPath(); c.arc(sh.x-sh.vx*.022*j,sh.y-sh.vy*.022*j,3+j*1.2,0,7); c.fill() }
     c.globalCompositeOperation=GL; jGlow(c,sh.x-Math.cos(a)*14,sh.y-Math.sin(a)*14,12,"255,170,60",.8); c.restore();
     if(!nImg(c,"missile",sh.x,sh.y,22,false,a)){ c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.fillStyle="#c49a3a"; c.fillRect(-10,-4,20,8); c.fillStyle="#6ad0ff"; c.beginPath(); c.moveTo(16,0); c.lineTo(10,-4); c.lineTo(10,4); c.fill(); c.restore() } return true }
-  if(k==="dball"&&typeof drawFireballFx==="function"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.fireballfx&&!window.__noArt){ const T=warnTex("fireballfx","#4aa8ff"); if(T){ const L=150, H=L*T.height/T.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.globalCompositeOperation="lighter"; if(typeof drawFlameImg==="function") drawFlameImg(c,T,L,H,.782,.537,t,sh.x*.013,false,.1); else c.drawImage(T,-L*.78,-H/2,L,H); jGlow(c,0,0,26,"150,210,255",.7); c.restore(); return true } }
+  if(k==="dball"&&typeof drawFireballFx==="function"&&typeof SKILL_IMG!=="undefined"&&SKILL_IMG.fireballfx&&!window.__noArt){ const T=blueFire(SKILL_IMG.fireballfx); if(T){ const L=150, H=L*T.height/T.width; c.save(); c.translate(sh.x,sh.y); c.rotate(a); c.globalCompositeOperation="lighter"; if(typeof drawFlameImg==="function") drawFlameImg(c,T,L,H,.782,.537,t,sh.x*.013,false,.1); else c.drawImage(T,-L*.78,-H/2,L,H); jGlow(c,0,0,26,"150,210,255",.7); c.restore(); return true } }
   if(k==="dball"){ c.save(); c.globalCompositeOperation=GL; for(let j=1;j<=4;j++){ c.fillStyle=`rgba(80,170,255,${.25/j})`; c.beginPath(); c.arc(sh.x-sh.vx*.02*j,sh.y-sh.vy*.02*j,14-j*2,0,7); c.fill() }
     const gg=c.createRadialGradient(sh.x,sh.y,0,sh.x,sh.y,18); gg.addColorStop(0,"#ffffff"); gg.addColorStop(.35,"#9ae0ff"); gg.addColorStop(.75,"rgba(40,120,255,.7)"); gg.addColorStop(1,"rgba(20,60,200,0)"); c.fillStyle=gg; c.beginPath(); c.arc(sh.x,sh.y,18,0,7); c.fill(); c.restore(); return true }
   if(k==="laser"){ c.save(); c.globalCompositeOperation=GL; c.strokeStyle="rgba(120,220,255,.85)"; c.lineWidth=4; c.lineCap="round"; c.beginPath(); c.moveTo(sh.x-sh.vx*.03,sh.y-sh.vy*.03); c.lineTo(sh.x,sh.y); c.stroke(); c.strokeStyle="#ffffff"; c.lineWidth=1.5; c.stroke(); c.restore(); return true }
@@ -1531,7 +1531,7 @@ function drawSig46Fx(c,f,k,t){ const p=1-k, K=f.k; if(K==="erupt") return drawEr
       c.fillStyle=safe?`rgba(80,220,120,${.12+.08*Math.sin(t*10)})`:`rgba(233,40,50,${.08+.14*p})`; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.fill();
       if(!safe){ c.fillStyle="rgba(255,70,70,.25)"; c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r*p,-f.half,f.half); c.closePath(); c.fill() }
       // 부채꼴 안: 포효 충격파 고리가 바깥으로 계속 밀려 나가요 (실제 맞는 범위 모양으로 잘라서 정확하게)
-      const RC=!safe&&!window.__fxLow&&warnTex("roarcone",dangerCol()); if(RC){ c.save(); c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.clip(); c.globalCompositeOperation="lighter";
+      const RC=!safe&&warnTex("roarcone",dangerCol()); if(RC){ c.save(); c.beginPath(); c.moveTo(0,0); c.arc(0,0,f.r,-f.half,f.half); c.closePath(); c.clip(); c.globalCompositeOperation="lighter";
         for(let i=0;i<2;i++){ const u=((t*1.6+i*.5)%1), sc=f.r*(.35+u*.85)/(RC.width*.503), sy2=Math.tan(Math.min(1.3,f.half))/.45; c.save(); c.scale(sc,sc*sy2); c.globalAlpha=Math.min(1,(.5+.5*p)*(1-u)*1.3); c.drawImage(RC,-RC.width*.249,-RC.height*.5,RC.width,RC.height); c.restore() } c.restore() }
       const s=f.r/600, sy=Math.sin(Math.min(1.45,f.half))/Math.sin(Math.PI/4); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,p*5)*(.8+.2*Math.sin(t*14)); c.scale(s,s*sy); c.drawImage(T,-10,-T.height/2,T.width,T.height); c.restore();
       if(safe&&f.r>300){ c.save(); c.fillStyle="rgba(255,255,255,.95)"; c.font="bold 22px sans-serif"; c.textAlign="center"; c.fillText("안전!",f.x+Math.cos(f.a)*170,f.y+Math.sin(f.a)*170); c.restore() } return true }
@@ -1705,6 +1705,8 @@ function mixHex(a,b,t){ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), 
 /* 위험 색: 맵(보스) 색에 빨강을 섞어 '위험'이 바로 보이게 */
 /* 맵 분위기를 살린 위험 색 (테두리 깜빡임은 모든 맵 붉은빛으로 통일) */
 const DANGER_COL={1:"#ff4f8f",2:"#ff8a3a",3:"#e8923a",4:"#e04ad8",5:"#ff3a30",6:"#ff6a6a",7:"#ffa040",8:"#a87cff",9:"#ffb030",10:"#c060ff",11:"#e040ff"};
+/* 청룡 불꽃: 불덩이 그림의 색을 파랗게 돌려 한 번만 만들어 둬요 (붉은 기가 남지 않게) */
+let BFC=null; function blueFire(im){ if(BFC&&BFC.src===im) return BFC.cv; try{ const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; const x=cv.getContext("2d"); x.filter="hue-rotate(185deg) saturate(1.3) brightness(1.1)"; x.drawImage(im,0,0); BFC={src:im,cv}; return cv }catch(e){ return null } }
 function dangerCol(th){ return window.__dcOv||DANGER_COL[window.__mapId]||"#ff4a4a" }   /* 11단계: 시간대마다 경고 색이 바뀌어요 */
 const OWN_COL="#ffd36a", SAFE_COL="#5af08a";
 const WGEO={warncircle:[.5,.477,.495,.516],warndonut:[.499,.484,.496,.506],warnsafe:[.5,.538,.491,.448],warnown:[.5,.537,.487,.446]};
