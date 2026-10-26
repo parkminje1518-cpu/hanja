@@ -316,7 +316,7 @@ const FLOOR_IMG={}, PROP_IMG={}; let _mapArtOn=false;
 function loadMapArt(){ if(_mapArtOn) return; _mapArtOn=true;
   const F=typeof FLOOR_FILES!=="undefined"?FLOOR_FILES:{}, P=typeof PROP_FILES!=="undefined"?PROP_FILES:{};
   for(const k in F){ const im=new Image(); im.onload=()=>{ FLOOR_IMG[k]=im }; im.src=F[k] }
-  for(const k in P){ const im=new Image(); im.onload=()=>{ PROP_IMG[k]=im }; im.src=P[k] } }
+  for(const k in P){ const im=new Image(); im.onload=()=>{ PROP_IMG[k]=im;}; im.src=P[k] } }
 const isArtMap = map=>!!ART_MAP[map.id];
 /* 바닥은 캔버스에 그리지 않고 캔버스 뒤 배경(CSS)으로 깔아요: 기기의 그래픽 칩이 대신 그려서 렉이 거의 없어요 */
 let _BLURL=null;
