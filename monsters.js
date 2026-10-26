@@ -1853,12 +1853,14 @@ function B11Make(A){
       if(T.cross<=0&&!bigOn()){ T.cross=10; const hp=e.hp/e.max, two=hp<.5||HARD>=1, c=L[Math.random()*L.length|0]||g.p, cx=c.x, cy=c.y;   /* 십자 레이저 (2026-10-26): 내 자리를 중심으로 + 먼저, 체력 50% 아래(노멀부터 항상)는 이어서 × · 하얀 빛 */
         for(const a of [0,Math.PI/2]) pat({k:"line",nostg:1,x:cx-Math.cos(a)*1600,y:cy-Math.sin(a)*1600,a,len:3200,wd:80,w:1.5,dur:.25,d:D()*1.2,g:18,vis:"cross"});
         if(two) for(const a of [Math.PI/4,Math.PI*3/4]) pat({k:"line",nostg:1,x:cx-Math.cos(a)*1600,y:cy-Math.sin(a)*1600,a,len:3200,wd:80,w:1.5+1.15,dur:.25,d:D()*1.2,g:18,vis:"cross"}) }
-      if(T.brand<=0&&!bigOn()){ T.brand=11;   /* 흑월의 불꽃 (세렌 '미트라의 불꽃' 느낌, 2026-10-26): 맵을 12구역(4×3)으로 나눠 7~9곳에 문양 → 조금씩 시간차로 떠서 1.8초 뒤 펑 */
-        const cols=4, rows=3, cw=AR.hw*2/cols, ch=AR.hh*2/rows, cells=[]; for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) cells.push([c,r]);
-        for(let i=cells.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [cells[i],cells[j]]=[cells[j],cells[i]] }
-        const n=[7,8,9][HARD]||7, R=Math.min(cw,ch)*.36; A.say("🌑 흑월의 불꽃! 맵 곳곳에 문양이 떠요 · 문양이 없는 곳으로 피해요","alarm");
-        cells.slice(0,n).forEach(([c,r])=>{ sched(rnd(0,2.4),()=>{ if(B11_TOD[S.tod].k!=="mid"||S.ph!==2) return; const x=-AR.hw+cw*(c+.5)+rnd(-cw*.16,cw*.16), y=-AR.hh+ch*(r+.5)+rnd(-ch*.16,ch*.16);
-          pat({k:"circ",x,y,r:R,w:[1.9,1.77,1.6][HARD]||1.9,d:D()*1.0,g:14,vis:"mflame",dur:.25}) }) }) } }
+      if(T.brand<=0&&!bigOn()){ T.brand=11;   /* 흑월의 불꽃 (2026-10-26 바뀜): 캐릭터 자리 + 바로 옆에 빛 덩어리 2개(하드 3개) → 시간차로 생겨 1.8초 뒤 펑 */
+        A.say("🌑 흑월의 불꽃! 내 주변에 빛 덩어리가 생겨요 · 비어 있는 칸으로 피해요","alarm");
+        const n=HARD>=2?3:2, R=104, cx=230, cy=180, done=[];   /* 2026-10-26: 한 사람 둘레에 2개만 (하드 3개) · 하나는 내 자리, 나머지는 바로 옆 칸 */
+        for(const q of (L.length?L:[g.p])){ if(done.some(o=>Math.abs(o.x-q.x)<120&&Math.abs(o.y-q.y)<100)) continue; done.push(q);   /* 같이하기: 모두의 자리에 (아주 붙어 있는 친구끼리는 한 번만) */
+          const cells=[]; for(let gy=-1;gy<=1;gy++) for(let gx=-1;gx<=1;gx++) if(gx||gy) cells.push([gx,gy]);
+          for(let a=cells.length-1;a>0;a--){ const b=Math.random()*(a+1)|0; [cells[a],cells[b]]=[cells[b],cells[a]] }
+          const ox=q.x, oy=q.y; [[0,0],...cells].slice(0,n).forEach(([gx,gy],k)=>{ sched(k*.4+rnd(0,.15),()=>{ if(B11_TOD[S.tod].k!=="mid"||S.ph!==2) return; const x=clamp(ox+gx*cx+rnd(-24,24),-AR.hw+60,AR.hw-60), y=clamp(oy+gy*cy+rnd(-20,20),-AR.hh+60,AR.hh-60);
+            pat({k:"circ",x,y,r:R,w:[1.9,1.77,1.6][HARD]||1.9,d:D()*1.0,g:14,vis:"mflame",dur:.25,nostg:1}) }) }) } } }
     else if(k==="dawn"){
       if(T.peak<=0){ T.peak=6.5; const all=HARD>=1&&Math.random()<.25; for(const q of L){ const n=all?1:3; for(let i=0;i<n;i++){ const x=clamp(q.x+(i?rnd(-170,170):0),-AR.hw+40,AR.hw-40), y=clamp(q.y+(i?rnd(-130,130):0),-AR.hh+40,AR.hh-40); pat({k:"circ",x,y,r:74,w:(HARD>=1?1.5:1.9)+i*.25,d:D()*2,g:8,burn:1,vis:"flame",dur:.25}) } } }
       if(T.wall<=0&&!S.wallOn){ T.wall=26; const dur=rnd(15,20), n=2+(HARD>=2?1:0), cw=110, ws=[];   /* 흑염 장막 (세렌 '화염 장막' 느낌, 2026-10-26): 세로 불꽃 벽이 장애물처럼 생겼다가 사라져요 · 닿으면 데어요 */
@@ -2088,9 +2090,13 @@ function B11Make(A){
     if(T){ c.globalCompositeOperation="lighter"; c.globalAlpha=Math.min(1,q*5)*(.8+.2*Math.sin(t*16)); const SEG=Math.max(1,Math.round(len/520)), sl=len/SEG; for(let i=0;i<SEG;i++) c.drawImage(T,i*sl-8,-HW-12,sl+16,HW*2+24); c.globalCompositeOperation="source-over"; c.globalAlpha=1 }
     c.strokeStyle=`rgba(255,255,255,${.5+.4*Math.sin(t*16+Math.PI)})`; c.lineWidth=1.6; c.setLineDash([12,8]); c.lineDashOffset=-t*50; c.strokeRect(0,-HW,len,HW*2); c.setLineDash([]); c.restore() }
   function pierceGems(c,p,q,t){ const e=boss(), bx=(e?e.x:p.x)+(S.ph===2?150:125), by=(e?e.y:p.y)-120;   /* 보스 옆(몸 높이)에 · 위 체력바에 안 가리게 */   /* 흑월 관통 충전: 보스 머리 위 보석 3개가 차례로 차오르고, 다 차면 레이저 */
-    const GM=IMG("gem"); c.save(); for(let i=0;i<3;i++){ const f=clamp(q*3-i,0,1), x=bx+(i-1)*34, y=by, full=f>=1, pu=.5+.5*Math.sin(t*12+i), gh=34, gw=GM?gh*GM.width/GM.height:20;   /* 충전 보석 그림: 아래부터 차올라요 */
+    const GM=IMG("gem"); c.save(); c.fillStyle="rgba(14,4,24,.62)"; c.beginPath(); c.roundRect?c.roundRect(bx-88,by-34,176,68,18):c.rect(bx-88,by-34,176,68); c.fill(); c.strokeStyle=q>.66?`rgba(255,120,220,${.6+.4*Math.sin(t*16)})`:"rgba(200,150,255,.7)"; c.lineWidth=2; c.stroke();   /* 받침 · 곧 쏠 때 테두리가 깜빡여요 */
+    for(let i=0;i<3;i++){ const f=clamp(q*3-i,0,1), x=bx+(i-1)*52, y=by, full=f>=1, pu=.5+.5*Math.sin(t*12+i), gh=50, gw=GM?gh*GM.width/GM.height:28;   /* 충전 보석 그림: 아래부터 차올라요 */
       if(GM){ c.save(); c.globalAlpha=.28; c.drawImage(GM,x-gw/2,y-gh/2,gw,gh); c.restore(); if(f>0){ c.save(); c.beginPath(); c.rect(x-gw,y+gh/2-gh*f,gw*2,gh*f); c.clip(); c.drawImage(GM,x-gw/2,y-gh/2,gw,gh); if(full){ c.globalCompositeOperation="lighter"; c.globalAlpha=.3+.5*pu; c.drawImage(GM,x-gw/2,y-gh/2,gw,gh) } c.restore() } } }
-    c.font='bold 13px "Do Hyeon",sans-serif'; c.textAlign="center"; c.lineWidth=3; c.strokeStyle="#1a0420"; const tx=q>.66?"⚠ 곧 레이저!":"레이저 충전 중"; c.strokeText(tx,bx,by-24); c.fillStyle=q>.66?"#ffb0e0":"#e6d0ff"; c.fillText(tx,bx,by-24); c.restore() }
+    c.font=q>.66?'bold 20px "Do Hyeon",sans-serif':'bold 15px "Do Hyeon",sans-serif'; c.textAlign="center"; c.lineWidth=4; c.strokeStyle="#1a0420"; const tx=q>.66?"⚠ 곧 레이저!":"레이저 충전 중"; c.strokeText(tx,bx,by-44); c.fillStyle=q>.66?"#ffb0e0":"#e6d0ff"; c.fillText(tx,bx,by-44);
+    { const P=me(); if(P&&!P.dead&&GM){ const mx=P.x, my=P.y-92; c.globalAlpha=.95; for(let i=0;i<3;i++){ const f=clamp(q*3-i,0,1), x=mx+(i-1)*26, gh=26, gw=gh*GM.width/GM.height; c.save(); c.globalAlpha=.3; c.drawImage(GM,x-gw/2,my-gh/2,gw,gh); c.restore(); if(f>0){ c.save(); c.beginPath(); c.rect(x-gw,my+gh/2-gh*f,gw*2,gh*f); c.clip(); c.drawImage(GM,x-gw/2,my-gh/2,gw,gh); c.restore() } }
+      if(q>.66){ c.font='bold 15px "Do Hyeon",sans-serif'; c.lineWidth=3; c.strokeStyle="#1a0420"; c.strokeText("⚠ 레이저!",mx,my-22); c.fillStyle="#ffb0e0"; c.fillText("⚠ 레이저!",mx,my-22) } } }   /* 내 머리 위에도 작은 충전 보석 (2026-10-26) */
+    c.restore() }
   function wCone(c,p,q,t){ const T=tod(), C=T?TODC_RGB[T.k]:"190,140,255", pu=.5+.5*Math.sin(t*12), sec=(R)=>{ c.beginPath(); c.moveTo(0,0); c.arc(0,0,R,-p.h,p.h); c.closePath() };   /* 부채꼴 베기 경고: 맵 분위기(어두운 보라 + 시간대 색) */
     c.save(); c.translate(p.x,p.y); c.rotate(p.a); c.fillStyle=`rgba(16,4,30,${.32+.18*q})`; sec(p.r); c.fill();
     const gr=c.createRadialGradient(0,0,0,0,0,p.r); gr.addColorStop(0,`rgba(${C},0)`); gr.addColorStop(1,`rgba(${C},${.18+.3*q})`); c.fillStyle=gr; sec(p.r*Math.max(.05,q)); c.fill();
@@ -2179,7 +2185,10 @@ function B11Make(A){
         else { const fa=R>=p.R*.92?Math.max(0,(p.R-R)/(p.R*.08)):1; c.lineWidth=60; c.strokeStyle=`rgba(80,30,0,${.35*fa})`; c.beginPath(); c.ellipse(p.x,p.y,R,R*.75,0,0,TAU); c.stroke(); c.globalCompositeOperation="lighter"; c.lineWidth=52; c.strokeStyle=`rgba(255,170,60,${.55*fa})`; c.stroke(); c.lineWidth=18; c.strokeStyle=`rgba(255,250,210,${.95*fa})`; c.stroke() } c.restore() }   /* 정오 햇빛 파동: 끝까지 또렷하게 · 그려진 굵기 = 맞는 범위 */
       else if(p.k==="curtain"){ const live=!pre&&tt<w+p.dur, out=!pre&&tt>=w+p.dur&&tt<w+p.dur+.5; if(pre||live||out){ const FS=IMG("firesea");   /* 흑염 장막 그림: 불바다 무늬가 위로 일렁이는 세로 불꽃 벽 */
         const al=pre?.25+.55*ease(q):live?Math.min(1,(tt-w)/.3):1-(tt-w-p.dur)/.5, grow=pre?.15+.85*ease(q):1;
+        const CI=IMG("curtain");
         for(const W of p.ws){ const x0=W.x-W.w/2, y0=W.y-W.h/2, hh=W.h*(pre?1:1), ww=W.w*(pre?1:grow);
+          if(!pre&&CI){ const sw=1+.05*Math.sin(t*6+W.x*.01), dw=W.w/.64*sw, dh=W.h*1.14, bx=W.x-dw/2, by=y0+W.h+W.h*.03-dh;   /* 흑염 장막 그림 (2026-10-26): 검은 불꽃 벽 · 좌우로 살짝 일렁여요 */
+            c.save(); c.globalAlpha=al; c.drawImage(CI,bx,by,dw,dh); c.globalCompositeOperation="lighter"; c.globalAlpha=al*(.16+.12*Math.sin(t*9+W.y)); c.drawImage(CI,bx,by-6,dw,dh); c.restore(); continue }
           c.save(); c.beginPath(); c.roundRect?c.roundRect(W.x-ww/2,y0,ww,hh,22):c.rect(W.x-ww/2,y0,ww,hh); c.clip();
           if(pre){ c.globalAlpha=al*.55; c.fillStyle="#3a0806"; c.fillRect(x0,y0,W.w,W.h); c.globalAlpha=al*(.35+.25*Math.sin(t*12)); c.fillStyle="#ff5a20"; c.fillRect(x0,y0+W.h*(1-q),W.w,W.h*q) }   /* 예고: 아래에서부터 붉게 차올라요 */
           else { c.globalAlpha=al*.92; c.fillStyle="#0e0204"; c.fillRect(x0,y0,W.w,W.h); if(FS){ if(!FP.fs) FP.fs=c.createPattern(FS,"repeat"); c.save(); c.globalAlpha=al*.55; c.translate(0,-(t*70)%256); c.fillStyle=FP.fs; c.fillRect(x0,y0,W.w,W.h+256); c.restore() }
