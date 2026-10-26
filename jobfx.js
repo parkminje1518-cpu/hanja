@@ -648,14 +648,15 @@ function drawTreasure(c,x,y,t,GL){
   const b=Math.sin(t*3)*3, open=.5+.5*Math.sin(t*2.2);
   c.save(); c.globalCompositeOperation=GL;
   c.save(); c.translate(x,y-6+b); c.rotate(t*.4);
-  for(let i=0;i<10;i++){ c.rotate(TAU/10); const g=c.createLinearGradient(0,0,0,-90); g.addColorStop(0,`rgba(255,230,140,${.35+.15*open})`); g.addColorStop(1,"rgba(255,230,140,0)"); c.fillStyle=g; c.beginPath(); c.moveTo(-6,0); c.lineTo(0,-90); c.lineTo(6,0); c.closePath(); c.fill() }
+  { const g=c.createRadialGradient(0,0,0,0,0,90); g.addColorStop(0,`rgba(255,230,140,${.35+.15*open})`); g.addColorStop(1,"rgba(255,230,140,0)"); c.fillStyle=g; c.beginPath(); for(let i=0;i<10;i++){ const a1=(i+1)*TAU/10, s1=Math.sin(a1), c1=Math.cos(a1); c.moveTo(-6*c1,-6*s1); c.lineTo(90*s1,-90*c1); c.lineTo(6*c1,6*s1); c.closePath() } c.fill() }   /* 빛살 10개를 한 번에 (같은 모양) */
   c.restore(); jGlow(c,x,y-4+b,60,"255,210,100",.55); c.restore();
   c.fillStyle="rgba(0,0,0,.3)"; c.beginPath(); c.ellipse(x,y+22,32,8,0,0,TAU); c.fill();
   { const im=typeof SKILL_IMG!=="undefined"&&!window.__noArt&&SKILL_IMG.chest_c; if(im){ const w=96, h=w*im.height/im.width, pu=.5+.5*Math.sin(t*4);
     /* 어느 맵에서도 잘 보이게: 하늘로 솟는 금빛 기둥 + 바닥 고리 + 금빛 테두리 + "보물상자" 글씨 */
     c.save(); c.globalCompositeOperation="lighter"; const lg=c.createLinearGradient(0,y-260,0,y+20); lg.addColorStop(0,"rgba(255,220,120,0)"); lg.addColorStop(.7,`rgba(255,220,120,${.22+.12*pu})`); lg.addColorStop(1,`rgba(255,240,180,${.45+.2*pu})`); const GP=SKILL_IMG.goldpillar; if(GP){ const pw=130, ph=pw*GP.height/GP.width*(1+.06*pu); c.globalAlpha=.75+.25*pu; c.drawImage(GP,x-pw/2,y+30-ph,pw,ph); c.globalAlpha=1 } else { c.fillStyle=lg; c.fillRect(x-26,y-260,52,280) }
     const GR=SKILL_IMG.goldring; if(GR){ const rw=150, rh=rw*GR.height/GR.width; c.globalAlpha=.7+.3*pu; c.drawImage(GR,x-rw/2,y+24-rh/2,rw,rh); const q=(t*.6)%1, s2=1+q*.7; c.globalAlpha=.55*(1-q); c.drawImage(GR,x-rw*s2/2,y+24-rh*s2/2,rw*s2,rh*s2); c.globalAlpha=1 } else for(let k=0;k<2;k++){ const q=(t*.7+k*.5)%1; c.strokeStyle=`rgba(255,215,110,${.85*(1-q)})`; c.lineWidth=4; c.beginPath(); c.ellipse(x,y+22,30+q*60,10+q*20,0,0,TAU); c.stroke() } c.restore();
-    c.save(); c.shadowColor="#ffd36a"; c.shadowBlur=18+10*pu; c.drawImage(im,x-w/2,y+26-h+b,w,h); c.restore();
+    { const P=28, key="tr_"+w; let G=PFX[key]; if(!G){ G=document.createElement("canvas"); G.width=Math.ceil(w+P*2); G.height=Math.ceil(h+P*2); const x2=G.getContext("2d"); x2.shadowColor="#ffd36a"; x2.shadowBlur=23; x2.drawImage(im,P,P,w,h); PFX[key]=G }   /* 렉 줄이기 (2026-10-27): 금빛 테두리 빛(그림자 흐림)을 한 번만 그려 두고 다시 써요 · 깜빡임은 진하기로 */
+      c.save(); c.globalAlpha=.85+.15*pu; c.drawImage(G,x-w/2-P,y+26-h+b-P); c.restore() }
     { const SP=SKILL_IMG.goldspark; if(SP) for(let k=0;k<2;k++){ const q=(t*.55+k*.5)%1, sz=(50+60*Math.sin(q*Math.PI))*(k?.7:1); c.save(); c.globalCompositeOperation="lighter"; c.globalAlpha=Math.sin(q*Math.PI)*.9; c.translate(x+(k?-24:20),y+26-h*.75+b); c.rotate(t*.6*(k?-1:1)); c.drawImage(SP,-sz/2,-sz/2,sz,sz); c.restore() } }   /* 반짝반짝 */
     c.save(); c.font='bold 17px "Do Hyeon",sans-serif'; c.textAlign="center"; c.lineWidth=4; c.strokeStyle="#3a2200"; const ty=y+26-h+b-12-4*pu; c.strokeText("🎁 보물상자",x,ty); c.fillStyle="#ffe9a0"; c.fillText("🎁 보물상자",x,ty); c.restore(); return } }
   c.save(); c.translate(x,y+b);
@@ -1651,7 +1652,7 @@ function drawHoleShot(c,b,t){ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG
 function drawFireBreath(c,x,y,a,len,al,t){ /* 불길이 앞으로 확 퍼지며 일렁여요 */ const im=typeof SKILL_IMG!=="undefined"&&SKILL_IMG.firebreath; if(!im) return false;
   const puff=1+Math.sin(t*9)*.06+Math.sin(t*23)*.03, L=len*puff, sc=L/(im.width*.98), H=im.height*sc*.7*(1+Math.sin(t*13)*.06);
   c.save(); c.translate(x,y); c.rotate(a+Math.sin(t*6)*.05); c.globalCompositeOperation="lighter"; c.globalAlpha=al; drawFlameImg(c,im,L,H,.01,.52,t,1.3,true,.14);
-  c.globalAlpha=al*.3; c.translate(Math.sin(t*11)*8,0); drawFlameImg(c,im,L*1.05,H*1.12,.01,.53,t+.37,4.1,true,.12); c.restore(); return true }
+  if(!window.__bossUp&&!window.__fxLow){ c.globalAlpha=al*.3; c.translate(Math.sin(t*11)*8,0); drawFlameImg(c,im,L*1.05,H*1.12,.01,.53,t+.37,4.1,true,.12) } c.restore(); return true }   /* 보스전·가벼운 모드: 옅은 두 번째 불길 겹은 생략 (렉 줄이기) */
 
 /* ===== 제미나이 번개 그림을 '번개 줄기'로 눕혀서 모든 번개(빛줄기·돌진·구슬·작은 낙뢰)에 써요 ===== */
 let _bStr=null;
