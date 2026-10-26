@@ -1,5 +1,5 @@
 /* ===== 몬스터 대작전 ===== */
-const CONF_V=.03, CONF_MAX=2, CONF_T=25;   /* 혼란: 단계마다 공격력 -3% · 받는 피해 +3% · 대기 시간 +3% */
+const CONF_V=.03, CONF_MAX=2, CONF_T=25;   /* 혼란: 단계마다 공격력 -3% · 받는 피해 +3% · 스킬 대기시간 +3% */
 const BOSS_VIS = 1.3;
 const BOSS_DY = .4;   /* 보스 몸 판정은 그림 몸통 가운데 (발보다 조금 위) */   /* 보스 그림 크기 배율 (몸 판정·패턴 크기는 그대로) */
 const WIN_TIME = 300;   // (예전 5분 버티기 · 이제는 보스 4마리를 잡으면 클리어)
@@ -318,6 +318,10 @@ const MAXLV = 5;
 
 function setMainSkill(){ const H=heroById(P.hero); SK.main={t:"w",cls:H.cls,name:H.main.name,d:H.main.d}; }
 function gameLobby(){
+  if(typeof studyLeft==="function"&&studyLeft()>0){ const n=studyLeft(), d0=day();   /* 하루 학습 5세트를 먼저 (2026-10-26) */
+    openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 문제를 하나도 맞히지 못한 세트는 세지 않아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
+    document.getElementById("gateGo").onclick=()=>{ closeModal(); const b=document.getElementById("goLearn"); if(b) b.click(); else home() };
+    document.getElementById("gateNo").onclick=()=>closeModal(); return }
   setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)){ P.set.map=mapOpenN(); saveP() }
   const best = P.best, d = day();
   const left = Math.max(0, DAILY_PLAYS - d.plays);
@@ -352,7 +356,7 @@ function gameLobby(){
     </div><div class="rblk" ${P.set.rtab==="w"?"":"hidden"}>
     <div class="row"><h2 style="font-size:22px">사자성어·속담 퀴즈 범위</h2><span class="meta">넓을수록 보상이 커요</span></div>
     <div class="qrgrid compact">${SRANGE.map((q,i)=>`<button class="qrc src ${srangeOf().w===q.w?"on":""}" data-sr="${q.w}"><span class="qrs">${i?"★".repeat(i):"—"}</span><strong>${q.label}</strong><small>${q.w?spoolCnt(q.w):"사자성어·속담 없음"}</small><em>${q.merit}</em></button>`).join("")}</div><p class="qrinfo">✔ ${srangeOf().merit}${srangeOf().w?" · "+spoolCnt(srangeOf().w):""}</p>${(()=>{ const K=knowPower(P.set.qrange||5,srangeOf().w), nx=SRANGE[K.si+1], MX=WIS_ARM[WIS_ARM.length-1];
-      return `<div class="kpow wis"><span class="kic">📜</span><div class="kbd"><div class="kt"><b>지혜의 힘</b><span class="kv">받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}%</span></div>
+      return `<div class="kpow wis"><span class="kic">📜</span><div class="kbd"><div class="kt"><b>지혜의 힘</b><span class="kv">받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%</span></div>
         <div class="kbar"><i style="width:${K.armor/MX*100}%"></i>${WIS_ARM.slice(1).map(x=>`<s style="left:${x/MX*100}%"></s>`).join("")}</div>
         <small>사자성어·속담 범위가 넓을수록 · 많이 익힐수록 튼튼하고 기술을 자주 써요 (지금 ${Math.round(K.wr*100)}% 익힘)</small>
         ${nx?`<em class="knext">⬆ ${nx.label}로 넓히면 최대 -${Math.round(WIS_ARM[K.si+1]*100)}% · -${Math.round(WIS_CD[K.si+1]*100)}% · 전투력 최대 +${fmtPow(Math.max(0,heroPower(P.hero,{qw:P.set.qrange||5,sw:nx.w,kfull:1})-heroPower(P.hero,{qw:P.set.qrange||5,kfull:1})))}</em>`:`<em class="knext max">👑 최고 범위!</em>`}</div></div>` })()}
@@ -413,8 +417,8 @@ function gameLobby(){
         <b>시즌 2 한자 범위 👑</b><div>${Q2RANGE.map(q=>`<button class="pkr ${q2rangeOf().w===q.w?"on":""}" data-m2="${q.w}">${q.label}</button>`).join("")}</div>
         <small class="pkEf">👑 지금 효과: ${q2rangeOf().w?`<em>보스 공격력 +${Math.round(K2.bd*100)}% · 방어율 무시 +${Math.round(K2.ied*100)}%</em> (외운 만큼 · 최대 보공 +${Math.round(KNOW2_BD[K2.i]*100)}% 방무 +${Math.round(KNOW2_IED[K2.i]*100)}%) · 군단장 맵에서 아주 중요해요`:"없어요 · 고르면 보스 공격력과 방어율 무시가 생겨요"}</small>
         <b>사자성어·속담 범위</b><div>${SRANGE.map(q=>`<button class="pkr ${srangeOf().w===q.w?"on":""}" data-ms="${q.w}">${q.label}</button>`).join("")}</div>
-        <small class="pkEf">📜 지금 효과: ${srangeOf().w?`<em>받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}%</em>`:"없어요 · 고르면 받는 피해와 대기 시간이 줄어요"}</small>
-        <p class="pkK">모두 합치면: 📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}%${q2rangeOf().w?` · 👑 보공 +${Math.round(K2.bd*100)}% · 방무 +${Math.round(K2.ied*100)}%`:""} <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`) })()}
+        <small class="pkEf">📜 지금 효과: ${srangeOf().w?`<em>받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%</em>`:"없어요 · 고르면 받는 피해와 스킬 대기시간이 줄어요"}</small>
+        <p class="pkK">모두 합치면: 📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%${q2rangeOf().w?` · 👑 보공 +${Math.round(K2.bd*100)}% · 방무 +${Math.round(K2.ied*100)}%`:""} <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`) })()}
       ${(()=>{ const S=HS(), used=STAT_KEYS.reduce((a,k)=>a+(S[k]||0),0), NMS={hp:"체력",atk:"공격",dmg:"데미지",spd:"속도",bd:"보공",ied:"방무"}, line=STAT_KEYS.filter(k=>S[k]).map(k=>`${NMS[k]} ${S[k]}`).join(" · ")||"아직 찍은 포인트가 없어요";
         return sec("stat","📊",`능력치 · ${esc(H.name)}`,`${line}${S.pts?` · <b style="color:#ffd36a">남은 ${S.pts}</b>`:""}`,`<p class="pkK">${bossDefOf(M.id,mapDif(M.id))?`<b>${esc(M.name)} ${dN(mapDif(M.id),M.id)}</b>은 보스 방어율이 있어서 보공·방무가 중요해요. 이 보스에 맞춰 다시 찍을 수 있어요.`:`1~10단계는 어느 맵이든 추천이 같아요. 군단장 맵에서 바꿨다면 여기서 공통 추천으로 되돌려요.`} (찍은 포인트 ${used}개 · 남은 ${S.pts}개)</p>
           <div class="pkRange"><b>성향</b><div>${Object.entries(STAT_STYLE).map(([k,v])=>`<button class="pkr ${((P.set.sstyle||"bal")===k)?"on":""}" data-psty="${k}">${v.n}</button>`).join("")}</div></div>
@@ -586,7 +590,7 @@ function startGame(opts){ opts=opts||{};
         <span class="gs atk" title="공격력">공격 <b>×1.00</b></span><span class="gs spd" title="이동 속도">속도 <b>165</b></span><span class="gs cdr" title="공격 간격">공속 <b>100%</b></span><span class="gs conf" hidden title="혼란: 문제를 맞히면 풀려요"></span>${(()=>{ const K=knowPower(qrangeOf().w,srangeOf().w), L=engOf(P.hero), EB=engraveBonus(P.hero), SN={dmg:"공격",hp:"체력",armor:"피해",spd:"이동",cd:"공속",xp:"경험",mag:"줍기",regen:"회복",crit:"급소"}, ef=Object.entries(EB).map(([k,v])=>`${SN[k]}${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%`).join(" ");
       return `<span class="gs pow" data-buff="1" title="전투력">⚔ <b>${fmtPow(heroPower(P.hero))}</b></span>`
         +(K.dmg>0?`<span class="gs know" data-buff="1" title="지식의 힘">📚 지식 <b>공격+${Math.round(K.dmg*100)}%</b></span>`:"")
-        +(K.armor>0?`<span class="gs wisd" data-buff="1" title="지혜의 힘">📜 지혜 <b>피해-${Math.round(K.armor*100)}% 대기-${Math.round(K.cd*100)}%</b></span>`:"")
+        +(K.armor>0?`<span class="gs wisd" data-buff="1" title="지혜의 힘">📜 지혜 <b>피해-${Math.round(K.armor*100)}% 스킬 대기시간-${Math.round(K.cd*100)}%</b></span>`:"")
         +(L.length?`<span class="gs eng" data-buff="1" title="한자 룬">💎 ${L.map(h=>`<i style="color:${RUNE_C[engType(h)[0]]||"#fff"}">${h}</i>`).join("")} <b>${ef}</b></span>`:"") })()}</div>
       <div class="gskl"></div>
       <div class="gbanner" hidden></div>
@@ -1073,9 +1077,9 @@ function startGame(opts){ opts=opts||{};
   }
   function hurt(e,d,dot){ if(e.hp<=0||e.hidden||e.b11inv||(e.b11&&g.cine)) return; let m=st().dmg*(g.buff?g.buff.mul:1)*(g.bbuff?g.bbuff.dmg:1)*(F.combo?1+.06*g.combo:1); if(BX) m*=({pirate:.67,mech:.92,warrior:1.08,zodiac:1.22,healer:1.3,calli:1.02,archer:.98,thief:.79,mage:.98})[HERO.id]||1; if(e.b11&&e.an==="groggy") m*=1.5; if(e.b11&&g.burstUntil>g.t) m*=4;   /* 강화 궁극기: 4.5초 동안 피해 ×4 (2026-10-26 상향) */   /* 그로기 = 극딜 타임 (+50%) */   /* 보스맵: 빨리 잡는 직업 맞춤 (5분 기준) */ if(!dot && M.crit && Math.random()<M.crit){ m*=2; sfx("crit"); g.fx.push({k:"crit",x:e.x,y:e.y-e.r,life:.35,max:.35}) } if(F.poison && !dot){ e.burn=3; e.burnD=Math.max(e.burnD||0,d*.12) } if(e.type==="boss"){ if(M.boss) m*=M.boss; m*=1+.1*lv("bhunt"); if(BDEF) m*=bossMul(BDEF,1-(1-BST.ied)*(1-.08*lv("bpierce"))) } if(M.inkb&&e.slow>0) m*=M.inkb; m*=auraMul(); if(e.vulT>g.t) m*=e.vulM||1; const dealt=d*m; if(NM==="client"){ netOut.d[e.id]=(netOut.d[e.id]||0)+dealt; e.hitT2=g.t } else e.hp-=dealt; if(!dot){ sfx("hit"); if(HDFX&&g.t!==g._spkF){ g._spkF=g.t; g._spkN=0 } if(HDFX&&g._spkN<1&&g.t-(g._spkL||0)>(BX?.12:.045)&&Math.abs(e.x-g.p.x)<W*.6&&Math.abs(e.y-g.p.y)<H*.6){ g._spkN++; g._spkL=g.t; g.fx.push({k:"hitspk",x:e.x+(Math.random()-.5)*e.r*.8,y:e.y-e.r*(.2+Math.random()*.5),a:Math.random()*6.28,s:Math.min(1.6,.7+e.r/40),life:.22,max:.22}) } } e.flash=.08; if(!dot||Math.random()<.5){ e.dmgAcc=(e.dmgAcc||0)+dealt; if(!e.dmgT||g.t-e.dmgT>(e.b11?.35:.12)||e.hp<=0){ g.fx.push({k:"num",x:e.x+(Math.random()-.5)*e.r*(e.b11?1.6:1),y:e.b11?e.y-e.r-150-Math.random()*20:e.y-e.r,v:Math.round(e.dmgAcc),crit:m>st().dmg*1.9,dot,big:g.bigNumT>g.t,life:g.bigNumT>g.t?1.1:.7,max:g.bigNumT>g.t?1.1:.7}); e.dmgAcc=0; e.dmgT=g.t } } if(!dot){ e.hitT=g.t; const a=Math.atan2(e.y-g.p.y,e.x-g.p.x); e.hx=Math.cos(a); e.hy=Math.sin(a); if(Math.random()<.35) g.fx.push({k:"spark",x:e.x,y:e.y-e.r*.3,life:.22,max:.22,a:Math.random()*6}) } if(e.hp<=0) kill(e) }
   function clearBossPats(e){ const other=g.en.some(o=>o!==e&&o.type==="boss"&&o.hp>0); g.eshots=g.eshots.filter(b=>other?(b.eid!==undefined&&b.eid!==e.id):false); const WK={warn:1,conewarn:1,laserwarn:1,donutwarn:1,tilewarn:1,cloudwarn:1}; if(!other) g.fx=g.fx.filter(f=>!(WK[f.k]&&!f.own)); e.deadT=g.t }   /* 보스가 쓰러지면 남은 패턴·경고를 모두 지워요 */
-  function kill(e){ if(e.b11&&BX&&!e._realKill){ BX.onKill(e); return } if(e.type==="boss") clearBossPats(e); sfx("kill"); if(NM==="host") hostEv.push({t:"kd",id:e.id,x:Math.round(e.x),y:Math.round(e.y),r:e.r});
+  function kill(e){ if(e.b11&&BX&&!e._realKill){ BX.onKill(e); return } if(e.type==="boss") clearBossPats(e); if(!e._quiet) sfx("kill"); if(NM==="host") hostEv.push({t:"kd",id:e.id,x:Math.round(e.x),y:Math.round(e.y),r:e.r});
     g.kills++;
-    if(onScreen(e)) g.fx.push({k:"poof",x:e.x,y:e.y,r:e.r,c:e.c||"#ffffff",life:.45,max:.45,seed:Math.random()*6});
+    if(onScreen(e)&&(!e._quiet||g.kills%6===0)) g.fx.push({k:"poof",x:e.x,y:e.y,r:e.r,c:e.c||"#ffffff",life:.45,max:.45,seed:Math.random()*6});
     g.gems.push({x:e.x,y:e.y,v:e.xp*(BX?1:1.25)});   /* 시즌 1: 몬스터가 20% 줄어든 만큼 경험치 구슬은 25% 크게 */
     if(e.type==="boss"){ giveCard(e.bid); if(((BOSSES[e.bid]||{}).tier??0)<3){ dropAll(); if(NM) evAll({t:"chest"}) }   // 최종 보스는 상자 대신 결과 화면 보물상자
       for(let i=0;i<10;i++){ const a=i*.628; g.gems.push({x:e.x+Math.cos(a)*40,y:e.y+Math.sin(a)*40,v:6}) }
@@ -1090,6 +1094,7 @@ function startGame(opts){ opts=opts||{};
 
   /* ===== 같이 하기 (여러 명): 방장이 몬스터·보스를 움직이고, 친구들은 화면을 받아요 ===== */
   const NM = (opts.mp && typeof NET!=="undefined" && NET.role) ? NET.role : null;
+  if(NM){ const S=slot(); if(S.n>1){ const a=S.me/S.n*Math.PI*2-Math.PI/2; g.p.x=Math.cos(a)*150; g.p.y=Math.sin(a)*110 } }   /* 같이하기: 시작 자리를 친구마다 둥글게 나눠요 (한 자리에 겹쳐서 친구가 안 보이던 문제, 2026-10-26) */
   /* 같이 하기 난이도: 친구가 많을수록 몬스터가 많고 세져요. 대신 협동 보너스가 있어요 */
   const CO = { spawn:1.0, hp:.65, boss:1.25, bossBase:1.3, spd:1.18, dmg:1.4, xp:.7, crisis:.7, reward:1.3 };
   const RP = {}, EN = {}, GM = {}, IT = {}, BKEYS = Object.keys(BOSSES), inbox=[];
@@ -1151,8 +1156,10 @@ function startGame(opts){ opts=opts||{};
     if(!g.fx._p){ g.fx.push=function(...a){ for(const f of a){ if(!f.remote&&SHARE[f.k]&&!f.own){ const c=plainFx(f); if(NM==="host") hostEv.push({t:"fx",f:c}); else if(netOut.fx.length<40) netOut.fx.push(c) } } return Array.prototype.push.apply(this,a) }; g.fx._p=1 }
     if(!g.shots._p){ g.shots.push=function(...a){ for(const o of a){ if(!o.remote){ const c={k:o.k,x:Math.round(o.x),y:Math.round(o.y),vx:Math.round(o.vx),vy:Math.round(o.vy),l:+o.life.toFixed(2),dk:o.dark?1:0,gl:o.glow?1:0,ik:o.ink?1:0}; if(NM==="host") hostEv.push({t:"sh",s:c}); else if(netOut.sh.length<40) netOut.sh.push(c) } } return Array.prototype.push.apply(this,a) }; g.shots._p=1 }
     if(NM==="host" && !g.eshots._p){ g.eshots.push=function(...a){ for(const b of a) hostEv.push({t:"es",b:plainFx(b)}); return Array.prototype.push.apply(this,a) }; g.eshots._p=1 } }
-  function addRemoteShot(c){ g.shots.push({k:c.k,x:c.x,y:c.y,vx:c.vx,vy:c.vy,life:c.l,dark:!!c.dk,glow:!!c.gl,ink:!!c.ik,remote:true,dmg:0,pierce:99,hit:new Set()}) }
-  function addRemoteFx(f){ f.remote=true; if(f.k==="healp") healArea(f.x,f.y,f.r,f.pct,f.sh); if(f.k==="healp"&&f.rv&&g.p.dead&&(g.p.x-f.x)**2+(g.p.y-f.y)**2<f.r*f.r){ g.p.dead=false; g.p.hp=st().maxHp; g.p.inv=2; g.rescue=0; sfx("revive"); stamp("부활!"); showBanner("🌕 만월의 기적! 친구가 일으켜 줬어요"); g.fx.push({k:"ring",x:g.p.x,y:g.p.y,life:.6,max:.6}) } if(f.k==="bosscast"&&f.eid!==undefined){ const e=g.en.find(o=>o.id===f.eid); if(e){ g.castBan={name:f.text,boss:e.name,sp:f.sp,ult:f.ul,t:g.t}; e.atk={k:f.ak,t0:g.t,wind:f.wd||.45,sp:f.sp,ult:f.ul,name:f.text}; if(f.sp) sfx("alarm") } } if(f.k==="label"&&f.text) f.life=f.max=1.2; if(f.k==="blackhole") g.bh={x:f.x,y:f.y,r:f.r,t:f.life,pow:240}; g.fx.push(f) }
+  /* 같이하기 렉 줄이기 (2026-10-26): 친구 모습은 보이지만 친구 스킬(총알·기술 이펙트)은 내 화면에 그리지 않아요 · 피해는 원래대로 들어가요 · 회복 장판은 보여요 */
+  const MATE_FX={inkpath:1,inkdragon:1,robot:1,robobeam:1,fullmoon:1,crossfx:1,glyph:1,mzone:1,collapse:1,lavafield:1,bigslash:1,meteor:1,slash:1}, showMate=()=>!!(P.set&&P.set.mateFx);
+  function addRemoteShot(c){ if(!showMate()) return; g.shots.push({k:c.k,x:c.x,y:c.y,vx:c.vx,vy:c.vy,life:c.l,dark:!!c.dk,glow:!!c.gl,ink:!!c.ik,remote:true,dmg:0,pierce:99,hit:new Set()}) }
+  function addRemoteFx(f){ f.remote=true; if(f.k==="healp") healArea(f.x,f.y,f.r,f.pct,f.sh); if(f.k==="healp"&&f.rv&&g.p.dead&&(g.p.x-f.x)**2+(g.p.y-f.y)**2<f.r*f.r){ g.p.dead=false; g.p.hp=st().maxHp; g.p.inv=2; g.rescue=0; sfx("revive"); stamp("부활!"); showBanner("🌕 만월의 기적! 친구가 일으켜 줬어요"); g.fx.push({k:"ring",x:g.p.x,y:g.p.y,life:.6,max:.6}) } if(f.k==="bosscast"&&f.eid!==undefined){ const e=g.en.find(o=>o.id===f.eid); if(e){ g.castBan={name:f.text,boss:e.name,sp:f.sp,ult:f.ul,t:g.t}; e.atk={k:f.ak,t0:g.t,wind:f.wd||.45,sp:f.sp,ult:f.ul,name:f.text}; if(f.sp) sfx("alarm") } } if(f.k==="label"&&f.text) f.life=f.max=1.2; if(f.k==="blackhole") g.bh={x:f.x,y:f.y,r:f.r,t:f.life,pow:240}; if(MATE_FX[f.k]&&!showMate()) return; g.fx.push(f) }
   function aoeC(x,y,r,d){ if(!g.p.dead && (g.p.x-x)**2+(g.p.y-y)**2<(r+g.p.r)**2) hitPlayer(d); evAll({t:"aoe",s:"c",x,y,r,d}) }
   function aoeL(x,y,a,len,d){ const hit=q=>{ const px=q.x-x, py=q.y-y, along=px*Math.cos(a)+py*Math.sin(a), across=Math.abs(-px*Math.sin(a)+py*Math.cos(a)); return along>0&&along<len&&across<26+q.r };
     if(!g.p.dead && hit(g.p)) hitPlayer(d); evAll({t:"aoe",s:"l",x,y,a,len,d}) }
@@ -1160,7 +1167,7 @@ function startGame(opts){ opts=opts||{};
     if(m.s==="c"){ if((q.x-m.x)**2+(q.y-m.y)**2<(m.r+q.r)**2) hitPlayer(m.d) }
     else { const px=q.x-m.x, py=q.y-m.y, along=px*Math.cos(m.a)+py*Math.sin(m.a), across=Math.abs(-px*Math.sin(m.a)+py*Math.cos(m.a)); if(along>0&&along<m.len&&across<26+q.r) hitPlayer(m.d) } }
   function meState(){ const q=g.p; return {x:Math.round(q.x),y:Math.round(q.y),f:q.face||1,mv:+(q.mv||0).toFixed(2),hp:Math.max(0,Math.round(q.hp)),mx:Math.round(st().maxHp),d:q.dead?1:0,h:HERO.id,tr:HSt.tier,n:myName,l:g.lvl,pw:g.livePow||0} }
-  function setRP(id,s){ let r=RP[id]; if(!r){ r=RP[id]={x:s.x,y:s.y,r:16,img:null,rx:s.x,ry:s.y} } r.st=s; r.x=s.x; r.y=s.y; r.dead=!!s.d; r.gone=false;
+  function setRP(id,s){ let r=RP[id]; if(!r){ r=RP[id]={id,x:s.x,y:s.y,r:16,img:null,rx:s.x,ry:s.y} } r.st=s; r.x=s.x; r.y=s.y; r.dead=!!s.d; r.gone=false;
     if(!r.img||r.imgKey!==s.h+s.tr){ r.img=new Image(); r.img.src=(SPRITE_T[s.h]&&(SPRITE_T[s.h][s.tr]||SPRITE_T[s.h][Math.min(4,s.tr)]))||SPRITE_URLS[s.h]||""; r.imgKey=s.h+s.tr } }
   function mkEnt(id,di,fl,x,y){ let e;
     if(di<0){ const bid=BKEYS[-1-di], B=BOSSES[bid]; e={type:"boss",bid,look:B.look,c:B.c,crown:B.crown,name:B.name,r:B.b11?B.r:B.r*1.2,big:B.big,b11:B.b11} }
@@ -1268,7 +1275,7 @@ function startGame(opts){ opts=opts||{};
   function down(){ const q=g.p; q.dead=true; q.hp=0; g.rescue=0; modal.hidden=true; g.paused=false; showBanner(`쓰러졌어요! 친구가 옆에 ${RESCUE}초 동안 서 있으면 다시 일어나요`); }
   function drawRemotes(){ for(const id in RP){ const r=RP[id]; if(r.gone||!r.st) continue; r.rx+=(r.x-r.rx)*.25; r.ry+=(r.y-r.ry)*.25; const s=r.st;
       if(Math.abs(r.rx-g.p.x)>W/2+80||Math.abs(r.ry-g.p.y)>H/2+80) continue;
-      ctx.fillStyle="rgba(37,33,27,.22)"; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,16,5,0,0,7); ctx.fill(); if(TOP&&TOP.id===id&&!s.d) drawTopAura(r.rx,r.ry);
+      ctx.fillStyle="rgba(37,33,27,.22)"; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,16,5,0,0,7); ctx.fill(); if(!s.d){ ctx.save(); ctx.strokeStyle="rgba(80,190,255,.85)"; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,24,8,0,0,7); ctx.stroke(); ctx.restore() }   /* 친구 발밑 파란 고리 */ if(TOP&&TOP.id===id&&!s.d) drawTopAura(r.rx,r.ry);
       if(s.tr>=5&&!s.d) drawAwaken(r.rx,r.ry,g.t,s.mv||0,r,s.h);
       if(s.tr>0){ const tc=TIER_COLOR[s.tr]; ctx.save(); ctx.globalAlpha=.4; ctx.fillStyle=tc; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+18,30,10,0,0,7); ctx.fill(); ctx.restore() }
       if(r.img&&r.img.complete&&r.img.naturalWidth){ ctx.save(); ctx.translate(r.rx,r.ry+20); if(s.d){ ctx.rotate(Math.PI/2); ctx.globalAlpha=.55; ctx.filter="grayscale(1)" } else { const hop=Math.abs(Math.sin(g.t*14))*6*(s.mv||0); ctx.translate(0,-hop) } ctx.scale(s.f||1,1); if(isHeroArt(r.img.src)&&!s.d){ const T=ctx.getTransform(); REMOTE_HD.push({r,T,mv:s.mv||0}) } else ctx.drawImage(r.img,-32,-62,64,64); ctx.filter="none"; ctx.restore() }
@@ -1992,7 +1999,7 @@ function startGame(opts){ opts=opts||{};
     d.innerHTML=`<b>⚔ 지금 전투력 ${fmtPow(g.livePow||g.pow0)}</b><small>게임 시작 때 ${fmtPow(g.pow0)} · 레벨 업 · 스킬 강화 · 버프로 바뀌어요</small>
       <div><i>📚 지식의 힘</i>공격력 +${Math.round(K.dmg*100)}% <small>(한자 ${Math.round(K.kr*100)}% 익힘)</small></div>
       ${q2rangeOf().w?`<div><i>👑 시즌 2의 힘</i>보스 공격력 +${Math.round(know2Power().bd*100)}% · 방어율 무시 ${Math.round(know2Power().ied*100)}%</div>`:""}
-      <div><i>📜 지혜의 힘</i>받는 피해 -${Math.round(K.armor*100)}% · 대기 시간 -${Math.round(K.cd*100)}% <small>(말 ${Math.round(K.wr*100)}% 익힘)</small></div>
+      <div><i>📜 지혜의 힘</i>받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}% <small>(말 ${Math.round(K.wr*100)}% 익힘)</small></div>
       <div><i>🔖 한자 룬</i>${L.length?L.map(h=>{ const [k,v]=engVal(h); return `${h} ${F(k,v)}` }).join(" · "):"아직 없어요"}${cb.length?`<br>✨ ${cb.map(c=>c[2]).join(", ")}`:""}</div>
       <div><i>🃏 보스 카드</i>${Object.keys(CB).length?Object.entries(CB).map(([k,v])=>F(k,v)).join(" · "):"아직 없어요"}</div>
       ${g.conf?`<div class="bad"><i>😵 혼란 ${g.conf}</i>공격력 -${Math.round(CONF_V*100*g.conf)}% · 받는 피해 +${Math.round(CONF_V*100*g.conf)}% (문제를 맞히면 풀려요)</div>`:""}
@@ -2195,7 +2202,8 @@ function startGame(opts){ opts=opts||{};
       if(ok){
         stamp("부활!");
         sfx("revive"); setTimeout(()=>{ g.p.dead=false; g.p.hp=st().maxHp*.6; g.p.inv=2;
-          g.en.forEach(e=>{const dx=e.x-g.p.x,dy=e.y-g.p.y,d=Math.hypot(dx,dy)||1; if(d<260){ if(e.type!=="boss") hurt(e,9999); else {ccP(e,dx/d*200,dy/d*200)} }});
+          { let nk=0; for(const e of g.en.slice()){ if(e.hp<=0) continue; const dx=e.x-g.p.x,dy=e.y-g.p.y,d=Math.hypot(dx,dy)||1; if(d<260){ if(e.type!=="boss"){ if(NM==="client") hurt(e,9999); else { e.hp=0; e._quiet=1; kill(e) } nk++ } else {ccP(e,dx/d*200,dy/d*200)} } }   /* 렉 고침 (2026-10-26 태블릿 멈춤): 부활 폭발은 조용히 한 번에 (숫자·소리·연기 몬스터마다 안 만들어요) */
+            if(nk) g.fx.push({k:"label",x:g.p.x,y:g.p.y-70,text:`💥 부활 폭발! ${nk}마리`,life:1.4,max:1.4}); sfx("kill") }
           g.fx.push({k:"ring",x:g.p.x,y:g.p.y,life:.6,max:.6});
           modal.hidden=true; g.paused=false; last=performance.now(); },900);
       } else { b.classList.add("no"); addWrong(c.h); setTimeout(()=>NM?down():finish(false),1500) }
@@ -2320,8 +2328,10 @@ function startGame(opts){ opts=opts||{};
     if(NM!=="client"&&!BX){
     const rate = (2.6 + g.t*.72/8)*(g.bossUp?.5:1)*(BX?1:.8)*MAP.spawn*(NM?1.15+CO.spawn*(nPlayers()-1):1);
     if(g.bossUp&&g.t>=g.nextCrisis) g.nextCrisis=g.t+8;   // 보스전 중에는 몬스터 대습격을 미뤄요
+    if(!NM&&g.p.dead&&g.t>=g.nextCrisis-3) g.nextCrisis=g.t+3;   /* 쓰러져 있는 동안엔 대습격도 미뤄요 */
     if(g.t>=g.nextCrisis){ g.nextCrisis=g.t+(34+Math.random()*10)*(NM?CO.crisis:1); crisis() }
     g.spawnAcc += rate*dt;
+    if(!NM&&g.p.dead) g.spawnAcc=0;   /* 혼자하기: 쓰러져 있는 동안엔 몬스터가 새로 안 생겨요 (부활 문제 푸는 동안 몰려드는 것 막기) */
     while(g.spawnAcc>=1){ g.spawnAcc--; if(g.en.length<(g.bossUp?(NM?280:200):(NM?420:320))){ const r=Math.random(); spawnMob() } }
     stageTick();
     }
@@ -2370,7 +2380,7 @@ function startGame(opts){ opts=opts||{};
     if(!(g.sealT>g.t)) updateSkills(dt);
     if(aura && cd("aura",.5)) g.en.forEach(e=>{ if((e.x-P.x)**2+(e.y-P.y)**2<(aura.r+e.r)**2) hurt(e,aura.dmg*lvScale) });
     // 직업 기본 공격
-    const SH0=g.shots.length, MSLOW={gun:1,charm:1,star:1,moon:1,brush:1}, S1F=!BX&&HERO.main.kind!=="sword"?1.25:1;   /* 시즌 1: 기본 공격 조금 느리게 · 그만큼 세게 (렉 줄이기) */   /* 보스맵: 빨리 쏘는 기본 공격은 반 속도 · 2배 피해 (렉 줄이기) */
+    const SH0=g.shots.length, MSLOW={gun:1,charm:1,star:1,moon:1,brush:1,arrow:1}, S1F=!BX&&HERO.main.kind!=="sword"?1.25:1;   /* 시즌 1: 기본 공격 조금 느리게 · 그만큼 세게 (렉 줄이기) */   /* 보스맵: 빨리 쏘는 기본 공격은 반 속도 · 2배 피해 (렉 줄이기) */
     let farOK=true; if(BX){ const t0=near(P.x,P.y,1)[0]; if(t0&&Math.hypot(t0.x-P.x,t0.y-P.y)>BRNG()+(t0.r||0)){ farOK=false; g.farT=g.t } }   /* 보스맵: 사거리 밖이면 기본 공격을 멈춰요 */
     if(lv("main")&&farOK){
       const L=lv("main"), K=HERO.main.kind;
@@ -2388,7 +2398,7 @@ function startGame(opts){ opts=opts||{};
           const hs=new Set(); g.en.forEach(e=>{ const dx=e.x-P.x, dy=e.y-P.y, d=Math.hypot(dx,dy); if(d<R+e.r){ let q=Math.atan2(dy,dx)-ang; q=Math.atan2(Math.sin(q),Math.cos(q)); if(Math.abs(q)<arc/2||d<P.r+e.r+10) hs.add(e) } });
           g.shots.push({k:"swave",x:P.x+Math.cos(ang)*34,y:P.y+Math.sin(ang)*34,vx:Math.cos(ang)*640,vy:Math.sin(ang)*640,dmg:dmg*.8,pierce:99,life:.62,hit:hs,rad:34,kb:16}) }
       }
-      if(K==="arrow" && cd("main",(.24-.012*L)*S1F)){   // 궁수: 쉬지 않고 쭉 쏘는 속사 · 꿰뚫어요
+      if(K==="arrow" && cd("main",(.24-.012*L)*(BX&&MSLOW[K]?2:S1F))){   // 궁수: 쉬지 않고 쭉 쏘는 속사 · 꿰뚫어요
         const t0=near(P.x,P.y,1)[0];
         if(t0){ const a=Math.atan2(t0.y-P.y,t0.x-P.x); sfx(HERO.main.kind); g.atk={t:g.t,a}; g.qv=(g.qv||0)+1; const bomb=F.quiver&&g.qv%6===0, n0=1+(L>=3?1:0)+(L>=5?1:0), n=BX?1:n0, nk=BX?n0:1, nx=-Math.sin(a), ny=Math.cos(a);   /* 보스맵: 화살 1발에 여러 발 피해를 담아요 (렉 줄이기) */
           for(let i=0;i<n;i++){ const o=(i-(n-1)/2)*12; g.shots.push({k:"arrow",x:P.x+nx*o,y:P.y+ny*o,vx:Math.cos(a)*820,vy:Math.sin(a)*820,dmg:(8+2.8*L)*nk,pierce:2+L+pierceAdd,life:1.2,hit:new Set(),boom:bomb?60:0,glow:bomb||L>=4}) } }

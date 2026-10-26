@@ -37,6 +37,10 @@ const SND = (()=>{
 
   let gemN=0, gemT=0;
   const LIB={
+    /* 레이저 (2026-10-26): 위잉→ 쭈아앙 하고 길게 뻗는 빔 소리 */
+    laser(){ tone({f:1900,f2:180,d:.5,v:.13,type:"sawtooth",lp:3200,lp2:900}); tone({f:2400,f2:260,d:.42,v:.07,type:"square",det:12,lp:2600}); tone({f:95,d:.7,v:.16,type:"sine",vib:22,vibd:14}); tone({f:190,d:.6,v:.07,type:"triangle",vib:30,vibd:10}); noise({type:"highpass",f:3500,f2:1200,d:.35,v:.09,a:.01}); boom(.12,0,.8) },
+    laser2(){ tone({f:2200,f2:500,d:.28,v:.09,type:"sawtooth",lp:3400}); tone({f:130,d:.35,v:.1,type:"sine",vib:26,vibd:10}); noise({type:"highpass",f:4200,f2:1800,d:.2,v:.06,a:.01}) },
+    lockon(){ tone({f:520,f2:1700,d:.22,v:.09,type:"sine",vib:14,vibd:30}); tone({f:1700,d:.08,v:.07,type:"square",at:.22,lp:4000}); tone({f:1700,d:.08,v:.07,type:"square",at:.33,lp:4000}) },
     /* 화면 */
     tap:()=>{ tone({f:1250,f2:900,d:.035,type:"triangle",v:.12}); tone({f:2500,d:.02,type:"sine",v:.04}) },
     flip:()=>{ noise({type:"highpass",f:1500,f2:5000,d:.09,v:.12,a:.02}); tone({f:700,f2:1100,d:.06,type:"sine",v:.06}) },
@@ -118,7 +122,7 @@ const SND = (()=>{
     ship:()=>{ noise({type:"bandpass",f:200,f2:3000,d:.45,v:.2,a:.3,q:2}); [73,110,147].forEach((f,i)=>tone({f,f2:f*1.5,d:.8,type:"sawtooth",v:.07,lp:500,lp2:3000,a:.25,det:i*7}));
       boom(.35,.35,.7); noise({f:3000,f2:200,d:1.3,v:.22,a:.02,at:.35}); tone({f:55,f2:40,d:1.2,type:"sine",v:.3,at:.35}); swish(.25,.6,.5); swish(.2,.9,.4) },
   };
-  const GAP={moon:.05,brush:.06,charm:.05,punch:.06,thunder:.05,hit:.045,kill:.035,gem:.03,crit:.08,boom:.06,hurt:.12,cannon:.05,markpop:.05,sword:.06,arrow:.05,star:.05,gun:.05,fireball:.08,phoenix:.25,ifrit:.25,lava:.4,stroke:.05,tap:.07,meteor:.08};
+  const GAP={laser:.08,laser2:.06,lockon:.15,moon:.05,brush:.06,charm:.05,punch:.06,thunder:.05,hit:.045,kill:.035,gem:.03,crit:.08,boom:.06,hurt:.12,cannon:.05,markpop:.05,sword:.06,arrow:.05,star:.05,gun:.05,fireball:.08,phoenix:.25,ifrit:.25,lava:.4,stroke:.05,tap:.07,meteor:.08};
   function play(name){
     if(typeof P==="undefined"||!P||(P.set&&P.set.sfx===false)) return;
     const a=init(); if(!a||a.state!=="running"&&name!=="tap") { if(a&&a.state==="suspended") a.resume(); if(!a||a.state!=="running") return }

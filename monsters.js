@@ -1682,7 +1682,12 @@ function B11Make(A){
   const inCone=(P,x,y,a,r,h)=>{ const dx=P.x-x, dy=P.y-y, d=Math.hypot(dx,dy); if(d>r+P.r) return false; let da=Math.atan2(dy,dx)-a; da=Math.atan2(Math.sin(da),Math.cos(da)); return Math.abs(da)<h||d<40 };
   const edgeLen=(x,y,a)=>{ let best=3000; const c=Math.cos(a), s=Math.sin(a); if(c>1e-4) best=Math.min(best,(AR.hw-x)/c); if(c<-1e-4) best=Math.min(best,(-AR.hw-x)/c); if(s>1e-4) best=Math.min(best,(AR.hh-y)/s); if(s<-1e-4) best=Math.min(best,(-AR.hh-y)/s); return Math.max(60,best+40) };
 
-  function patTick(dt){ const P=me(), now=g.t;
+  function trackTick(dt){ for(const p of S.pats){ if(!p.trk||p.done) continue; const tt=g.t-p.t0, e=boss(); if(!e||tt>=p.w) continue;
+      const lk=(p.lock||.5)*(p.w/((p.w0)||p.w)); if(tt>=p.w-lk){ if(!p.locked){ p.locked=1; p.lockT=g.t; A.sfx("lockon") } continue }   /* 마지막 순간: 방향 고정 */
+      const me2=A.myId(), Q=p.trk===me2?g.p:A.team().find(q=>q.id===p.trk); if(!Q) continue;
+      const want=Math.atan2(Q.y-e.y,Q.x-e.x); let d=((want-p.a+Math.PI*3)%(Math.PI*2))-Math.PI; const mx=2.6*dt; d=Math.max(-mx,Math.min(mx,d)); p.a+=d;   /* 너무 빨리 돌지 않게 (초당 약 150도) */
+      const bk=edgeLen(e.x,e.y,p.a+Math.PI); p.x=e.x-Math.cos(p.a)*bk; p.y=e.y-Math.sin(p.a)*bk; p.len=bk+edgeLen(e.x,e.y,p.a); if(p.bb){ p.ox=p.x-e.x; p.oy=p.y-e.y } } }
+  function patTick(dt){ trackTick(dt); const P=me(), now=g.t;
     { const e=boss(), TP=S.pats.some(q=>q.vis==="tele"&&!q.done); if(e&&TP) for(const p of S.pats){ if(!p.bb||now-p.t0>=(p.w||0)) continue; if(Math.hypot(e.x-p.x,e.y-p.y)>150) p.done=1 } }   /* 보스 몸에서 나가는 공격: 자리는 고정 · 보스가 순간이동해 버리면 취소 */
     for(const p of S.pats){ const t=now-p.t0, w=p.w||0;
       if(p.k==="cone"){ if(t>=w&&t<w+.15&&inCone(P,p.x,p.y,p.a,p.r,p.h)) hitMe(p,0); if(t>w+.5) p.done=1 }
@@ -1707,7 +1712,7 @@ function B11Make(A){
   /* 패턴이 터지는 순간의 효과 (모든 화면) */
   function onFire(p){ const fx=A.fxp;
     if(p.k==="cone"){ A.sfx("slash"); g.shake=Math.max(g.shake,.12) }
-    else if(p.k==="line"){ A.sfx(p.vis==="laser"?"thunder":"slash"); g.shake=Math.max(g.shake,p.vis==="laser"?.35:.15) }
+    else if(p.k==="line"){ A.sfx(p.vis==="laser"?"laser":p.vis==="cross"||p.vis==="shard"?"laser2":"slash"); g.shake=Math.max(g.shake,p.vis==="laser"?.35:.15) }
     else if(p.k==="rays"){ A.sfx("thunder"); g.shake=Math.max(g.shake,.35) }
     else if(p.k==="circ"){ if(p.vis==="moonorb"){ A.sfx("hit") } else { A.sfx(p.vis==="orb"||p.vis==="mflame"?"boom":"quake"); g.shake=Math.max(g.shake,p.vis==="pillar"||p.vis==="flame"?.22:.12) } }
     else if(p.k==="grid"||p.k==="safe"){ A.sfx("boom"); g.shake=Math.max(g.shake,.45); if(p.k==="safe"||p.out) fx({k:"flash",col:"#2a0a4a",life:.5,max:.5}) }
@@ -1820,9 +1825,9 @@ function B11Make(A){
     if(S.eightN=(S.eightN||0)+1, S.eightN>1){ act(e,w+1.5); pat({k:"rays",big:1,x:e.x,y:e.y,n,a0:a0+Math.PI/n,len:1500,wd:54,w:w+.9,d:D()*1.5,g:22,vis:n===8?"eight":"twelve"}) } }
 
   /* ===== 2페이즈 고유 ===== */
-  function pierce(e,T){ const a=Math.atan2(T.y-e.y,T.x-e.x), w=[1.7,1.5,1.3][HARD]; face(e,T.x); act(e,w+.6);   /* 흑월 관통(바인드 레이저): 이지 1.7초 · 노멀 1.5초 · 하드 1.3초 */
+  function pierce(e,T){ const a=Math.atan2(T.y-e.y,T.x-e.x), w=[2.0,1.8,1.55][HARD], lock=[.6,.5,.45][HARD], tid=T===g.p?A.myId():(T.id||null);   /* 2026-10-26: 예고 동안 캐릭터를 따라 돌다가 마지막에 고정 → 그때 옆으로 피해요 */ face(e,T.x); act(e,w+.6);   /* 흑월 관통(바인드 레이저): 이지 1.7초 · 노멀 1.5초 · 하드 1.3초 */
     const bk=edgeLen(e.x,e.y,a+Math.PI);   /* 맵 끝에서 끝까지 (보스 가운데를 지나요) */
-    pat({k:"line",big:1,x:e.x-Math.cos(a)*bk,y:e.y-Math.sin(a)*bk,a,len:bk+edgeLen(e.x,e.y,a),wd:110,w,dur:.4,d:D()*1.6,g:30,st:1.5,bind:1,an:"pierce",fa:e.f,vis:"laser",say:"🌑 흑월 관통! 마름모 3개가 차면 레이저 · 맞으면 1.5초 묶여요!",snd:"alarm"}) }
+    pat({k:"line",big:1,x:e.x-Math.cos(a)*bk,y:e.y-Math.sin(a)*bk,a,len:bk+edgeLen(e.x,e.y,a),wd:110,w,dur:.4,d:D()*1.6,g:30,st:1.5,bind:1,an:"pierce",fa:e.f,vis:"laser",trk:tid,lock,say:"🌑 흑월 관통! 마름모 3개가 차면 레이저 · 맞으면 1.5초 묶여요!",snd:"alarm"}) }
   function combo(e,T){ face(e,T.x); act(e,5.0); let x=e.x, y=e.y; const parts=[];
     A.say("🔥 흑염 삼연참! 돌진 2번 뒤 긴 베기가 와요","alarm");
     const mk=(t0,tx,ty,kind)=>{ const a=Math.atan2(ty-y,tx-x), len=kind===2?edgeLen(x,y,a):Math.min(edgeLen(x,y,a)-60,430), wd=kind===2?120:96;
@@ -1956,7 +1961,7 @@ function B11Make(A){
   /* ===== 매 프레임 (모두) ===== */
   function tick(dt){ if(S.kbv){ const P=me(), f=Math.min(1,dt/Math.max(.001,S.kbv.t)), m=S.kbv.left*f*(2-f); P.x+=Math.cos(S.kbv.a)*m; P.y+=Math.sin(S.kbv.a)*m; clampP(P); S.kbv.left-=m; S.kbv.t-=dt; if(S.kbv.t<=0||S.kbv.left<=.5) S.kbv=null }   /* 부드럽게 밀려나기 (돌진 넉백) */
     { const cc=!!(S.intro||S.ph===1||S.deathT||S.sphere); if(S._cc&&!cc) S.cineEnd=g.t+1.8; S._cc=cc; g.cine=cc||g.t<(S.cineEnd||0) }   /* 등장·각성·시간대가 바뀐 뒤 1.8초는 서로 쉬어요 (보스가 모습을 다 갖춘 뒤 싸움 시작) */   /* 시간대가 넘어가는 동안(어둠의 권능)도 서로 공격을 멈춰요 */ if(!host()){ schedTick(); for(const w of S.wolves){ if(w.tx2!==undefined){ w.x+=(w.tx2-w.x)*Math.min(1,dt*10); w.y+=(w.ty2-w.y)*Math.min(1,dt*10) } } }
-    if(!S.placed){ S.placed=1; g.p.y=150+rnd(-30,30); g.p.x=rnd(-120,120) }
+    if(!S.placed){ S.placed=1; const LB=(NM&&typeof NET!=="undefined"&&NET.lobby)||[], i=Math.max(0,LB.findIndex(q=>q.id===NET.myId)), n=Math.max(1,LB.length); g.p.y=150+(n>1?(i%2?40:-20):rnd(-30,30)); g.p.x=n>1?(-180+360*(i/(n-1))):rnd(-120,120) }   /* 같이하기: 친구마다 옆으로 나란히 서요 */
     clampP(g.p); patTick(dt); gaugeTick(dt);
     if(g.pstun>0) g.pstun-=dt }
 
@@ -2121,6 +2126,8 @@ function B11Make(A){
       else if(p.k==="line"&&pre&&p.vis==="laser"&&IMG("laser")){ const im=todTint(IMG("laser")), hh=p.wd*1.25, seg=hh*im.width/im.height; c.save(); c.translate(p.x,p.y); c.rotate(p.a);
         c.fillStyle=`rgba(40,0,50,${.25+.2*q})`; c.fillRect(0,-p.wd/2,p.len,p.wd); c.globalCompositeOperation="lighter"; const fl=tt>w-.35?(Math.sin(tt*40)>0?1:.5):1;
         c.globalAlpha=Math.min(.8,.3+q*.65)*fl; for(let x=0;x<p.len;x+=seg*.96) c.drawImage(im,x-((t*90)%(seg*.08)),-hh/2,seg,hh);
+        if(p.trk){ if(p.locked){ const k2=Math.min(1,(g.t-(p.lockT||g.t))/.12); c.globalAlpha=(1-k2*.5)*(.6+.4*Math.sin(t*30)); c.strokeStyle="#ffffff"; c.lineWidth=4; c.beginPath(); c.moveTo(0,-p.wd/2); c.lineTo(p.len,-p.wd/2); c.moveTo(0,p.wd/2); c.lineTo(p.len,p.wd/2); c.stroke() }   /* 고정! 하얀 테두리가 번쩍 → 지금 옆으로 */
+          else { c.globalAlpha=.35; c.setLineDash([18,14]); c.strokeStyle="rgba(255,180,255,.9)"; c.lineWidth=2; c.beginPath(); c.moveTo(0,-p.wd/2); c.lineTo(p.len,-p.wd/2); c.moveTo(0,p.wd/2); c.lineTo(p.len,p.wd/2); c.stroke(); c.setLineDash([]) } }   /* 따라오는 중: 점선 테두리 */
         if(tt>w-.35){ c.globalAlpha=.5*(1-(w-tt)/.35); c.fillStyle="#fff"; c.fillRect(0,-p.wd*.12,p.len,p.wd*.24) } c.globalCompositeOperation="source-over"; c.globalAlpha=1;
         c.restore(); pierceGems(c,p,q,t) }
       else if(p.k==="line"&&pre){ const rk=LRK.has(p)?LRK.get(p):-1, many=LRK.size>1&&[...LRK.values()].some(v=>v>0); c.save(); if(many&&rk>=0) c.globalAlpha=LAL(rk); wLine(c,p.x,p.y,p.a,p.len,p.wd,q,t,p.burn||p.vis==="redline"?1:0,p.vis==="cross"?"xbeam":p.vis==="shard"?"beam":p.vis==="redline"?"red":"band"); c.restore(); if(rk===0) LCORE(p.x,p.y,p.a,p.len,p.wd,w-tt);
