@@ -1,3 +1,7 @@
+/* 둥근 빛(방사형 그라데이션)을 색마다 한 번만 그려 두고 다시 써요 (렉 줄이기 2026-10-26: 매 장면 새로 계산하지 않게 · 모양·색은 그대로)
+   stops: [[위치,"rgba(...)"],...] · 원 지름 128px 그림을 원하는 크기(타원)로 늘려 붙여요 */
+const RAD_C={}; function radSpr(stops,r0f){ const k=JSON.stringify(stops)+(r0f||0); let cv=RAD_C[k]; if(cv) return cv; cv=document.createElement("canvas"); cv.width=cv.height=128; const x=cv.getContext("2d"), g=x.createRadialGradient(64,64,64*(r0f||0),64,64,64); for(const [p,c] of stops) g.addColorStop(p,c); x.fillStyle=g; x.beginPath(); x.arc(64,64,64,0,7); x.fill(); const ks=Object.keys(RAD_C); if(ks.length>80) delete RAD_C[ks[0]]; return RAD_C[k]=cv }
+function radDraw(ctx,stops,cx,cy,rx,ry,r0f){ ctx.drawImage(radSpr(stops,r0f),cx-rx,cy-ry,rx*2,ry*2) }
 /* ===== 맵별 몬스터와 보스 (우리 앱만의 몬스터) ===== */
 const SIZE = { small:{r:9,hp:7,sp:110,dmg:5,xp:1}, normal:{r:13,hp:12,sp:62,dmg:6,xp:1}, fast:{r:11,hp:10,sp:98,dmg:6,xp:1},
   tough:{r:16,hp:30,sp:55,dmg:9,xp:2}, big:{r:24,hp:75,sp:44,dmg:12,xp:4} };
@@ -424,12 +428,12 @@ const BOSS_COL={8:["170,235,255","#3a7ab0"],9:["255,220,120","#9a7a2a"],10:["190
 function bossTier(e){ const B=typeof BOSSES!=="undefined"&&BOSSES[e.bid]; return B&&B.tier!==undefined?B.tier:3 }
 function bossUnder(ctx,e,t){ const tier=bossTier(e), r=e.r, [cl]=BOSS_COL[e.mapId]||BOSS_COL[5], gx=e.x, gy=e.y+r*.9;
   ctx.save(); ctx.globalCompositeOperation="lighter";
-  const R=r*(1.5+tier*.35); const ag=ctx.createRadialGradient(gx,e.y,r*.2,gx,e.y,R); ag.addColorStop(0,`rgba(${cl},${.22+tier*.07})`); ag.addColorStop(1,`rgba(${cl},0)`); ctx.fillStyle=ag; ctx.beginPath(); ctx.arc(gx,e.y,R,0,7); ctx.fill();
+  const R=r*(1.5+tier*.35); radDraw(ctx,[[0,`rgba(${cl},${(.22+tier*.07).toFixed(2)})`],[1,`rgba(${cl},0)`]],gx,e.y,R,R,r*.2/R);   /* 미리 그린 빛 */
   if(tier>=1){ const rx=r*(1.25+tier*.22), ry=rx*.36, rot=t*(.6+tier*.2); ctx.strokeStyle=`rgba(${cl},.75)`; ctx.lineWidth=2;
     ctx.beginPath(); ctx.ellipse(gx,gy,rx,ry,0,0,7); ctx.stroke(); ctx.lineWidth=1.2; ctx.beginPath(); ctx.ellipse(gx,gy,rx*.82,ry*.82,0,0,7); ctx.stroke();
     for(let i=0;i<12;i++){ const a=rot+i*Math.PI/6, x1=gx+Math.cos(a)*rx*.84, y1=gy+Math.sin(a)*ry*.84, x2=gx+Math.cos(a)*rx*.98, y2=gy+Math.sin(a)*ry*.98; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke() }
     if(tier>=2){ ctx.lineWidth=1.6; for(let k=0;k<2;k++){ ctx.beginPath(); for(let i=0;i<=3;i++){ const a=-rot*1.3+k*Math.PI/3+i*Math.PI*2/3; const x=gx+Math.cos(a)*rx*.8, y=gy+Math.sin(a)*ry*.8; i?ctx.lineTo(x,y):ctx.moveTo(x,y) } ctx.stroke() } } }
-  if(tier>=2){ for(let i=0;i<14;i++){ const ph=(t*.8+i/14)%1, a=i*2.39+t*.3, x=gx+Math.cos(a)*r*(.9+tier*.15), y=gy+Math.sin(a)*r*.3-ph*r*(1.6+tier*.3);
+  if(tier>=2){ for(let i=0,nP=window.__fxLow?7:14;i<nP;i++){ const ph=(t*.8+i/14)%1, a=i*2.39+t*.3, x=gx+Math.cos(a)*r*(.9+tier*.15), y=gy+Math.sin(a)*r*.3-ph*r*(1.6+tier*.3);
       ctx.fillStyle=`rgba(${cl},${(1-ph)*.9})`; ctx.beginPath(); ctx.ellipse(x,y,r*.05*(1-ph)+1.2,r*.12*(1-ph)+2,0,0,7); ctx.fill() } }
   if(tier>=3){ const pg=ctx.createLinearGradient(gx,gy-r*4,gx,gy); pg.addColorStop(0,`rgba(${cl},0)`); pg.addColorStop(1,`rgba(${cl},.22)`); ctx.fillStyle=pg; ctx.beginPath(); ctx.moveTo(gx-r*1.1,gy); ctx.lineTo(gx-r*.5,gy-r*4); ctx.lineTo(gx+r*.5,gy-r*4); ctx.lineTo(gx+r*1.1,gy); ctx.closePath(); ctx.fill();
     if(Math.sin(t*4.3+e.wob)>.8){ ctx.strokeStyle=`rgba(${cl},.9)`; ctx.lineWidth=2; for(let k=0;k<2;k++){ let x=gx+(k?1:-1)*r*1.6, y=gy; ctx.beginPath(); ctx.moveTo(x,y); for(let i=0;i<6;i++){ x+=(k?-1:1)*r*.12+Math.sin(t*60+i*7+k)*r*.15; y-=r*.32; ctx.lineTo(x,y) } ctx.stroke() } } }
@@ -1647,7 +1651,7 @@ function B11Make(A){
       for(const q of S.pats){ if(q.done||!STG[q.k]||!(q.d>0)) continue; const LZ=LAS(p)&&LAS(q); if(q.t0===g.t&&!LZ) continue; const GP=LZ?[.85,.7,.58][HARD]:.55, h2=q.t0+(q.w||0); if(Math.abs(h2-h)<GP){ w=Math.max(w,h2+GP-p.t0); moved=true } }   /* 레이저끼리는 차례로 터져요 (이지 0.85초 · 노멀 0.7초 · 하드 0.58초 간격) */
       if(!moved) break } return w }
   function myQ(p){ const all=[[p.x,p.y],...(p.dec||[])]; const mi=p.qm&&A.myId?p.qm[A.myId()]:null; if(mi) return {h:mi[0],i:mi[1],x:all[mi[1]][0],y:all[mi[1]][1],lab:p.ql[mi[1]]}; return {h:p.qh,i:0,x:p.x,y:p.y,lab:p.ql?p.ql[0]:""} }
-  const bigOn=()=>S.pats.some(p=>p.big&&!p.done&&g.t<p.t0+(p.w||0)+(p.k==="crown"?2.4:.4));
+  const bigOn=()=>S.pats.some(p=>p.big&&!p.done&&g.t<p.t0+(p.w||0)+(p.k==="crown"?1.6:.4));
   const exclOn=()=>!!S.sphere||S.pats.some(p=>(p.excl||p.k==="safe")&&!p.done&&g.t<p.t0+(p.w||0)+.5);   /* 한자 기둥·암흑 낙인 중엔 다른 패턴 모두 멈춤 */
   const SL=()=>{ const T=tod(); return T&&T.sl?T.sl:1 };   /* 시간대 빠르기: 정오(밝음) 느리게 · 자정(어둠) 빠르게 */
   function todMix(){ if(S.ph!==2) return 0; const T=B11_TOD[S.tod], len=T.len+(T.k==="noon"?(S.noonBonusUsed||0):0), left=S.todT0+len-g.t; const r=left>0?(left<6?(6-left)/6*.3:0):Math.min(1,.3+.7*(-left)/6.4); return r*r*(3-2*r) }   /* 부드럽게 (처음과 끝이 느리게) */
@@ -1667,7 +1671,7 @@ function B11Make(A){
     if(p.st&&g.t>S.stImm){ stunMe(p.st) }
     if(p.kb){ let a=p.kbA!==undefined?p.kbA:Math.atan2(P.y-(p.y||0),P.x-(p.x||0));
       if(p.kbSide){ const side=Math.sign(Math.cos(p.a)*(P.y-p.y)-Math.sin(p.a)*(P.x-p.x))||1; a=p.a+side*Math.PI/2-side*.35 }   /* 돌진: 돌진 길 바깥쪽(내가 있던 쪽)으로 살짝 앞으로 튕겨 나가요 */
-      if(p.kbS){ S.kbv={a,left:p.kb,t:.22} } else { P.x+=Math.cos(a)*p.kb; P.y+=Math.sin(a)*p.kb; clampP(P) } }
+      if(p.kbS){ S.kbv={a,v:p.kb*5.2,t:.55,d:0}; g.shake=Math.max(g.shake,.25) } else { P.x+=Math.cos(a)*p.kb; P.y+=Math.sin(a)*p.kb; clampP(P) } }
     if(p.burn){ g.healBlk=g.t+3; A.fxp({k:"label",x:P.x,y:P.y-70,text:"🔥 화상! 회복 막힘",life:1.2,max:1.2}) }
     if(p.seal){ g.sealT=g.t+3; A.fxp({k:"label",x:P.x,y:P.y-70,text:"🔒 3초 동안 기술 봉인",life:1.3,max:1.3}) }
     if(p.slow){ g.pslow=Math.max(g.pslow||0,p.slow) }
@@ -1800,7 +1804,7 @@ function B11Make(A){
       if(!BIG&&S.timers.combo<=0){ S.timers.combo=14; S.timers.act=5.2; combo(e,T); return true }
       if(!BIG&&S.timers.meteor<=0){ S.timers.meteor=12; S.timers.act=1.6; meteors(e); return true } }
     if(k==="noon"){ if(S.timers.wave<=0){ S.timers.wave=4; S.timers.act=1.4; sunwave(e); return true } }
-    if(k==="dusk"){ if(!BIG&&S.timers.rise<=0){ S.timers.rise=13; S.timers.act=2.6; wolfrise(e,T); return true } }
+    if(k==="dusk"){ if(!BIG&&S.timers.rise<=0){ S.timers.rise=11; S.timers.act=1.9; wolfrise(e,T); return true } }
     if(d<200&&S.timers.thrust<=0){ S.timers.thrust=1.8; S.timers.act=1.1; thrust(e,ang); return true }
     if(d>=170&&S.timers.slash<=0){ S.timers.slash=k==="noon"?7:5.5; S.timers.act=1.8; slash(e,ang); return true }   /* 검기를 더 자주 (2026-10-26) · 대신 돌진은 조금 덜 */
     if(d>=200&&d<470&&S.timers.dash<=0){ S.timers.dash=k==="noon"?28:24; S.timers.act=1.6; dash(e,T); return true }
@@ -1810,7 +1814,7 @@ function B11Make(A){
   function tele(e,T){ const a=Math.random()*TAU, r=120+Math.random()*60, x=clamp(T.x+Math.cos(a)*r,-AR.hw+80,AR.hw-80), y=clamp(T.y+Math.sin(a)*r*.75,-AR.hh+80,AR.hh-80), w=1.05;
     act(e,w*TW+.75); const p=pat({k:"circ",x,y,r:150,w,d:D()*1.2,g:12,vis:"tele",ox:Math.round(e.x),oy:Math.round(e.y),say:"🌑 검귀가 그림자로 사라졌어요! 나타나는 원을 피해요",snd:"alarm"});
     sched(p.w-.08,()=>{ const e2=boss(); if(!e2||S.deathT||e2.an==="groggy"||!S.pats.includes(p)||g.t-(S.groLast||-9)<4) return; e2.dashTo=null; e2.x=x; e2.y=y; face(e2,target(e2).x); g.shake=Math.max(g.shake,.25) }) }
-  function thrust(e,a){ face(e,e.x+Math.cos(a)); const w=[.85,.75,.65][HARD];   /* 찌르기: 아이들도 피할 수 있게 경고 시간 넉넉히 */ act(e,w+.45); pat({k:"cone",x:e.x,y:e.y,a,r:215,h:.5,w,d:D()*1,g:12,an:"thrust",fa:e.f}) }
+  function thrust(e,a){ face(e,e.x+Math.cos(a)); const w=[.6,.52,.45][HARD];   /* 2026-10-26: 찌르기 더 빠르게 (전 .85/.75/.65) */   /* 찌르기: 아이들도 피할 수 있게 경고 시간 넉넉히 */ act(e,w+.3); pat({k:"cone",x:e.x,y:e.y,a,r:215,h:.5,w,d:D()*1,g:12,an:"thrust",fa:e.f}) }
   function dash(e,T,k){ k=k||0; const a=Math.atan2(T.y-e.y,T.x-e.x), len=Math.min(edgeLen(e.x,e.y,a)-60,520), w=k?[.75,.68,.62][HARD]:[.95,.85,.8][HARD];   /* 돌진: 난이도별 경고 시간 */ face(e,T.x); act(e,w+.55+(k>=HARD?.9:0));   /* 마지막 돌진 뒤엔 잠깐 멈춰서 숨 고르기 (스킬이 맞게) */
     const Tn=tod(), PD=pat({k:"line",x:e.x,y:e.y,a,len,wd:96,w,dur:.3,d:D()*1.3,g:Tn&&Tn.k==="mid"?40:16,kb:170,kbS:1,kbSide:1,an:"dash",fa:e.f,vis:"dash"}), WW=PD.w; if(k<HARD) sched(WW+.42,()=>{ const e2=boss(); if(e2&&!S.sphere&&e2.an!=="groggy"&&!S.deathT) dash(e2,target(e2),k+1) });
     const x1=clamp(e.x+Math.cos(a)*len,-AR.hw+60,AR.hw-60), y1=clamp(e.y+Math.sin(a)*len,-AR.hh+60,AR.hh-60); sched(WW,()=>{ e.dashTo={x0:e.x,y0:e.y,x1,y1,t0:g.t,d:.3} }) }
@@ -1839,7 +1843,7 @@ function B11Make(A){
   function meteors(e){ const L=A.team(); const n=(S.wallOn?3:5)+HARD*2; act(e,1.4); pat({k:"fx",life:1.4,an:"raise8",say:"☄ 흑염 유성! 큰 원을 피해요 (맞으면 3초 기술 봉인)",snd:"alarm"});
     for(let i=0;i<n;i++){ const q=L[i%L.length]||g.p, x=clamp(q.x+rnd(-260,260),-AR.hw+40,AR.hw-40), y=clamp(q.y+rnd(-200,200),-AR.hh+40,AR.hh-40); pat({k:"circ",big:1,x,y,r:90,w:2.2+i*.25,d:D()*1.1,g:10,seal:1,vis:"meteor"}) } }
   function sunwave(e){ act(e,1.3); pat({k:"ring",x:e.x,y:e.y,R:420,v:520,w:.8,d:D()*.5,g:0,kb:150,an:"plant",fa:e.f,vis:"sun"}) }
-  function wolfrise(e,T){ const a=Math.atan2(T.y-e.y,T.x-e.x); act(e,1.9); pat({k:"crown",big:1,x:e.x,y:e.y,a,n:6,step:120,gap:[.24,.2,.17][HARD],r:95,w:[.8,.7,.6][HARD],d:D()*1.1,g:16,slow:2,an:"plant",fa:T.x>=e.x?1:-1,say:"🐺 월령 기상! 왕관 문양을 따라 늑대 기둥이 솟아요",snd:"alarm"}) }
+  function wolfrise(e,T){ const a=Math.atan2(T.y-e.y,T.x-e.x); act(e,1.35); pat({k:"crown",big:1,x:e.x,y:e.y,a,n:6,step:120,gap:[.15,.13,.11][HARD],r:95,w:[.62,.55,.48][HARD],d:D()*1.1,g:16,slow:2,an:"plant",fa:T.x>=e.x?1:-1,say:"🐺 월령 기상! 왕관 문양을 따라 늑대 기둥이 솟아요",snd:"alarm"}) }
 
   /* ===== 맵 패턴 ===== */
   function mapPatterns(dt,e){ const L=A.team(); const T=S.timers;
@@ -1929,13 +1933,13 @@ function B11Make(A){
 
   /* ===== 1페이즈 처치 → 2페이즈 / 2페이즈 처치 → 클리어 ===== */
   function onKill(e){ if(!host()) return true;
-    if(S.ph===0){ e.hp=1; e.b11inv=1; S.ph=1; S.pats=[]; S.wolves=[]; send({s:"clr"}); e.an="kneel"; e.at=g.t; e.actT=g.t+99; S.trans=g.t; send({s:"p1d",t:g.t});
+    if(S.ph===0){ e.hp=1; S.lastHp=1; e.b11inv=1; S.ph=1;   /* 고침: 체력 표시가 직전 값(예: 6%)으로 되돌아가던 문제 */ S.pats=[]; S.wolves=[]; send({s:"clr"}); e.an="kneel"; e.at=g.t; e.actT=g.t+99; S.trans=g.t; send({s:"p1d",t:g.t});
       A.fxp({k:"flash",col:"#ffffff",life:.4,max:.4}); g.shake=.5; A.sfx("win"); A.say("🌑 「어둠은… 아직 끝나지 않았다.」","enrage");
       sched(2.4,()=>{ e.an="sphere"; e.at=g.t; S.sphere={t0:g.t}; A.sfx("alarm") });
       sched(6.4,()=>{ e.max=e.max*S.p2Mul; e.hp=e.max; S.lastHp=e.hp; e.wq=0; e.weakT0=0; S.ph=2; S.sphere=null; e.an="awaken"; e.at=g.t; e.b11inv=0; e.actT=g.t+1.6; S.tod=0; S.todT0=g.t; resetTimers("mid"); S.gauge=Math.min(S.gauge,30);
         e.r=54; S.trans=0; send({s:"p2",tod:0,t0:g.t}); awakenFx(); A.say("🌑 검은 달이 떠올랐어요! 2페이즈 · "+B11_TOD[0].msg,"boss"); sched(1.8,()=>A.freeCard&&A.freeCard()) });
       return true }
-    if(S.ph===2&&!S.deathT){ e.hp=1; e.b11inv=1; S.deathT=g.t; S.pats=[]; S.wolves=[]; S.shield=0; send({s:"die",t:g.t}); e.an="groggy"; e.at=g.t; e.actT=g.t+99; A.fxp({k:"flash",col:"#ffffff",life:.6,max:.6}); g.shake=.8; g.hitstop=.15; A.sfx("win");
+    if(S.ph===2&&!S.deathT){ e.hp=1; S.lastHp=1; e.b11inv=1; S.deathT=g.t; S.pats=[]; S.wolves=[]; S.shield=0; send({s:"die",t:g.t}); e.an="groggy"; e.at=g.t; e.actT=g.t+99; A.fxp({k:"flash",col:"#ffffff",life:.6,max:.6}); g.shake=.8; g.hitstop=.15; A.sfx("win");
       sched(1.2,()=>{ e.an="death"; e.at=g.t; A.sfx("enrage") });
       sched(8.6,()=>{ e.b11inv=0; e.hp=0; A.realKill(e); g.stageN=4; g.bossKills=Math.max(g.bossKills,3); A.say("🏆 군단장 「암흑의 검귀」 격파!","win"); sched(2.4,()=>A.endWin()) });
       return true }
@@ -1961,7 +1965,7 @@ function B11Make(A){
   function todOk(){ S.gauge=0; A.fxp({k:"label",x:me().x,y:me().y-80,text:"☀ 어둠이 걷혔어요! 다음 정오 +3초",life:1.4,max:1.4}); if(host()) S.noonBonus=Math.min(10,S.noonBonus+3); else (A.netOut.b11=A.netOut.b11||[]).push("t") }
 
   /* ===== 매 프레임 (모두) ===== */
-  function tick(dt){ if(S.kbv){ const P=me(), f=Math.min(1,dt/Math.max(.001,S.kbv.t)), m=S.kbv.left*f*(2-f); P.x+=Math.cos(S.kbv.a)*m; P.y+=Math.sin(S.kbv.a)*m; clampP(P); S.kbv.left-=m; S.kbv.t-=dt; if(S.kbv.t<=0||S.kbv.left<=.5) S.kbv=null }   /* 부드럽게 밀려나기 (돌진 넉백) */
+  function tick(dt){ if(S.kbv){ const K=S.kbv, P=me(), m=K.v*dt; P.x+=Math.cos(K.a)*m; P.y+=Math.sin(K.a)*m; clampP(P); K.v*=Math.exp(-dt*5); K.t-=dt; K.d-=dt; if(K.d<=0&&K.v>60){ K.d=.06; A.fxp({k:"dust",x:P.x-Math.cos(K.a)*14,y:P.y+20,life:.45,max:.45}) } if(K.t<=0||K.v<25) S.kbv=null }   /* 밀려나기 (돌진 넉백): 처음엔 확 밀리고 점점 느려지며 미끄러져요 · 발밑에 흙먼지 (2026-10-26 튕기는 느낌 → 밀려나는 느낌) */
     { const cc=!!(S.intro||S.ph===1||S.deathT||S.sphere); if(S._cc&&!cc) S.cineEnd=g.t+1.8; S._cc=cc; g.cine=cc||g.t<(S.cineEnd||0) }   /* 등장·각성·시간대가 바뀐 뒤 1.8초는 서로 쉬어요 (보스가 모습을 다 갖춘 뒤 싸움 시작) */   /* 시간대가 넘어가는 동안(어둠의 권능)도 서로 공격을 멈춰요 */ if(!host()){ schedTick(); for(const w of S.wolves){ if(w.tx2!==undefined){ w.x+=(w.tx2-w.x)*Math.min(1,dt*10); w.y+=(w.ty2-w.y)*Math.min(1,dt*10) } } }
     if(!S.placed){ S.placed=1; const LB=(NM&&typeof NET!=="undefined"&&NET.lobby)||[], i=Math.max(0,LB.findIndex(q=>q.id===NET.myId)), n=Math.max(1,LB.length); g.p.y=150+(n>1?(i%2?40:-20):rnd(-30,30)); g.p.x=n>1?(-180+360*(i/(n-1))):rnd(-120,120) }   /* 같이하기: 친구마다 옆으로 나란히 서요 */
     clampP(g.p); patTick(dt); gaugeTick(dt);
@@ -1971,14 +1975,14 @@ function B11Make(A){
   const ANIM={
     /* 1페이즈 (치비) */
     p1:{ idle:[[0,"c1"]], move:[[0,"c1"]], enter:[[0,"c7"]], wake:[[0,"c7",{sh:2,gl:1}],[.35,"c2",{dx:-6}],[.7,"c1"]],
-      thrust:[[0,"c2",{dx:-12,sh:1.2,gl:1}],[.6,"c3",{dx:40,sc:1,gh:1}],[1.0,"c1"]],
+      thrust:[[0,"c2",{dx:-12,sh:1.2,gl:1}],[.45,"c3",{dx:40,sc:1,gh:1}],[1.0,"c1"]],
       dash:[[0,"c2",{dx:-16,sh:1.6,gl:1}],[.8,"c3",{gh:1,dx:10}],[1.25,"c1"]],
       swing:[[0,"c2",{dx:-10,sh:1,gl:1}],[1.0,"c4",{dx:22,sc:1,gh:1}],[1.55,"c1"]],
       raise8:[[0,"c5",{dy:-12,gl:1,sh:.6}],[1.8,"c5",{sc:1,sh:2.5}],[2.4,"c1"]],
       groggy:[[0,"c6",{sh:1.2}]], kneel:[[0,"c8",{sh:1.5}]], sphere:[[0,"c8",{sh:2.5,gl:1}]] },
     /* 2페이즈 (성인) */
     p2:{ idle:[[0,"r0"]], move:[[0,"r1"]], awaken:[[0,"r11",{dy:-18,gl:1}],[1.4,"r0"]],
-      thrust:[[0,"r0",{dx:-14,sh:1.2,gl:1,cr:1}],[.6,"r2",{dx:46,sc:1,gh:1}],[1.05,"r0"]],
+      thrust:[[0,"r0",{dx:-14,sh:1.2,gl:1,cr:1}],[.45,"r2",{dx:46,sc:1,gh:1}],[1.05,"r0"]],
       dash:[[0,"r1",{dx:-18,sh:1.6,gl:1,cr:1}],[.8,"r4",{gh:1,dx:14}],[1.3,"r0"]],
       swing:[[0,"r0",{dx:-12,sh:1,gl:1,cr:1}],[1.0,"r3",{dx:26,sc:1,gh:1}],[1.6,"r0"]],
       raise8:[[0,"r5",{dy:-8,gl:1,sh:.6}],[2.2,"r6",{sc:1,sh:2.5}],[2.8,"r0"]],
@@ -1989,7 +1993,7 @@ function B11Make(A){
       cdash2:[[0,"r7",{dx:-10,sh:1.2,gl:1}],[.75,"r4",{gh:1}],[1.1,"r8",{sc:1}]],
       cslam:[[0,"r8",{dx:-8,sh:1,gl:1}],[.7,"r9",{dy:-60,gl:1,sh:1}],[1.5,"r7",{dx:30,sc:1.4,gh:1}],[2.1,"r0"]],
       groggy:[[0,"r10",{sh:1.2}]], death:[[0,"r12",{sh:1}]], sphere:[[0,"r5",{gl:1}]] } };
-  const ANIM_LEN={thrust:1,dash:1.25,swing:1.55,raise8:2.4,wake:.7,awaken:1.4,raise12:2.1,pierce:4.5,plant:1.6,cdash1:1.1,cdash2:1.1,cslam:2.1};
+  const ANIM_LEN={thrust:.8,dash:1.25,swing:1.55,raise8:2.4,wake:.7,awaken:1.4,raise12:2.1,pierce:4.5,plant:1.6,cdash1:1.1,cdash2:1.1,cslam:2.1};
   const ease=q=>1-Math.pow(1-clamp(q,0,1),3);
   const STEP=.27;   /* 걷기: 왼발·오른발 그림을 번갈아 (뚜벅뚜벅) */
   function poseAt(e){ const set=S.ph===2||(S.ph===1&&e.an==="awaken")?ANIM.p2:ANIM.p1, seq=set[e.an]||set.idle, t=g.t-(e.at||0);

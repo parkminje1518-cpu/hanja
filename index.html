@@ -1177,18 +1177,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10261909"></script>
-<script src="jobs.js?v=10261909"></script>
-<script src="maps.js?v=10261909"></script>
-<script src="art.js?v=10261909"></script>
-<script src="art2.js?v=10261909"></script>
-<script src="monsters.js?v=10261909"></script>
-<script src="jobfx.js?v=10261909"></script>
-<script src="words.js?v=10261909"></script>
-<script src="sayings.js?v=10261909"></script>
-<script src="sfx.js?v=10261909"></script>
+<script src="sprites.js?v=10262346"></script>
+<script src="jobs.js?v=10262346"></script>
+<script src="maps.js?v=10262346"></script>
+<script src="art.js?v=10262346"></script>
+<script src="art2.js?v=10262346"></script>
+<script src="monsters.js?v=10262346"></script>
+<script src="jobfx.js?v=10262346"></script>
+<script src="words.js?v=10262346"></script>
+<script src="sayings.js?v=10262346"></script>
+<script src="sfx.js?v=10262346"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10261909"></script>
+<script src="mp.js?v=10262346"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1908,7 +1908,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10261909"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10262346"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2589,6 +2589,7 @@ function settings(){
     <div class="setrow"><div class="lab"><strong>퀴즈 문제 수</strong><small>한 세트에 나오는 문제 수</small></div><div class="seg2" id="qn">${[5,10].map(n=>`<button data-n="${n}" aria-pressed="${P.set.qn===n}">${n}문제</button>`).join("")}</div></div>
     <div class="setrow"><div class="lab"><strong>정답 읽어 주기</strong><small>맞히면 "하늘 천"처럼 소리 내어 읽어 줘요</small></div>${sw("sv",P.set.voice)}</div>
     <div class="setrow"><div class="lab"><strong>효과음</strong><small>버튼, 정답, 코인, 게임 공격·스킬 소리</small></div>${sw("ss",P.set.sfx)}</div>
+    <div class="setrow"><div class="lab"><strong>자동 물약</strong><small>보스 맵에서 체력이 35% 아래로 떨어지면 물약을 저절로 마셔요</small></div>${sw("sap",P.set.autoPot!==false)}</div>
     <div class="setrow"><div class="lab"><strong>배경음악</strong><small>화면과 게임 맵마다 다른 음악이 나와요</small></div>${sw("sb",P.set.bgm!==false)}</div>
   </section>
   <section class="panel">
@@ -2613,6 +2614,7 @@ function settings(){
   document.getElementById("sv").onclick=e=>{P.set.voice=!P.set.voice;saveP();e.currentTarget.setAttribute("aria-checked",P.set.voice)};
   document.getElementById("sb").onclick=e=>{P.set.bgm=P.set.bgm===false;saveP();e.currentTarget.setAttribute("aria-checked",P.set.bgm);SND.bgm(P.set.bgm?"home":null)};
   document.getElementById("ss").onclick=e=>{P.set.sfx=!P.set.sfx;saveP();e.currentTarget.setAttribute("aria-checked",P.set.sfx);sfx("tap")};
+  { const ap=document.getElementById("sap"); if(ap) ap.onclick=e=>{ P.set.autoPot=P.set.autoPot===false; saveP(); e.currentTarget.setAttribute("aria-checked",P.set.autoPot!==false); sfx("tap") } }
   document.getElementById("rst").onclick=()=>document.getElementById("rstc").hidden=false;
   document.getElementById("rstn").onclick=()=>document.getElementById("rstc").hidden=true;
   document.getElementById("rsty").onclick=()=>{const s=P.set; P=blankP(); P.set=s; saveP(); toast("기록을 처음부터 시작해요"); settings()};
@@ -2623,4 +2625,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10261909"></script>
+<script src="game.js?v=10262346"></script>

@@ -1,3 +1,6 @@
+/* 화면 테두리 어둡게(비네트)를 한 번만 그려 두고 다시 써요 (렉 줄이기 2026-10-26: 매 장면 화면 전체 그라데이션을 새로 계산하지 않게) */
+const VIG_C={}; function vigFill(ctx,W,H,f0,f1,c0,c1,al){ const k=W+"x"+H+f0+f1+c0+c1; let cv=VIG_C[k]; if(!cv){ const S=.5; cv=document.createElement("canvas"); cv.width=Math.max(1,Math.round(W*S)); cv.height=Math.max(1,Math.round(H*S)); const x=cv.getContext("2d"), w=cv.width, h=cv.height, g=x.createRadialGradient(w/2,h/2,Math.min(w,h)*f0,w/2,h/2,Math.max(w,h)*f1); g.addColorStop(0,c0); g.addColorStop(1,c1); x.fillStyle=g; x.fillRect(0,0,w,h); const ks=Object.keys(VIG_C); if(ks.length>12) delete VIG_C[ks[0]]; VIG_C[k]=cv }
+  const oa=ctx.globalAlpha; if(al!==undefined) ctx.globalAlpha=oa*al; ctx.drawImage(cv,0,0,W,H); ctx.globalAlpha=oa }
 /* ===== 게임 맵 5단계: 쉬울수록 편안한 들판, 어려울수록 던전 ===== */
 const MAPS = [
   { id:1, name:"햇살 꽃밭", diff:"아주 쉬움", lv:1, exp:0.6, hp:0.6, spawn:0.65, spd:0.82, boss:[150,270],
@@ -169,7 +172,7 @@ function drawMapOverlay(ctx, map, W, H, t){
       ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+70,0); ctx.lineTo(x+W*.25+120,H); ctx.lineTo(x+W*.25,H); ctx.closePath(); ctx.fill() } ctx.restore();
     ptc(18,11,(i,a,b,c)=>{ const x=(a*W+t*(30+c*30))%(W+40)-20, y=(b*H+t*(20+c*25))%(H+40)-20, rot=t*2+i;
       ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.fillStyle=c<.5?"rgba(255,160,200,.85)":"rgba(255,255,255,.8)"; ctx.beginPath(); ctx.ellipse(0,0,5,2.6,0,0,7); ctx.fill(); ctx.restore() });
-    const v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.4,W/2,H/2,Math.max(W,H)*.75); v.addColorStop(0,"rgba(255,220,120,0)"); v.addColorStop(1,"rgba(255,200,100,.18)"); ctx.fillStyle=v; ctx.fillRect(0,0,W,H) }
+    vigFill(ctx,W,H,.4,.75,"rgba(255,220,120,0)","rgba(255,200,100,.18)") }
   else if(map.id===2){ // 바람 숲길: 나뭇잎 그림자 + 떨어지는 잎 + 안개
     ptc(10,21,(i,a,b,c)=>{ const x=(a*W+Math.sin(t*.4+i)*40), y=(b*H+Math.cos(t*.3+i)*30); ctx.fillStyle="rgba(10,40,20,.13)"; ctx.beginPath(); ctx.ellipse(x,y,80+c*60,45+c*30,c*3,0,7); ctx.fill() });
     ctx.save(); ctx.globalCompositeOperation="lighter"; ptc(7,22,(i,a,b)=>{ const x=a*W, y=b*H, k=.5+.5*Math.sin(t*1.5+i); ctx.fillStyle=`rgba(255,250,200,${.08*k})`; ctx.beginPath(); ctx.ellipse(x,y,50,30,0,0,7); ctx.fill() }); ctx.restore();
@@ -196,7 +199,7 @@ function drawMapOverlay(ctx, map, W, H, t){
     ptc(26,61,(i,a,b,c)=>{ const y=b*H, x=((a*W+t*(420+c*300))%(W+400))-200, len=60+c*120; ctx.strokeStyle=`rgba(220,245,255,${.12+c*.18})`; ctx.lineWidth=1.5+c*2; ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo(x+len*.5,y-6-c*8,x+len,y); ctx.stroke() });
     ctx.restore();
     ptc(5,62,(i,a,b,c)=>{ const x=((a*W+t*(60+c*40))%(W+500))-250, y=b*H; const g=ctx.createRadialGradient(x,y,0,x,y,140+c*80); g.addColorStop(0,"rgba(235,245,255,.22)"); g.addColorStop(1,"rgba(235,245,255,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(x,y,220+c*100,90+c*40,0,0,7); ctx.fill() });
-    const v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75); v.addColorStop(0,"rgba(20,40,80,0)"); v.addColorStop(1,"rgba(20,40,80,.35)"); ctx.fillStyle=v; ctx.fillRect(0,0,W,H) }
+    vigFill(ctx,W,H,.35,.75,"rgba(20,40,80,0)","rgba(20,40,80,.35)") }
   else if(map.id===7){ // 하늘 성: 햇살 기둥 + 발아래 구름 + 반짝임
     ctx.save(); ctx.globalCompositeOperation="lighter";
     for(let i=0;i<5;i++){ const x=W*(.05+i*.23)+Math.sin(t*.25+i)*25, g=ctx.createLinearGradient(x,0,x-W*.15,H); g.addColorStop(0,"rgba(255,245,200,.2)"); g.addColorStop(1,"rgba(255,245,200,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+60,0); ctx.lineTo(x-W*.15+100,H); ctx.lineTo(x-W*.15,H); ctx.closePath(); ctx.fill() }
@@ -209,7 +212,7 @@ function drawMapOverlay(ctx, map, W, H, t){
     for(let k=0;k<3;k++){ const y0=H*(.06+k*.07); ctx.strokeStyle=`rgba(${k===1?"140,255,200":"120,200,255"},.10)`; ctx.lineWidth=40-k*8; ctx.beginPath(); for(let i=0;i<=20;i++){ const x=i/20*W, y=y0+Math.sin(i*.6+t*.5+k)*24; i?ctx.lineTo(x,y):ctx.moveTo(x,y) } ctx.stroke() }
     ctx.restore();
     ptc(46,81,(i,a,b,c)=>{ const x=(a*W+Math.sin(t*.8+i)*24+t*12*(c-.3))%W, y=(b*H+t*(30+c*40))%(H+20)-10; ctx.fillStyle=`rgba(255,255,255,${.55+c*.4})`; ctx.beginPath(); ctx.arc(x,y,1+c*2.2,0,7); ctx.fill() });
-    const v=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75); v.addColorStop(0,"rgba(200,235,255,0)"); v.addColorStop(1,"rgba(170,215,245,.45)"); ctx.fillStyle=v; ctx.fillRect(0,0,W,H) }
+    vigFill(ctx,W,H,.35,.75,"rgba(200,235,255,0)","rgba(170,215,245,.45)") }
   else if(map.id===9){ // 천상 신전: 금빛 햇살 + 발아래 구름 + 보랏빛 번개 섬광
     ctx.save(); ctx.globalCompositeOperation="lighter";
     for(let i=0;i<5;i++){ const x=W*(.08+i*.22)+Math.sin(t*.2+i)*20, g=ctx.createLinearGradient(x,0,x+W*.1,H); g.addColorStop(0,"rgba(255,225,140,.22)"); g.addColorStop(1,"rgba(255,225,140,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+70,0); ctx.lineTo(x+W*.1+110,H); ctx.lineTo(x+W*.1,H); ctx.closePath(); ctx.fill() }
@@ -221,8 +224,7 @@ function drawMapOverlay(ctx, map, W, H, t){
     ptc(5,101,(i,a,b,c)=>{ const x=a*W, y=b*H, R=160+c*120; const g=ctx.createRadialGradient(x,y,0,x,y,R); g.addColorStop(0,`rgba(${i%2?"140,70,255":"255,80,170"},.10)`); g.addColorStop(1,"rgba(80,40,200,0)"); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x+Math.sin(t*.1+i)*30,y,R,0,7); ctx.fill() });
     ptc(40,102,(i,a,b,c)=>{ const tw=.5+.5*Math.sin(t*(2+c*3)+i); ctx.fillStyle=`rgba(255,250,230,${.3+.6*tw})`; const x=a*W, y=b*H, z=c<.15?2.5:1.3; ctx.fillRect(x-z/2,y-z/2,z,z); if(c<.08){ ctx.fillRect(x-5,y-.5,10,1); ctx.fillRect(x-.5,y-5,1,10) } });
     ctx.restore() }
-  if(map.dark){ const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.2,W/2,H/2,Math.max(W,H)*.68);
-    g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,`rgba(0,0,0,${map.dark+.1})`); ctx.fillStyle=g; ctx.fillRect(0,0,W,H) }
+  if(map.dark){ vigFill(ctx,W,H,.2,.68,"rgba(0,0,0,0)","rgba(0,0,0,1)",map.dark+.1) }
 }
 /* 맵마다 다른 몬스터 모습 */
 function drawEnemy(ctx, e, map, t, px, py){
@@ -553,22 +555,35 @@ const WEATHER={
   9:[null,["✨ 신성한 빛이 내려와요","mote",60],["⚡ 하늘에서 번개가 쳐요","rain",90,"60,60,110,.12",1],["⛈ 뇌신의 폭풍!","rain",180,"30,20,70,.22",1]],
   10:[null,["🌠 별똥별이 흘러요","star",60],["☄ 유성우가 쏟아져요","meteor",40,"60,20,90,.10"],["🌌 붉은 성운이 덮쳐요!","meteor",70,"140,20,60,.20",0,1]]};
 function wr(i,k){ const v=Math.sin(i*127.1+k*311.7)*43758.5453; return v-Math.floor(v) }
-function drawWeather(c,map,ph,t,W,H,camX,camY,fade){ const D=(WEATHER[map.id]||[])[Math.min(3,ph)]; if(!D) return; const [,kind,n0,fog,bolt,vig]=D, n=Math.round(n0*Math.min(1,fade*1.5));
+/* 날씨 (2026-10-26 렉 고침): 보스가 나오면 날씨가 시작되는데, 알갱이를 하나씩 따로 그려서 태블릿에서 초당 30→17장으로 떨어졌어요.
+   → 같은 색 알갱이는 한 번에 모아 그리고(경로 하나), 개수도 줄였어요 (가벼운 모드는 더 적게). 모양·움직임은 그대로예요. */
+const WPS={}; function wSprite(key,col,rx,ry){ if(WPS[key]) return WPS[key]; const cv=document.createElement("canvas"); cv.width=rx*2+2; cv.height=ry*2+2; const x=cv.getContext("2d"); x.fillStyle=col; x.beginPath(); x.ellipse(rx+1,ry+1,rx,ry,0,0,7); x.fill(); return WPS[key]=cv }
+function drawWeather(c,map,ph,t,W,H,camX,camY,fade){ const D=(WEATHER[map.id]||[])[Math.min(3,ph)]; if(!D) return; const [,kind,n0,fog,bolt,vig]=D, dens=window.__fxLow?.4:.65, n=Math.round(n0*dens*Math.min(1,fade*1.5));
   c.save();
   if(fog){ const [r,g,b,a]=fog.split(","); c.fillStyle=`rgba(${r},${g},${b},${(+a)*fade})`; c.fillRect(0,0,W,H) }
-  const px=camX*.35, py=camY*.35;
-  for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3);
-    if(kind==="rain"){ const sp=900+s3*400, x=((s1*W*1.3-t*sp*.25-px)%(W*1.3)+W*1.3)%(W*1.3)-W*.15, y=((s2*H+t*sp-py)%(H+60)+H+60)%(H+60)-30; c.strokeStyle="rgba(200,220,255,.6)"; c.lineWidth=1.6; c.beginPath(); c.moveTo(x,y); c.lineTo(x-6,y+22); c.stroke() }
-    else if(kind==="snow"||kind==="blizzard"){ const bz=kind==="blizzard", sp=(bz?160:50)+s3*60, x=((s1*W+(bz?-t*380:Math.sin(t+i)*20)-px)%W+W)%W, y=((s2*H+t*sp-py)%H+H)%H, r=1.4+s3*2.6; if(bz){ c.strokeStyle="rgba(110,140,190,.45)"; c.lineWidth=r+1.6; c.beginPath(); c.moveTo(x,y); c.lineTo(x+14+s3*18,y-4); c.stroke(); c.strokeStyle="rgba(255,255,255,.95)"; c.lineWidth=r; c.stroke() } else { c.fillStyle="rgba(110,140,190,.5)"; c.beginPath(); c.arc(x,y+.6,r+1.1,0,7); c.fill(); c.fillStyle="#fff"; c.beginPath(); c.arc(x,y,r,0,7); c.fill() } }
-    else if(kind==="petal"||kind==="leaf"){ const x=((s1*W-t*(40+s3*50)-px)%W+W)%W, y=((s2*H+t*(30+s3*30)-py)%H+H)%H, a=t*2+i; c.save(); c.translate(x,y); c.rotate(a); c.scale(1,.5+.5*Math.sin(t*3+i)); c.fillStyle=kind==="petal"?(i%2?"rgba(255,170,200,.85)":"rgba(255,220,235,.85)"):(i%3?"rgba(200,120,40,.85)":"rgba(230,170,60,.85)"); c.beginPath(); c.ellipse(0,0,5,3,0,0,7); c.fill(); c.restore() }
-    else if(kind==="sand"){ const x=((s1*W*1.2+t*(380+s3*260)-px)%(W*1.2)+W*1.2)%(W*1.2)-W*.1, y=((s2*H-py*.5)%H+H)%H+Math.sin(t*3+i)*8; c.strokeStyle=`rgba(230,190,120,${.25+s3*.3})`; c.lineWidth=1.5; c.beginPath(); c.moveTo(x,y); c.lineTo(x-16-s3*20,y); c.stroke() }
-    else if(kind==="wind"){ const x=((s1*W*1.4+t*(520+s3*200)-px)%(W*1.4)+W*1.4)%(W*1.4)-W*.2, y=((s2*H-py*.5)%H+H)%H; c.strokeStyle="rgba(230,250,255,.35)"; c.lineWidth=2; c.beginPath(); c.moveTo(x,y); c.quadraticCurveTo(x-30,y-6,x-70,y+2); c.stroke() }
-    else if(kind==="ember"||kind==="ash"){ const up=kind==="ember", x=((s1*W+Math.sin(t*1.5+i)*20-px)%W+W)%W, y=((s2*H+(up?-1:1)*t*(40+s3*60)-py)%H+H)%H; c.fillStyle=up?`rgba(255,${140+s3*100|0},60,${.5+s3*.5})`:`rgba(90,80,80,${.5+s3*.3})`; c.fillRect(x,y,up?2.5:3,up?2.5:3) }
-    else if(kind==="firefly"||kind==="mote"||kind==="dust"){ const x=((s1*W+Math.sin(t*.7+i)*30-px*.5)%W+W)%W, y=((s2*H+Math.cos(t*.6+i)*25-(kind==="mote"?t*20:0)-py*.5)%H+H)%H, a=.4+.6*Math.abs(Math.sin(t*2+i)); c.fillStyle=kind==="firefly"?`rgba(220,255,120,${a})`:kind==="mote"?`rgba(255,240,180,${a})`:`rgba(220,200,255,${a*.6})`; c.beginPath(); c.arc(x,y,kind==="dust"?1.5:2.4,0,7); c.fill() }
-    else if(kind==="drip"){ const ph=(t*.5+s3)%1, x=s1*W, y=s2*H*.8+ph*80; c.fillStyle=`rgba(170,220,255,${1-ph})`; c.fillRect(x,y,2,6) }
-    else if(kind==="cloud"){ const x=((s1*W*1.5+t*30-px*.6)%(W*1.5)+W*1.5)%(W*1.5)-W*.25, y=s2*H; c.fillStyle="rgba(255,255,255,.18)"; c.beginPath(); c.ellipse(x,y,90+s3*60,30+s3*15,0,0,7); c.fill() }
-    else if(kind==="star"||kind==="meteor"){ if(kind==="star"||i<n*.5){ const x=((s1*W-px*.2)%W+W)%W, y=((s2*H-py*.2)%H+H)%H, a=.3+.7*Math.abs(Math.sin(t*1.5+i)); c.fillStyle=`rgba(255,255,230,${a})`; c.fillRect(x,y,2,2) }
-      else { const ph=(t*.35+s3)%1, x=s1*W*1.2-ph*W*.5, y=s2*H*.6+ph*H*.4; c.strokeStyle=`rgba(255,220,180,${(1-ph)*.9})`; c.lineWidth=2; c.beginPath(); c.moveTo(x,y); c.lineTo(x+40,y-24); c.stroke() } } }
+  const px=camX*.35, py=camY*.35, B=[new Path2D(),new Path2D(),new Path2D()], bk=a=>a<.45?0:a<.75?1:2;
+  if(kind==="rain"){ const P=B[0]; for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), sp=900+s3*400, x=((s1*W*1.3-t*sp*.25-px)%(W*1.3)+W*1.3)%(W*1.3)-W*.15, y=((s2*H+t*sp-py)%(H+60)+H+60)%(H+60)-30; P.moveTo(x,y); P.lineTo(x-6,y+22) } c.strokeStyle="rgba(200,220,255,.6)"; c.lineWidth=1.6; c.stroke(P) }
+  else if(kind==="snow"||kind==="blizzard"){ const bz=kind==="blizzard", P0=B[0], P1=B[1];
+    for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), sp=(bz?160:50)+s3*60, x=((s1*W+(bz?-t*380:Math.sin(t+i)*20)-px)%W+W)%W, y=((s2*H+t*sp-py)%H+H)%H, r=1.4+s3*2.6;
+      if(bz){ P0.moveTo(x,y); P0.lineTo(x+14+s3*18,y-4) } else { P0.moveTo(x+r+1.1,y+.6); P0.arc(x,y+.6,r+1.1,0,7); P1.moveTo(x+r,y); P1.arc(x,y,r,0,7) } }
+    if(bz){ c.lineCap="round"; c.strokeStyle="rgba(110,140,190,.45)"; c.lineWidth=4.4; c.stroke(P0); c.strokeStyle="rgba(255,255,255,.95)"; c.lineWidth=2.8; c.stroke(P0) } else { c.fillStyle="rgba(110,140,190,.5)"; c.fill(P0); c.fillStyle="#fff"; c.fill(P1) } }
+  else if(kind==="petal"||kind==="leaf"){ const cols=kind==="petal"?["rgba(255,170,200,.85)","rgba(255,220,235,.85)"]:["rgba(200,120,40,.85)","rgba(230,170,60,.85)"], SP=cols.map((cl,k)=>wSprite(kind+k,cl,5,3)), M0=c.getTransform();
+    for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), x=((s1*W-t*(40+s3*50)-px)%W+W)%W, y=((s2*H+t*(30+s3*30)-py)%H+H)%H, a=t*2+i, sy=.5+.5*Math.sin(t*3+i), co=Math.cos(a), si=Math.sin(a), im=SP[kind==="petal"?i%2:(i%3?0:1)];
+      c.setTransform(M0); c.transform(co,si,-si*sy,co*sy,x,y); c.drawImage(im,-6,-4) } c.setTransform(M0) }   /* 회전은 그대로 · 미리 그린 꽃잎 그림을 찍어요 */
+  else if(kind==="sand"){ const P=B[0]; for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), x=((s1*W*1.2+t*(380+s3*260)-px)%(W*1.2)+W*1.2)%(W*1.2)-W*.1, y=((s2*H-py*.5)%H+H)%H+Math.sin(t*3+i)*8; P.moveTo(x,y); P.lineTo(x-16-s3*20,y) } c.strokeStyle="rgba(230,190,120,.4)"; c.lineWidth=1.5; c.stroke(P) }
+  else if(kind==="wind"){ const P=B[0]; for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), x=((s1*W*1.4+t*(520+s3*200)-px)%(W*1.4)+W*1.4)%(W*1.4)-W*.2, y=((s2*H-py*.5)%H+H)%H; P.moveTo(x,y); P.quadraticCurveTo(x-30,y-6,x-70,y+2) } c.strokeStyle="rgba(230,250,255,.35)"; c.lineWidth=2; c.stroke(P) }
+  else if(kind==="ember"||kind==="ash"){ const up=kind==="ember", sz=up?2.5:3; for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), x=((s1*W+Math.sin(t*1.5+i)*20-px)%W+W)%W, y=((s2*H+(up?-1:1)*t*(40+s3*60)-py)%H+H)%H; B[i%2].rect(x,y,sz,sz) }
+    c.fillStyle=up?"rgba(255,170,60,.8)":"rgba(90,80,80,.65)"; c.fill(B[0]); c.fillStyle=up?"rgba(255,225,90,.9)":"rgba(110,100,100,.6)"; c.fill(B[1]) }
+  else if(kind==="firefly"||kind==="mote"||kind==="dust"){ const rr=kind==="dust"?1.5:2.4;
+    for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), x=((s1*W+Math.sin(t*.7+i)*30-px*.5)%W+W)%W, y=((s2*H+Math.cos(t*.6+i)*25-(kind==="mote"?t*20:0)-py*.5)%H+H)%H, a=.4+.6*Math.abs(Math.sin(t*2+i)), P=B[bk(a)]; P.moveTo(x+rr,y); P.arc(x,y,rr,0,7) }
+    const base=kind==="firefly"?"220,255,120":kind==="mote"?"255,240,180":"220,200,255", mul=kind==="dust"?.6:1; [.35,.6,.9].forEach((a,k)=>{ c.fillStyle=`rgba(${base},${a*mul})`; c.fill(B[k]) }) }
+  else if(kind==="drip"){ for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), ph=(t*.5+s3)%1; B[bk(1-ph)].rect(s1*W,s2*H*.8+ph*80,2,6) } [.3,.6,.9].forEach((a,k)=>{ c.fillStyle=`rgba(170,220,255,${a})`; c.fill(B[k]) }) }
+  else if(kind==="cloud"){ const P=B[0]; for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3), x=((s1*W*1.5+t*30-px*.6)%(W*1.5)+W*1.5)%(W*1.5)-W*.25, y=s2*H, rx=90+s3*60; P.moveTo(x+rx,y); P.ellipse(x,y,rx,30+s3*15,0,0,7) } c.fillStyle="rgba(255,255,255,.18)"; c.fill(P) }
+  else if(kind==="star"||kind==="meteor"){ const M=[new Path2D(),new Path2D(),new Path2D()];
+    for(let i=0;i<n;i++){ const s1=wr(i,1), s2=wr(i,2), s3=wr(i,3);
+      if(kind==="star"||i<n*.5){ const x=((s1*W-px*.2)%W+W)%W, y=((s2*H-py*.2)%H+H)%H, a=.3+.7*Math.abs(Math.sin(t*1.5+i)); B[bk(a)].rect(x,y,2,2) }
+      else { const ph=(t*.35+s3)%1, x=s1*W*1.2-ph*W*.5, y=s2*H*.6+ph*H*.4; M[bk(1-ph)].moveTo(x,y); M[bk(1-ph)].lineTo(x+40,y-24) } }
+    [.35,.65,.95].forEach((a,k)=>{ c.fillStyle=`rgba(255,255,230,${a})`; c.fill(B[k]); c.strokeStyle=`rgba(255,220,180,${a})`; c.lineWidth=2; c.stroke(M[k]) }) }
   if(bolt){ const lt=(t*.37)%5; if(lt<.08||(lt>.18&&lt<.24)){ c.fillStyle="rgba(235,235,255,.28)"; c.fillRect(0,0,W,H) } }
-  if(vig){ const g=c.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.7); g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,`rgba(0,0,0,${.45*fade})`); c.fillStyle=g; c.fillRect(0,0,W,H) }
+  if(vig){ vigFill(c,W,H,.25,.7,"rgba(0,0,0,0)","rgba(0,0,0,1)",.45*fade) }
   c.restore() }

@@ -349,7 +349,7 @@ const ease=u=>1-Math.pow(1-Math.max(0,Math.min(1,u)),3);
 /* 스킬 컷인: 직업 색 띠가 화면을 가로질러요 (글자는 선명한 층에서 따로) */
 function cutinX(f,W){ const q=1-f.life/f.max; return q<.2?(1-ease(q/.2))*W*1.1:q>.78?-ease((q-.78)/.22)*W*1.1:-(q-.2)*40 }
 function jfCutin(c,f,k,W,H,img,t,GL){
-  const q=1-k, al=Math.min(1,q/.12,(1-q)/.15), y=H*.2, h=Math.min(80,Math.max(56,H*.11)), x=cutinX(f,W);   // 작게 · 위쪽에 (전투 화면을 덜 가리게)
+  const q=1-k, al=Math.min(1,q/.12,(1-q)/.15)*(f.alm||1), y=H*.2, h=Math.min(80,Math.max(56,H*.11)), x=cutinX(f,W);   // 작게 · 위쪽에 (전투 화면을 덜 가리게)
   c.fillStyle=`rgba(5,5,15,${.1*al})`; c.fillRect(0,0,W,H);
   c.save(); c.translate(x,0);
   const band=()=>{ c.beginPath(); c.moveTo(-40,y-h/2+26); c.lineTo(W+40,y-h/2-26); c.lineTo(W+40,y+h/2-26); c.lineTo(-40,y+h/2+26); c.closePath() };
@@ -366,7 +366,7 @@ function jfCutin(c,f,k,W,H,img,t,GL){
   c.restore(); c.globalAlpha=1;
 }
 function jfCutinText(c,f,W,H){
-  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15), y=f.ty||H*.2, x=cutinX(f,W)+W*(f.ty?.5:.6);
+  const q=1-f.life/f.max, al=Math.min(1,q/.12,(1-q)/.15)*(f.alm||1), y=f.ty||H*.2, x=cutinX(f,W)+W*(f.ty?.5:.6);
   c.save(); c.globalAlpha=al; c.textAlign="center"; c.textBaseline="middle";
   // 고급 MMORPG 느낌: 명조체(Noto Serif KR 900) · 금빛 그라데이션 · 은은한 빛 번짐
   const HF=window.__heroId?`"HF-${window.__heroId}",`:"", SF=HF+'"Noto Serif KR","Nanum Myeongjo","Batang",serif', W9=HF?"":"900 ", W6=HF?"":"600 ";

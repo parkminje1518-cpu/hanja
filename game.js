@@ -8,7 +8,14 @@ const PHASE_T = [0,100,200];
 /* 단계: 보스를 잡을 때마다 올라가요 (0=1단계, 1=2단계, 2=3단계, 3=최종 결전) */
 let STAGE_PH = 0;
 const phaseOf = ()=>STAGE_PH;
-let VPH=0, VPH_T=0;   // 분위기(날씨) 단계: 보스가 나타날 때마다 올라가요
+let VPH=0, VPH_T=0;
+/* 경험치 보석 그림을 한 번만 그려 두고 계속 다시 써요 (2배 크기로 그려서 또렷하게) */
+const GEM_SPR=[]; function gemSpr(ty){ if(GEM_SPR[ty]) return GEM_SPR[ty]; const r=[7.5,9,11][ty]*2, col=["#2ad0ff","#ffc21a","#ff5ab8"][ty], lt=["#c8f6ff","#fff0a0","#ffc8ea"][ty], S=Math.ceil(r*2.6*2+8), cv=document.createElement("canvas"); cv.width=cv.height=S; const c=cv.getContext("2d"), x=S/2, y=S/2;
+  c.fillStyle="rgba(0,0,0,.25)"; c.beginPath(); c.ellipse(x,y+r*1.3,r*.8,r*.3,0,0,7); c.fill();
+  const gg=c.createRadialGradient(x,y,0,x,y,r*2.6); gg.addColorStop(0,col); gg.addColorStop(1,"rgba(0,0,0,0)"); c.globalAlpha=.5; c.fillStyle=gg; c.beginPath(); c.arc(x,y,r*2.6,0,7); c.fill(); c.globalAlpha=1;
+  c.fillStyle=col; c.strokeStyle="#1b1530"; c.lineWidth=4.4; c.beginPath(); c.moveTo(x,y-r*1.35); c.lineTo(x+r,y); c.lineTo(x,y+r*1.35); c.lineTo(x-r,y); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle=lt; c.beginPath(); c.moveTo(x,y-r*1.35); c.lineTo(x+r*.45,y-r*.15); c.lineTo(x-r*.35,y+r*.05); c.closePath(); c.fill(); return GEM_SPR[ty]=cv }
+   // 분위기(날씨) 단계: 보스가 나타날 때마다 올라가요
 const phV = ph=>Math.min(2,ph);   // 그림(색·이름)은 3단계까지
 const PH_MUL = [{hp:1,dmg:1,sp:1,elite:0},{hp:1.3,dmg:1.15,sp:1.06,elite:.03},{hp:1.65,dmg:1.35,sp:1.12,elite:.06},{hp:2,dmg:1.5,sp:1.16,elite:.08}];
 const PH_NAME = {1:["햇살 꽃밭","노을 꽃밭","별빛 꽃밭"],2:["바람 숲길","폭풍 숲길","안개 숲길"],3:["노을 유적","황혼 유적","저주받은 유적"],4:["어둠 동굴","수정 심층부","끝없는 심연"],5:["어둠의 마왕성","불타는 마왕성","마왕의 옥좌"],6:["용오름 첨탑","폭풍의 첨탑","천둥 회오리"],7:["하늘 성","노을 성벽","전쟁의 하늘 성"],8:["천공 빙궁","눈보라 빙궁","오로라 폭풍"],9:["천상 신전","천둥의 신전","신의 심판장"],10:["별의 왕좌","붉은 성운","종언의 블랙홀"],11:["검귀의 결투장","검귀의 결투장","검귀의 결투장"]};
@@ -587,7 +594,7 @@ function startGame(opts){ opts=opts||{};
       <div class="grow"><span class="glv">Lv 1</span><span class="gtime">0:00</span><span class="gk">몬스터 0</span><button class="gtool" aria-label="선생님 도구" hidden>🛠</button><button class="gpause" aria-label="잠깐 멈춤">Ⅱ</button></div>
       <div class="gtoolbox" hidden></div>
       <div class="gstat"><div class="ghp"><i></i><b class="ghpt">100 / 100</b></div>
-        <span class="gs atk" title="공격력">공격 <b>×1.00</b></span><span class="gs spd" title="이동 속도">속도 <b>165</b></span><span class="gs cdr" title="공격 간격">공속 <b>100%</b></span><span class="gs conf" hidden title="혼란: 문제를 맞히면 풀려요"></span>${(()=>{ const K=knowPower(qrangeOf().w,srangeOf().w), L=engOf(P.hero), EB=engraveBonus(P.hero), SN={dmg:"공격",hp:"체력",armor:"피해",spd:"이동",cd:"공속",xp:"경험",mag:"줍기",regen:"회복",crit:"급소"}, ef=Object.entries(EB).map(([k,v])=>`${SN[k]}${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%`).join(" ");
+        <span class="gs atk" title="공격력">공격 <b>×1.00</b></span><span class="gs spd" title="이동 속도">속도 <b>165</b></span><span class="gs cdr" title="공격 간격">공속 <b>100%</b></span><span class="gs conf" hidden title="혼란: 문제를 맞히면 풀려요"></span>${(()=>{ const K=knowPower(qrangeOf().w,srangeOf().w), L=engOf(P.hero), EB=engraveBonus(P.hero), SN={dmg:"공격",hp:"체력",armor:"피해",spd:"이동",cd:"공속",xp:"경험",mag:"줍기",regen:"회복",crit:"급소",bdmg:"보공",ied:"방무"}, ef=Object.entries(EB).map(([k,v])=>`${SN[k]}${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%`).join(" ");
       return `<span class="gs pow" data-buff="1" title="전투력">⚔ <b>${fmtPow(heroPower(P.hero))}</b></span>`
         +(K.dmg>0?`<span class="gs know" data-buff="1" title="지식의 힘">📚 지식 <b>공격+${Math.round(K.dmg*100)}%</b></span>`:"")
         +(K.armor>0?`<span class="gs wisd" data-buff="1" title="지혜의 힘">📜 지혜 <b>피해-${Math.round(K.armor*100)}% 스킬 대기시간-${Math.round(K.cd*100)}%</b></span>`:"")
@@ -686,14 +693,14 @@ function startGame(opts){ opts=opts||{};
   const hsh=c=>{ let v=0; for(const ch of String(c.h)) v=(v*31+ch.charCodeAt(0))>>>0; return v };
   const mine=c=>{ const S=slot(); return S.n<2||hsh(c)%S.n===S.me };
   const WCY={};
-  const spreadPick=(list,n,key)=>{ const grp=c=>(c.cat||"H")+c.w, out=[], used=new Set();
-    let pool=list.filter(c=>mine(c)&&!ASKED.has(c.h)); if(!pool.length) pool=list.filter(c=>!ASKED.has(c.h)); if(!pool.length){ for(const c of list) ASKED.delete(c.h); pool=list.filter(mine); if(!pool.length) pool=list }
+  const spreadPick=(list,n,key,keep)=>{ const grp=c=>(c.cat||"H")+c.w, out=[], used=new Set();
+    let pool=list.filter(c=>mine(c)&&!ASKED.has(c.h)); if(!pool.length) pool=list.filter(c=>!ASKED.has(c.h)); if(!pool.length&&keep) return [];   /* keep: 이 묶음을 다 냈으면 처음부터 다시 내지 말고 다른 묶음으로 넘어가요 */ if(!pool.length){ for(const c of list) ASKED.delete(c.h); pool=list.filter(mine); if(!pool.length) pool=list }
     const ws0=[...new Set(pool.map(grp))], wn=g0=>+(String(g0).replace(/\D/g,"")||1), mxw=Math.max(...ws0.map(wn)), ws=[];
     for(const w of ws0){ ws.push(w); if(mxw>5&&wn(w)>mxw*.5) ws.push(w); if(mxw>10&&wn(w)>mxw*.8) ws.push(w) }   /* 뒷주차는 덜 외웠을 수 있어 2~3배 자주 나와요 */
     for(let i=0;i<n&&pool.length;i++){ let cy=WCY[key]; if(!cy||!cy.length) cy=WCY[key]=shuffle(ws.slice()); const wk=cy.pop();
       let cand=pool.filter(c=>grp(c)===wk&&!used.has(c.h)); if(!cand.length) cand=pool.filter(c=>!used.has(c.h)); if(!cand.length) cand=list.filter(c=>!used.has(c.h)); if(!cand.length) cand=list;
-      const c=pickWeighted(cand,1)[0]; if(c){ used.add(c.h); out.push(c) } } return out };
-  const pickMixed = n=>{ let h=spreadPick(QPOOL,n,"q"); if(MAP.id===11){ const P2=q2poolOf(Q2.w); if(P2.length) h=h.map(c=>Math.random()<.6?(spreadPick(P2,1,"q2")[0]||c):c) } let r=h; if(SPOOL.length){ const s=spreadPick(SPOOL,n,"s"); r=h.map((c,i)=>Math.random()<.4&&s[i]?s[i]:c) } r.forEach(c=>c&&ASKED.add(c.h)); return r }; window.__pm=pickMixed;
+      const c=pickWeighted(cand,1)[0]; if(c){ used.add(c.h); out.push(c); ASKED.add(c.h) } } return out };   /* 고침 (2026-10-26): 뽑는 순간 "낸 문제"로 기록 → 모든 문제를 한 번씩 다 낼 때까지 겹치지 않아요 */
+  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
   if(opts.mp) M.xp *= .7;
   M.xp *= PK.xp; g.revives = PK.revive + QR.revive + (SR.revive||0); g.qOk=0; g.qN=0;
   shuffle(Object.keys(SK).filter(k=>k!=="main"&&SK[k].t==="w"&&skOK(k,MAP.id))).slice(0,PK.start).forEach(k=>g.sk[k]=1);
@@ -1386,7 +1393,11 @@ function startGame(opts){ opts=opts||{};
     else if(k.type==="turret"){ g.sum.push({kind:"octo",x:P.x+(Math.random()<.5?-70:70),y:P.y+34,t:k.dur,max:k.dur,acc:0,rate:k.rate,dmg}) }
     else if(k.type==="meteors"){
       g.fx.push({k:"skycircle",life:k.n*k.gap+1.3,max:k.n*k.gap+1.3}); const TG=smartTargets(k.r,k.n).pts;
-      for(let i=0;i<k.n;i++){ const t=TG[i];
+      const BBm=()=>BX&&g.en.find(e=>e.b11&&e.hp>0&&!e.hidden);
+      if(BBm()){ for(let i=0;i<k.n;i++){ const at=i*k.gap, FL=.28; g.pending.push({t:at,run:()=>{ const bb=BBm(); if(!bb) return; const ox=(Math.random()-.5)*50, oy=(Math.random()-.5)*36;   /* 보스맵 (2026-10-26): 떨어지기 직전 보스 자리를 다시 노리고 빨리 떨어져서 움직여도 맞아요 */
+          g.fx.push({k:"warn",own:1,fire:1,x:bb.x+ox,y:bb.y+oy,r:k.r,life:FL,max:FL}); const mf={k:"meteor",x:bb.x+ox,y:bb.y+oy,life:FL,max:FL}; g.fx.push(mf); sfx("meteor");
+          g.pending.push({t:FL,run:()=>{ const b2=BBm(); const x=b2?b2.x+ox:mf.x, y=b2?b2.y+oy:mf.y; boomAt(x,y,k.r,dmg,"#ffd36a"); g.fx.push({k:"scorch",x,y,r:k.r,life:2,max:2}); g.shake=Math.max(g.shake,.25) }}) }}) } }
+      else for(let i=0;i<k.n;i++){ const t=TG[i];
         const x=t?t.x+(Math.random()-.5)*40:P.x+(Math.random()-.5)*W*.8, y=t?t.y+(Math.random()-.5)*40:P.y+(Math.random()-.5)*H*.8, at=i*k.gap;
         g.fx.push({k:"warn",own:1,fire:1,x,y,r:k.r,life:at+.45,max:at+.45}); g.fx.push({k:"meteor",x,y,life:at+.45,max:.45,start:at}); g.pending.push({t:at,run:()=>sfx("meteor")});
         g.pending.push({t:at+.45,run:()=>{ boomAt(x,y,k.r,dmg,"#ffd36a"); g.fx.push({k:"scorch",x,y,r:k.r,life:2,max:2}); g.shake=Math.max(g.shake,.25) }}) }
@@ -1633,7 +1644,7 @@ function startGame(opts){ opts=opts||{};
   function drawAwaken(x,y,t,mv,S,id){ const c=ctx, C=AWK_C[id]||AWK_C.warrior, pu=.6+.4*Math.sin(t*3);
     c.save(); c.globalCompositeOperation="lighter";
     const GP=SIMG("goldpillar"); if(GP){ const pw=96, ph=pw*GP.height/GP.width*(1+.05*pu); c.globalAlpha=.32+.14*pu; c.drawImage(GP,x-pw/2,y+26-ph,pw,ph) }
-    const ag=c.createRadialGradient(x,y+20,4,x,y+20,78); ag.addColorStop(0,`rgba(${C[0]},.6)`); ag.addColorStop(1,`rgba(${C[0]},0)`); c.globalAlpha=.75*pu; c.fillStyle=ag; c.beginPath(); c.ellipse(x,y+20,78,26,0,0,7); c.fill();
+    c.globalAlpha=.75*pu; radDraw(c,[[0,`rgba(${C[0]},.6)`],[1,`rgba(${C[0]},0)`]],x,y+20,78,26,.05);   /* 미리 그린 빛 */
     const GR=SIMG("goldring"); if(GR){ const rw=128, rh=rw*GR.height/GR.width; c.globalAlpha=.6+.3*pu; c.drawImage(GR,x-rw/2,y+22-rh/2,rw,rh); const q=(t*.6)%1, s2=1+q*.6; c.globalAlpha=.5*(1-q); c.drawImage(GR,x-rw*s2/2,y+22-rh*s2/2,rw*s2,rh*s2) }
     else for(let k=0;k<2;k++){ const q=(t*.7+k*.5)%1; c.globalAlpha=.85*(1-q); c.strokeStyle=`rgb(${C[1]})`; c.lineWidth=3; c.beginPath(); c.ellipse(x,y+22,30+q*50,10+q*16,0,0,7); c.stroke() }
     if(S){ const T=S.awkT||(S.awkT=[]); if(mv>.2&&t-(S.awkL||0)>.09){ S.awkL=t; T.push({x:x+(Math.random()-.5)*14,y:y+24,t}) } while(T.length&&t-T[0].t>.8) T.shift();
@@ -1671,14 +1682,14 @@ function startGame(opts){ opts=opts||{};
     if(IM){ const w=R*(pre?1.5:2.0)*(pre?1:.55+.45*gr), h=w*IM.height/IM.width; c.save(); c.globalAlpha=al; c.drawImage(IM,f.x-w/2,f.y+10-h*(pre?.75:.62),w,h); c.restore() }
     c.save(); c.globalCompositeOperation=GLOW; for(let i=0;i<(f.rings||2);i++){ const s=Math.min(1,q*1.6-i*.25); if(s<=0) continue; c.globalAlpha=Math.max(0,1-s)*.9; c.strokeStyle=i?"rgba(255,240,200,1)":`rgb(${C})`; c.lineWidth=10*(1-s)+2; c.beginPath(); c.ellipse(f.x,f.y+10,R*s*1.1,R*s*.8,0,0,7); c.stroke() } c.restore() }
   function drawLavaField(f,k){ const c=ctx, R=f.r, pu=.6+.4*Math.sin(g.t*6), al=Math.min(1,k*3,(1-k)*8), C=f.col||"255,140,50", C2=f.col2||"255,215,110";
-    c.save(); c.globalCompositeOperation=GLOW; c.globalAlpha=.4*al*pu; const rg=c.createRadialGradient(f.x,f.y+10,6,f.x,f.y+10,R); rg.addColorStop(0,`rgba(${C2},.85)`); rg.addColorStop(.7,`rgba(${C},.35)`); rg.addColorStop(1,`rgba(${C},0)`); c.fillStyle=rg; c.beginPath(); c.ellipse(f.x,f.y+10,R,R*.75,0,0,7); c.fill();
+    c.save(); c.globalCompositeOperation=GLOW; c.globalAlpha=.4*al*pu; radDraw(c,[[0,`rgba(${C2},.85)`],[.7,`rgba(${C},.35)`],[1,`rgba(${C},0)`]],f.x,f.y+10,R,R*.75,6/Math.max(7,R));   /* 미리 그린 빛 */
     if(f.orb){ const OI=SIMG(f.orb); if(OI){ c.globalCompositeOperation="source-over"; for(let i=0;i<6;i++){ const a=g.t*2.4+i*Math.PI/3, x=f.x+Math.cos(a)*R*.72, y=f.y+10+Math.sin(a)*R*.54, s=26; const sqr=OI.width/OI.height<1.3, w2=sqr?s:s*1.6, h2=w2*OI.height/OI.width; c.save(); c.globalAlpha=al; c.translate(x,y); c.rotate(sqr?g.t*14+i:a+Math.PI/2); c.drawImage(OI,-w2/2,-h2/2,w2,h2); c.restore() } c.globalCompositeOperation=GLOW } }
     c.globalAlpha=al; for(let i=0;i<14;i++){ const ph=(g.t*.8+i/14)%1, a=i*2.39996, rr=R*(.2+.75*((i*37)%14)/14); c.globalAlpha=al*(1-ph); c.fillStyle=i%2?`rgb(${C2})`:`rgb(${C})`; c.fillRect(f.x+Math.cos(a)*rr-2,f.y+10+Math.sin(a)*rr*.75-ph*40-2,4,4) } c.restore() }
   const CUT5F={}; function cut5Feather(IM,key){ if(CUT5F[key]) return CUT5F[key]; const cv=document.createElement("canvas"); cv.width=IM.width; cv.height=IM.height; const x=cv.getContext("2d"); x.drawImage(IM,0,0);
     x.globalCompositeOperation="destination-in"; const g1=x.createLinearGradient(0,0,cv.width,0); g1.addColorStop(0,"rgba(0,0,0,0)"); g1.addColorStop(.16,"rgba(0,0,0,1)"); g1.addColorStop(.84,"rgba(0,0,0,1)"); g1.addColorStop(1,"rgba(0,0,0,0)"); x.fillStyle=g1; x.fillRect(0,0,cv.width,cv.height);
     const g2=x.createLinearGradient(0,0,0,cv.height); g2.addColorStop(0,"rgba(0,0,0,.35)"); g2.addColorStop(.1,"rgba(0,0,0,1)"); g2.addColorStop(.9,"rgba(0,0,0,1)"); g2.addColorStop(1,"rgba(0,0,0,.35)"); x.fillStyle=g2; x.fillRect(0,0,cv.width,cv.height); return CUT5F[key]=cv }
   function drawCut5(f,k){ const IM=SIMG(f.img); if(!IM){ jfCutin(ctx,f,k,W,H,heroImg,g.t,GLOW); return }   /* 5차 컷신: 양 끝이 부드럽게 사라지는 가로 띠 + 금빛 가는 선 (각진 테두리 없이) */
-    const c=ctx, q=1-k, al=Math.min(1,q/.1,(1-q)/.15)*(BX?.85:1), ar=IM.width/IM.height, w=Math.min(W*(BX?.62:.78),H*(BX?.17:.24)*ar), h=w/ar, y=BX?H-h-112:H*.08, slide=(1-Math.min(1,q/.14))**2*W*.08, x=cutinX(f,W)+(W-w)/2+slide;
+    const c=ctx, q=1-k, al=Math.min(1,q/.1,(1-q)/.15)*(BX?.85:1)*(f.alm||1), ar=IM.width/IM.height, w=Math.min(W*(BX?.62:.78),H*(BX?.17:.24)*ar), h=w/ar, y=BX?H-h-112:H*.08, slide=(1-Math.min(1,q/.14))**2*W*.08, x=cutinX(f,W)+(W-w)/2+slide;
     f.ty=y+h-24; const FT=cut5Feather(IM,f.img);
     c.save(); c.imageSmoothingEnabled=true; if(!BX){ c.fillStyle=`rgba(10,2,0,${.3*al})`; c.fillRect(0,0,W,H) } c.globalAlpha=al;
     const bk=c.createLinearGradient(x,0,x+w,0); bk.addColorStop(0,"rgba(12,4,20,0)"); bk.addColorStop(.2,"rgba(12,4,20,.55)"); bk.addColorStop(.8,"rgba(12,4,20,.55)"); bk.addColorStop(1,"rgba(12,4,20,0)"); c.fillStyle=bk; c.fillRect(x-w*.1,y,w*1.2,h);
@@ -1751,7 +1762,7 @@ function startGame(opts){ opts=opts||{};
     ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(G.a);
     if(G.w>0){ const bl=.45+.35*Math.sin(g.t*14); ctx.fillStyle=`rgba(220,245,255,${bl})`; ctx.strokeStyle=`rgba(20,60,100,${bl})`; ctx.lineWidth=4;
       for(let k=-1;k<=1;k++){ ctx.save(); ctx.translate(k*W*.28,k===0?0:(k*60)); ctx.beginPath(); ctx.moveTo(-90,-26); ctx.lineTo(30,-26); ctx.lineTo(30,-62); ctx.lineTo(110,0); ctx.lineTo(30,62); ctx.lineTo(30,26); ctx.lineTo(-90,26); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore() } }
-    else { ctx.globalCompositeOperation=GLOW; ctx.lineCap="round"; for(let i=0;i<30;i++){ const y=((i*97)%H)-H/2, x=((g.t*1400+i*263)%(W+600))-W/2-300; ctx.strokeStyle=`rgba(230,250,255,${.25+(i%3)*.12})`; ctx.lineWidth=2+(i%3); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+120+(i%4)*40,y); ctx.stroke() } }
+    else { ctx.globalCompositeOperation=GLOW; ctx.lineCap="round"; for(let m=0;m<3;m++){ ctx.strokeStyle=`rgba(230,250,255,${.25+m*.12})`; ctx.lineWidth=2+m; ctx.beginPath(); for(let i=m;i<30;i+=3){ const y=((i*97)%H)-H/2, x=((g.t*1400+i*263)%(W+600))-W/2-300; ctx.moveTo(x,y); ctx.lineTo(x+120+(i%4)*40,y) } ctx.stroke() } }   /* 렉 줄이기: 굵기가 같은 바람 줄은 한 번에 그려요 (30번 → 3번, 모양 같음) */
     ctx.restore() }
   function drawScreenFx(){
     drawGust();
@@ -2019,7 +2030,7 @@ function startGame(opts){ opts=opts||{};
       const p=e.hp/e.max, s0=e.wq||0, TH=[.5,.25]; let k=s0; while(k<TH.length&&p<TH[k]) k++;
       if(k>s0){ e.wq=k; if(NM==='host') e.bt=Math.max(e.bt||0,6.5); openWeak(e); return } } }
   const Q2P=q2poolOf(Q2.w);
-  function pick11(){ const r=Math.random(); let c=null; if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s")[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2")[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
+  function pick11(){ const r=Math.random(); let c=null; if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
   function openWeak(e,X){ const th=WEAK_H[MAP.id]||"", useS=SPOOL.length&&Math.random()<.4;
     let c=X&&X.c||(BX?pick11():null); if(!c&&useS){ c=spreadPick(SPOOL,1,"s")[0] } if(!c){ const cand=QPOOL.filter(x=>th.includes(x.h)&&!ASKED.has(x.h)); c=cand.length?cand[Math.random()*cand.length|0]:(spreadPick(QPOOL,1,"q")[0]||QPOOL[Math.random()*QPOOL.length|0]) } if(!c) return; ASKED.add(c.h);
     let big, ask, opts;
@@ -2315,6 +2326,7 @@ function startGame(opts){ opts=opts||{};
     if(g.bbuff){ g.bbuff.t-=dt; P.hp=Math.min(s.maxHp,P.hp+(g.bbuff.regen||0)*dt); if(g.bbuff.t<=0) g.bbuff=null }
     if(BX){ { const bb=g.en.find(e=>e.b11); if(bb){ const T=bb._trl||(bb._trl=[]); if(!T.length||g.t-T[T.length-1][0]>.08) T.push([g.t,bb.x,bb.y]); while(T.length&&g.t-T[0][0]>1) T.shift() } }   /* 보스가 지나온 자리 기억 (1초) */
       { const want=BX.S.ph>=1?"m11b":"m11"; if(g._bgmW!==want&&!(P.set&&P.set.bgm===false)){ g._bgmW=want; SND.bgm(want) } }   /* 군단장 음악: 1페이즈 → 각성하면 2페이즈 음악 */ if(g.t-(g._potU||0)>.1||g.t<(g._potU||0)){ g._potU=g.t; potUI() } if(NM!=="client"){ if(!g.b11Start){ if(b11AllRdy()){ g.b11Start=1; BX.start() } } if(g.b11Start) BX.hostTick(dt) } BX.tick(dt)
+      if(!(P.set&&P.set.autoPot===false)&&!g.p.dead&&!g.paused&&g.t>=(g.potT||0)&&g.p.hp<st().maxHp*.35){ drinkPot(); g.fx.push({k:"label",x:g.p.x,y:g.p.y-95,text:"🧪 자동 물약!",life:1,max:1}) }   /* 자동 물약 (2026-10-26): 체력 35% 아래면 저절로 마셔요 · 설정에서 끌 수 있어요 */
       { const bb=g.en.find(e=>e.b11&&e.hp>0), gro=!!(bb&&bb.an==="groggy"), U=ACT.find(k=>k.ult)||ACT[ACT.length-1];   /* 그로기 = 각성 극딜 버튼 */
         if(gro&&!g._groP&&U){ g.burstReady=1; U.t=999; burstBtn(true) }
         if(!gro&&g._groP){ if(g.burstReady&&U){ U.t=0 } g.burstReady=0; burstBtn(false) }
@@ -2426,7 +2438,7 @@ function startGame(opts){ opts=opts||{};
       }
       if(K==="brush" && cd("main",(.62-.03*L)*(BX?2:S1F))){   // 서예가: 붓을 휘둘러 먹물 물결 · 모두 꿰뚫고 느리게 해요
         const t0=near(P.x,P.y,1)[0]; if(t0){ sfx("brush"); const a=Math.atan2(t0.y-P.y,t0.x-P.x); g.atk={t:g.t,a,flip:!(g.atk&&g.atk.flip)};
-          const fan=BX?[0].concat(F.ink2?[-.2]:[],L>=4?[.2]:[]):[0].concat(F.ink2?[Math.PI]:[],L>=4?[.38]:[]);   /* 보스맵: 일필휘지 뒤쪽 물결도 보스 쪽(앞)으로 */ g.bn=(g.bn||0)+1; if(g.bn%3===0){ const R=115; g.en.forEach(e=>{ if(inR(P.x,P.y,R,e)){ hurt(e,(12+4.2*L)*.7*(BX?2:S1F)); ccL(e,1.2); if(e.type!=="boss"){ const dx=e.x-P.x, dy=e.y-P.y, d=Math.hypot(dx,dy)||1; ccP(e,dx/d*22,dy/d*22) } } }); g.fx.push({k:"inksplash",x:P.x,y:P.y,r:R,life:.45,max:.45}) }   // 세 번째 붓질마다 먹물이 사방으로 튀어요
+          const bk=F.ink2&&!BX?g.en.find(e=>e.hp>0&&!e.hidden&&Math.hypot(e.x-P.x,e.y-P.y)<480&&Math.cos(Math.atan2(e.y-P.y,e.x-P.x)-a)<-.3):null, fan=BX?[0].concat(F.ink2?[-.2]:[],L>=4?[.2]:[]):[0].concat(F.ink2?[bk?Math.atan2(bk.y-P.y,bk.x-P.x)-a:-.2]:[],L>=4?[.38]:[]);   /* 고침 (2026-10-26): 일필휘지 두 번째 물결은 뒤에 적이 있을 때만 그 적을 향해 뒤로 · 뒤가 비어 있으면(보스전 등) 앞쪽으로 같이 날아가요 */   /* 보스맵: 일필휘지 뒤쪽 물결도 보스 쪽(앞)으로 */ g.bn=(g.bn||0)+1; if(g.bn%3===0){ const R=115; g.en.forEach(e=>{ if(inR(P.x,P.y,R,e)){ hurt(e,(12+4.2*L)*.7*(BX?2:S1F)); ccL(e,1.2); if(e.type!=="boss"){ const dx=e.x-P.x, dy=e.y-P.y, d=Math.hypot(dx,dy)||1; ccP(e,dx/d*22,dy/d*22) } } }); g.fx.push({k:"inksplash",x:P.x,y:P.y,r:R,life:.45,max:.45}) }   // 세 번째 붓질마다 먹물이 사방으로 튀어요
           fan.forEach(o=>g.shots.push({k:"ink",x:P.x+Math.cos(a+o)*20,y:P.y+Math.sin(a+o)*20,vx:Math.cos(a+o)*560,vy:Math.sin(a+o)*560,dmg:12+4.2*L,pierce:99,life:.66,hit:new Set(),rad:26,kb:9,slowT:F.ink2?1.4:.8})) }
       }
       if(K==="charm" && cd("main",(.42-.02*L)*(BX&&MSLOW[K]?2:S1F))){   // 조련사: 끝까지 쫓아가는 방울 부적
@@ -2499,7 +2511,8 @@ function startGame(opts){ opts=opts||{};
     if(g.gemPull>0) g.gemPull-=dt;
     for(const gm of g.gems){
       const dx=P.x-gm.x, dy=P.y-gm.y, d=Math.hypot(dx,dy)||1; gm.age=(gm.age||0)+dt;   // 12초 지나면 멀리 있어도 저절로 날아와요
-      if(d<s.mag*1.4 || gm.fly || gm.age>(BX?3:12) || g.gemPull>0){ gm.fly=true; gm.fa=(gm.fa||0)+dt; const sp=Math.max(520,600-d)+Math.min(1400,gm.fa*1600);   /* 끌려오기 시작하면 점점 빨라져요 (멀리 있어도 1초 안에 쏙) */ const st2=Math.min(d,sp*dt); gm.x+=dx/d*st2; gm.y+=dy/d*st2 }
+      if(!gm.fly&&!(d<s.mag*1.4||g.gemPull>0)&&(gm.age>(BX?2.5:3.5)||g.gems.length>45&&gm.age>1)){ gm.v*=.8; gm.auto=1 }   /* 빠른 자동 회수 (2026-10-26): 보석이 쌓이면 렉 → 3.5초 지나면(많이 쌓이면 1초) 저절로 날아와요 · 대신 자동으로 온 보석은 경험치 80% (직접 가서 먹으면 100%) */
+      if(d<s.mag*1.4 || gm.fly || gm.auto || g.gemPull>0){ gm.fly=true; gm.fa=(gm.fa||0)+dt; const sp=Math.max(520,600-d)+Math.min(1400,gm.fa*1600);   /* 끌려오기 시작하면 점점 빨라져요 (멀리 있어도 1초 안에 쏙) */ const st2=Math.min(d,sp*dt); gm.x+=dx/d*st2; gm.y+=dy/d*st2 }
       if(P.dead) continue;
       if(d<P.r+6 && !gm.got){ gm.got=true; sfx("gem"); if(NM==="client") netOut.g.push(gm.id); else { g.xp+=gm.v*M.xp; if(NM) xpShare+=gm.v } }
     }
@@ -2521,8 +2534,9 @@ function startGame(opts){ opts=opts||{};
       else if(f.k==="warn"||f.k==="cloudwarn") ER.push({k:"erupt",s:"circ",x:f.x,y:f.y,r:f.r,sq:f.k==="cloudwarn"?.55:.75,life:.38,max:.38}) }
       if(ER.length) Array.prototype.push.apply(g.fx,ER) }
     g.fx=g.fx.filter(f=>f.life>0);
+    { const BU=g.bossUp||BX, LIM=BU?{num:12,poof:6,spark:6,hitspk:5,dust:8,hit:8,crit:6,sandtrail:6,erupt:6}:{num:14,poof:10,spark:10,hitspk:8,dust:12}, C={};   /* 보스전은 작은 효과를 조금 더 적게 */ let over=0; for(let i=g.fx.length-1;i>=0;i--){ const f=g.fx[i], L=LIM[f.k]; if(L===undefined||f.me||f.big) continue; C[f.k]=(C[f.k]||0)+1; if(C[f.k]>L){ f.life=0; over=1 } } if(over) g.fx=g.fx.filter(f=>f.life>0) }   /* 렉 줄이기 (2026-10-26): 데미지 숫자·타격 연기 같은 작은 효과는 종류마다 화면에 최대 개수만 (새 것 남기고 오래된 것부터 지워요 · 내 피해 숫자와 큰 한 방 숫자는 항상 보여요) */
     /* 렉 줄이기: 효과가 너무 많으면 오래된 숫자·작은 효과부터 줄여요 */
-    { const CAP=BX?(NM?110:140):NM?160:200; if(g.fx.length>CAP){ const SMALL={num:1,poof:1,hit:1,crit:1,spark:1,hitspk:1,dust:1,sandtrail:1,erupt:1,wburst:1}; let cut=g.fx.length-CAP; g.fx=g.fx.filter(f=>{ if(cut>0&&SMALL[f.k]){ cut--; return false } return true }) } }
+    { const CAP=BX?(NM?110:140):g.bossUp?(NM?120:140):NM?160:200; if(g.fx.length>CAP){ const SMALL={num:1,poof:1,hit:1,crit:1,spark:1,hitspk:1,dust:1,sandtrail:1,erupt:1,wburst:1}; let cut=g.fx.length-CAP; g.fx=g.fx.filter(f=>{ if(cut>0&&SMALL[f.k]){ cut--; return false } return true }) } }
     { let nums=0; for(let i=g.fx.length-1;i>=0;i--){ const f=g.fx[i]; if(f.k==="num"&&!f.me&&++nums>40) f.life=0 } }
     if(g.duelQ && !frozen && !P.dead && !g.over){ const d=g.duelQ; g.duelQ=null; hanjaDuel(d); return }
     if(!NM && g.xp>=g.need && !frozen && !P.dead){ g.xp-=g.need; g.lvl++; g.need=needXP(g.lvl); levelUp() }
@@ -2549,8 +2563,15 @@ function startGame(opts){ opts=opts||{};
     if(bg){ ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(x,y,size*.62,0,7); ctx.fill() }
     ctx.fillStyle=color; ctx.font=HZ(size); ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText(ch,x,y+size*.04);
   }
+  /* 5차 궁극기 같은 큰 스킬 효과는 몬스터·보스 아래에 60%로 옅게 깔아요 → 몬스터·보스·경고가 늘 잘 보여요 (11단계 방식을 모든 맵에)
+     렉 줄이기 (2026-10-26): 따로 그리는 그림판을 화면의 절반 크기로 → 그리는 양이 1/4 */
+  function underUlt(){ g._ukDone=1; const UK=drawFx.UK||(drawFx.UK={collapse:1,lavafield:1,quake:1,bigslash:1,fullmoon:1,worldslash:1,wburst:1,origin:1,skycircle:1,inkdragon:1,blackhole:1,moonbeam:1,ship:1,crossfx:1,mzone:1,ragewave:1,scorch:1,claw:1,cleave:1,healp:1});
+    if(!g.fx.some(f=>UK[f.k])) return; const HS=window.__fxLow?.33:.45, LY=drawFx.LY||(drawFx.LY=document.createElement("canvas")), lw=Math.ceil(cv.width*HS), lh=Math.ceil(cv.height*HS); if(LY.width!==lw||LY.height!==lh){ LY.width=lw; LY.height=lh }
+    const lc=LY.getContext("2d"), M0=ctx.getTransform(), old=ctx; lc.setTransform(1,0,0,1,0,0); lc.clearRect(0,0,lw,lh); lc.setTransform(M0.a*HS,M0.b*HS,M0.c*HS,M0.d*HS,M0.e*HS,M0.f*HS); lc.imageSmoothingEnabled=true; ctx=lc;
+    try{ for(const f of g.fx){ if(!UK[f.k]) continue; ctx.save(); try{ if(drawSkillFx(f,f.life/f.max)) f._pre=g._fr }catch(e){} ctx.restore() } }finally{ ctx=old }
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=.6; ctx.imageSmoothingEnabled=true; ctx.drawImage(LY,0,0,cv.width,cv.height); ctx.restore() }
   function draw(){
-    const P=g.p, s=st(); HERO_HD=null; REMOTE_HD.length=0;
+    const P=g.p, s=st(); HERO_HD=null; REMOTE_HD.length=0; g._ukDone=0; g._fr=(g._fr||0)+1;
     ctx=lctx; ctx.setTransform(1/PX,0,0,1/PX,0,0); ctx.imageSmoothingEnabled=false;
     let cx=W/2-P.x, cy=H/2-P.y;
     if(BX){ const b=g.en.find(e=>e.b11&&e.hp>0), hud=Math.min(200,H*.3), cl=(v,m)=>Math.max(-m,Math.min(m,v));   /* 보스맵 카메라: 보스 쪽으로 살짝 당기고, 위쪽 체력바·상태줄에 가리지 않게 화면을 조금 아래로 */
@@ -2579,14 +2600,9 @@ function startGame(opts){ opts=opts||{};
     drawObstacles(ctx,MAP,P.x,P.y,W,H,g.t,true);
     drawSkillsUnder();
     // 방울, 아이템
-    for(const gm of g.gems){ if(!vis(gm)) continue; // 경험치 구슬: 크고 반짝이게
-      const big=gm.v>=10, mid=gm.v>=4, r=big?11:mid?9:7.5, bob=Math.sin(g.t*4+gm.x*.07)*2.5, y=gm.y+bob;
-      const col=big?"#ff5ab8":mid?"#ffc21a":"#2ad0ff", lt=big?"#ffc8ea":mid?"#fff0a0":"#c8f6ff", tw=.6+.4*Math.sin(g.t*6+gm.x*.05);
-      ctx.fillStyle="rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(gm.x,gm.y+r*1.3,r*.8,r*.3,0,0,7); ctx.fill();
-      ctx.save(); ctx.globalCompositeOperation=GLOW; const gg=ctx.createRadialGradient(gm.x,y,0,gm.x,y,r*2.6); gg.addColorStop(0,col); gg.addColorStop(1,"rgba(0,0,0,0)"); ctx.globalAlpha=.55*tw; ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(gm.x,y,r*2.6,0,7); ctx.fill(); ctx.restore();
-      ctx.fillStyle=col; ctx.strokeStyle="#1b1530"; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(gm.x,y-r*1.35); ctx.lineTo(gm.x+r,y); ctx.lineTo(gm.x,y+r*1.35); ctx.lineTo(gm.x-r,y); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle=lt; ctx.beginPath(); ctx.moveTo(gm.x,y-r*1.35); ctx.lineTo(gm.x+r*.45,y-r*.15); ctx.lineTo(gm.x-r*.35,y+r*.05); ctx.closePath(); ctx.fill();
-      if(tw>.92){ ctx.fillStyle="#fff"; ctx.fillRect(gm.x+r*.6,y-r*1.2,2,6); ctx.fillRect(gm.x+r*.6-2,y-r*1.2+2,6,2) } }
+    for(const gm of g.gems){ if(!vis(gm)) continue; // 경험치 구슬: 미리 그려 둔 그림을 붙여요 (렉 줄이기 2026-10-26: 보석마다 빛 효과를 매번 새로 계산하지 않아요)
+      const big=gm.v>=10, mid=gm.v>=4, ty=big?2:mid?1:0, im=gemSpr(ty), bob=Math.sin(g.t*4+gm.x*.07)*2.5, tw=.75+.25*Math.sin(g.t*6+gm.x*.05);
+      ctx.globalAlpha=tw; ctx.drawImage(im,gm.x-im.width/4,gm.y+bob-im.height/4,im.width/2,im.height/2); ctx.globalAlpha=1 }
     for(const it of g.items){ if(!vis(it)){ if(it.k==="gem"){ const dx=it.x-P.x, dy=it.y-P.y, sc=Math.min((W/2-46)/Math.max(1,Math.abs(dx)),(H/2-70)/Math.max(1,Math.abs(dy))), ax=P.x+dx*sc, ay=P.y+dy*sc, an=Math.atan2(dy,dx), pu=.5+.5*Math.sin(g.t*6);   /* 화면 밖 보물상자 방향 화살표 */
           ctx.save(); ctx.translate(ax,ay); ctx.fillStyle="rgba(42,29,16,.75)"; ctx.beginPath(); ctx.arc(0,0,22,0,7); ctx.fill(); ctx.strokeStyle="#ffd36a"; ctx.lineWidth=3; ctx.stroke(); ctx.font='20px sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillText("🎁",0,1);
           ctx.rotate(an); ctx.fillStyle=`rgba(255,211,106,${.7+.3*pu})`; ctx.beginPath(); ctx.moveTo(34+4*pu,0); ctx.lineTo(24,-9); ctx.lineTo(24,9); ctx.fill(); ctx.restore() } continue }
@@ -2764,6 +2780,7 @@ function startGame(opts){ opts=opts||{};
       ctx.imageSmoothingEnabled=true; if(!(BX&&BX.floor(ctx,ox,oy,W,H))&&!drawFloorHD(ctx,MAP,ox,oy,W,H,g.t)) drawMapBG(ctx,MAP,P.x,P.y,W,H,g.t);
       { const ph=VPH, tint=PH_TINT[MAP.id][phV(ph)]; if(tint){ const k=Math.min(1,(g.t-VPH_T)/3), [r,gg,b,a]=tint.split(","); ctx.fillStyle=`rgba(${r},${gg},${b},${(+a)*Math.max(.15,k)})`; ctx.fillRect(0,0,W,H) } } if(BX) BX.ambience(ctx,W,H,null,null);   // 바닥만 어둡게 (몬스터는 또렷하게)
       ctx.save(); ctx.translate(ox,oy); ARTP=artPropsVisible(MAP,P.x,P.y,W,H);
+      if(HDFX) underUlt();   /* 큰 스킬 효과를 몬스터보다 먼저(아래에) */
       const L=ARTP.map(o=>[o.flat?o.ay-1e6:o.ay,0,o]); for(const e of HDM) L.push([e.y+e.r*.95,1,e]); L.sort((a,b)=>a[0]-b[0]);
       for(const it of L){ if(it[1]) drawMobArt(ctx,it[2],g.t,P.x,P.y); else drawArtProp(ctx,it[2],g.t,false) }
       if(BX&&!HDFX) BX.drawGround(ctx);
@@ -2773,13 +2790,7 @@ function startGame(opts){ opts=opts||{};
     if(ARTP){ ctx.imageSmoothingEnabled=true;   // 나무 뒤에 숨으면 나뭇잎이 살짝 비쳐 보이게 덮어요
       for(const o of ARTP){ if(o.pt!=="tree") continue; const im=PROP_IMG[o.pk]; if(!im) continue; const w=o.h*im.width/im.height;
         if(P.y<o.ay-6&&P.y>o.ay-o.h*.95&&Math.abs(P.x-o.ax)<w*.42){ ctx.globalAlpha=.55; drawArtProp(ctx,o,g.t,true); ctx.globalAlpha=1 } } }
-    g._fr=(g._fr||0)+1;
-    if(BX&&HDFX){ const UK=drawFx.UK||(drawFx.UK={collapse:1,lavafield:1,quake:1,bigslash:1,fullmoon:1,worldslash:1,wburst:1,origin:1,skycircle:1,inkdragon:1,blackhole:1,moonbeam:1,ship:1,crossfx:1,mzone:1,ragewave:1,scorch:1,claw:1,cleave:1,healp:1});   /* 보스맵: 큰 스킬 이펙트는 보스 아래에 깔고 보스는 위에 또렷하게 */
-      if(g.fx.some(f=>UK[f.k])){ /* 큰 궁극기 이펙트는 따로 그린 뒤 60%로 옅게 얹어요 → 보스·경고가 늘 잘 보여요 */
-        const LY=drawFx.LY||(drawFx.LY=document.createElement("canvas")); if(LY.width!==cv.width||LY.height!==cv.height){ LY.width=cv.width; LY.height=cv.height }
-        const lc=LY.getContext("2d"), M0=ctx.getTransform(), old=ctx; lc.setTransform(1,0,0,1,0,0); lc.clearRect(0,0,LY.width,LY.height); lc.setTransform(M0); lc.imageSmoothingEnabled=true; ctx=lc;
-        try{ for(const f of g.fx){ if(!UK[f.k]) continue; ctx.save(); if(drawSkillFx(f,f.life/f.max)) f._pre=g._fr; ctx.restore() } }finally{ ctx=old }
-        ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=.6; ctx.drawImage(LY,0,0); ctx.restore() } }
+    if(HDFX&&!g._ukDone) underUlt();   /* 그림 바닥이 아닌 맵: 여기서 깔아요 */
     for(const e of HDL){ ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality=SMQ; if(e.b11&&BX){ if(!HDFX) BX.drawBoss(ctx,e); continue } const fy=e.y+e.r*.6; ctx.save(); ctx.translate(e.x,fy); ctx.scale(BOSS_VIS,BOSS_VIS); ctx.translate(-e.x,-fy); drawMonster(ctx,e,g.t,P.x,P.y); ctx.restore() }   /* 보스는 그림을 30% 크게 */
     if(BX&&!HDFX){ ctx.imageSmoothingEnabled=true; BX.drawOver(ctx); if(g.bfx&&typeof drawBurst5==="function") for(const f of g.bfx){ if(B5_UNDER[f.cls]||b5Img(f.cls)) continue; try{ drawBurst5(ctx,f,g.t,1) }catch(e){} } BX.drawMyGauge(ctx) }
     if(HDFX){ ctx.imageSmoothingEnabled=true; actionLayer() }
@@ -2819,6 +2830,7 @@ function startGame(opts){ opts=opts||{};
         ctx.lineWidth=6; ctx.strokeStyle="#2a0a10"; ctx.strokeText(f.text,f.x,y); ctx.fillStyle="#ff5a6a"; ctx.fillText(f.text,f.x,y); ctx.globalAlpha=1 } }
     ctx.restore();
     if(VPH>0&&typeof drawWeather==="function") drawWeather(ctx,MAP,VPH,g.t,W,H,P.x,P.y,Math.min(1,(g.t-VPH_T)/3));
+    { const bon=g.en.some(e=>(e.type==="boss"||e.b11)&&e.hp>0&&!e.hidden); for(const f of g.fx) if(f.k==="cutin5"||f.k==="cutin") f.alm=bon?.5:1 }   /* 보스전에서는 컷신을 반투명하게 (보스·경고가 비쳐 보이게 · 2026-10-26) */
     for(const f of g.fx) if(f.k==="cutin5") drawCut5(f,f.life/f.max);   /* 5차 컷인: 선명한 화면 맨 위 */
     for(const f of g.fx) if(f.k==="cutin"||f.k==="cutin5") jfCutinText(ctx,f,W,H);
     { const U=ACT.find(k=>k.ult)||(g.burstReady?ACT[ACT.length-1]:null); if(U&&!g.p.dead){ const BR=!!g.burstReady, bp=.5+.5*Math.sin(g.t*10), R=(W<600?28:32)*(BR?1.25+.08*bp:1), SH_=H<520&&W>H, cx=SH_?W-138:W/2, cy=SH_?H-52:H-(W<600?28:32)-22-(BR?8:0),   /* 화면 아래 가운데: 잘 보이게 */ tot=U.tt||U.cd*.5, rem=BR?0:Math.max(0,U.t), q=BR?1:1-Math.min(1,rem/tot), rdy=BR||rem<.6, IC=SIMG("ic5_"+HERO.id);   /* 5차 궁극기 쿨타임: 오른쪽 아래 둥근 아이콘 */
