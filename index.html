@@ -397,6 +397,10 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .tNow{display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.2);border-radius:12px;padding:8px 10px;margin:4px 0 8px;text-align:left;font-family:var(--f-ui)}.tNow>div{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.tNowL{background:#5a48c8;color:#fff;border-radius:6px;padding:0 7px;font-size:13px}.tNow small{opacity:.75;font-size:13px}.tNow span{font-size:13px}
 .tSec{border-radius:14px;padding:8px;border:2px solid}.tSec.eqs{border-color:#f0a030;background:rgba(240,160,48,.07)}.tSec.pss{border-color:#3fcf8e;background:rgba(63,207,142,.07)}.tSec.dcs{border-color:#8a7ae0;background:rgba(138,122,224,.07)}
 .tSecH{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:6px}.tSecH b{font-family:var(--f-ui);font-weight:400;font-size:18px}.tSecH small{font-size:13px;opacity:.85}.tSecH small b{font-size:13px}
+.tGrpT{display:flex;align-items:center;gap:8px;width:100%;margin:0;min-height:0;box-shadow:none;border:0;border-radius:10px;background:rgba(255,255,255,.07);padding:7px 10px;color:inherit;font-family:var(--f-ui);cursor:pointer;text-align:left;flex-wrap:wrap}.tGrpT h4{margin:0!important}.tGrpT.open{background:rgba(255,211,106,.14);margin-bottom:6px}.tAr{font-size:12px;opacity:.8;width:12px}.tCnt{font-size:13px;color:#e0a020}.tClose{margin-left:auto;font-size:12px;opacity:.75}
+.tMini{display:flex;flex-wrap:wrap;gap:3px;flex-basis:100%;padding-left:20px}.tMini i{font-style:normal;transform:scale(.8);transform-origin:left center;margin-right:-14px}.tMini i .tPill{margin:0}.tMini i.on{filter:drop-shadow(0 0 4px #ffd36a)}.tMini i.lk{opacity:.45;font-size:12px;margin-right:0;transform:none}
+.tGrp.fold{margin-bottom:4px}.tFoldBar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 6px}.tFoldBar small{opacity:.8;font-size:12px}
+.pkTg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}.pkTg button{width:auto;min-height:0;margin:0;box-shadow:none;border:2px solid rgba(255,255,255,.15);border-radius:999px;background:rgba(255,255,255,.06);padding:4px 10px;color:inherit;font-family:var(--f-ui);font-size:14px;cursor:pointer}.pkTg button.on{border-color:#ffd36a;background:rgba(255,211,106,.18)}.pkTg button em{font-style:normal;font-size:11px;opacity:.8;margin-left:3px}.pkTg button.has{box-shadow:inset 0 -3px 0 #2f8a5a}
 .tGrp{margin-bottom:8px}.tGrpH{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:4px}.tGrpH h4{margin:0}.tProg{font-size:12px;opacity:.9}.tProg b{color:#e0a020;font-weight:400}
 .tFx{font-family:var(--f-ui);font-weight:400;font-size:13px;color:#2f8a5a}.tItem .tTap{color:#888;font-size:11px}.tKind{font-style:normal;font-size:11px;padding:0 5px;border-radius:6px;margin-left:2px;white-space:nowrap}.tKind.pas{background:#2f8a5a;color:#fff}.tKind.eqk{background:#c08a10;color:#fff}
 .rvBtn{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:10px 0 0;padding:12px 16px;border-radius:16px;border:3px solid #3fcf8e;background:linear-gradient(135deg,#1d3a30,#163028);color:#eafff4;text-align:left;font-family:var(--f-ui);cursor:pointer}
@@ -1243,18 +1247,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10271807"></script>
-<script src="jobs.js?v=10271807"></script>
-<script src="maps.js?v=10271807"></script>
-<script src="art.js?v=10271807"></script>
-<script src="art2.js?v=10271807"></script>
-<script src="monsters.js?v=10271807"></script>
-<script src="jobfx.js?v=10271807"></script>
-<script src="words.js?v=10271807"></script>
-<script src="sayings.js?v=10271807"></script>
-<script src="sfx.js?v=10271807"></script>
+<script src="sprites.js?v=10272247"></script>
+<script src="jobs.js?v=10272247"></script>
+<script src="maps.js?v=10272247"></script>
+<script src="art.js?v=10272247"></script>
+<script src="art2.js?v=10272247"></script>
+<script src="monsters.js?v=10272247"></script>
+<script src="jobfx.js?v=10272247"></script>
+<script src="words.js?v=10272247"></script>
+<script src="sayings.js?v=10272247"></script>
+<script src="sfx.js?v=10272247"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10271807"></script>
+<script src="mp.js?v=10272247"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1498,10 +1502,13 @@ function bindTodayCard(){ $app.querySelectorAll("[data-td]").forEach(b=>b.onclic
     if(k==="rv") return reviewQuiz(); if(k==="learn"){ const g=document.getElementById("goLearn"); if(g) g.click(); return } if(k==="game"){ const g=document.getElementById("goGame"); if(g) g.click(); return }
     if(k==="title"){ P.tSeen=TITLES.filter(titleOwned).length; saveP(); titleBox(home) } });
   { const m=document.getElementById("tdMore"); if(m) m.onclick=()=>guide("rules") } }
-function titleBox(back){ const S=tStat(), eq=titleEq(), look=titleLook(), own=TITLES.filter(titleOwned), adm=typeof isAdmin==="function"&&isAdmin();
+let TB_OPEN=null;   /* 칭호함: 묶음을 접었다 폈다 해요 (처음엔 장착한 칭호 묶음만 펼쳐요) */
+function titleBox(back){ if(!TB_OPEN){ TB_OPEN=new Set(); const e0=titleEq(), l0=titleLook(); if(e0) TB_OPEN.add(e0.g); if(l0) TB_OPEN.add(l0.g) } const S=tStat(), eq=titleEq(), look=titleLook(), own=TITLES.filter(titleOwned), adm=typeof isAdmin==="function"&&isAdmin();
   const pasNow=Object.keys(TITLE_PASSIVE).map(k=>{ const v=titleFx(k); if(!v) return ""; const t=TITLES.filter(x=>x.fx&&x.fx[k]===v&&titleOwned(x))[0]; return t?`<span>${titlePill(t)} ${esc(t.fxT)}</span>`:"" }).filter(Boolean);
   const sec=(title,sub,cls,list)=>{ const gs=[...new Set(list.map(t=>t.g))]; return `<div class="tSec ${cls}"><div class="tSecH"><b>${title}</b><small>${sub}</small></div>${gs.map(gn=>{ const L=list.filter(t=>t.g===gn), pf=TGRP_P[gn], pv=pf&&!adm?pf(S):null, nx=L.find(t=>!titleOwned(t));
-      return `<div class="tGrp"><div class="tGrpH"><h4>${gn}</h4>${pv?`<span class="tProg">${esc(pv[1])} <b>${pv[0]}${pv[2]}</b>${nx?` · 다음 <b>${esc(nx.n)}</b>: ${esc(nx.need)}`:" · 모두 모았어요! 🎉"}</span>`:""}</div>
+      const op=TB_OPEN.has(gn), no=L.filter(titleOwned).length;
+      if(!op) return `<div class="tGrp fold"><button class="tGrpT" data-tg="${esc(gn)}"><span class="tAr">▶</span><h4>${gn}</h4><span class="tCnt">${no}/${L.length}</span><span class="tMini">${L.map(t=>titleOwned(t)?`<i class="${(eq&&eq.id===t.id)||(look&&look.id===t.id)?"on":""}">${titlePill(t)}</i>`:`<i class="lk">🔒</i>`).join("")}</span></button></div>`;
+      return `<div class="tGrp"><button class="tGrpT open" data-tg="${esc(gn)}"><span class="tAr">▼</span><h4>${gn}</h4><span class="tCnt">${no}/${L.length}</span><span class="tClose">접기</span></button><div class="tGrpH">${pv?`<span class="tProg">${esc(pv[1])} <b>${pv[0]}${pv[2]}</b>${nx?` · 다음 <b>${esc(nx.n)}</b>: ${esc(nx.need)}`:" · 모두 모았어요! 🎉"}</span>`:""}</div>
       <div class="tRow">${L.map(t=>{ const o=titleOwned(t), on=eq&&eq.id===t.id, lk=look&&look.id===t.id, eqk=t.fx&&!titlePassive(t); return `<div class="tItem ${o?"own":"tLk"} ${on||lk?"on":""}">${o?titlePill(t):`<span class="tPill lockp">🔒 ${t.ic?t.ic+" ":""}${esc(t.n)}</span>`}<small>${esc(t.need)}</small>${t.fxT?`<b class="tFx">${esc(t.fxT)}</b>`:""}
         ${o?`<span class="tBtns">${eqk?`<button class="tB ${on?"on":""}" data-tt="${t.id}">${on?"✔ 효과 장착 중":"💪 효과 장착"}</button>`:""}<button class="tB lk ${lk?"on":""}" data-tl="${t.id}">${lk?"✔ 모양 쓰는 중":"👀 모양으로"}</button></span>`:""}</div>` }).join("")}</div></div>` }).join("")}</div>` };
   const EQ=TITLES.filter(t=>t.fx&&!titlePassive(t)), PS=TITLES.filter(titlePassive), DC=TITLES.filter(t=>!t.fx);
@@ -1510,11 +1517,14 @@ function titleBox(back){ const S=tStat(), eq=titleEq(), look=titleLook(), own=TI
     <div class="tNow"><div><span class="tNowL">💪 효과 칭호</span>${eq?`${titlePill(eq,1)} <b class="tFx">${esc(eq.fxT)}</b>`:`<small>없어요 · 💪 칸 칭호의 「효과 장착」을 눌러요</small>`}</div>
       <div><span class="tNowL">👀 보이는 모양</span>${titleShown()?titlePill(titleShown(),1):`<small>없어요</small>`}<small>${look?"(친구에게 이렇게 보여요)":"(따로 안 고르면 효과 칭호가 보여요)"}</small></div>
       <div><span class="tNowL">항상 받는 효과</span>${pasNow.length?pasNow.join(""):`<small>아직 없어요 · 🪙 칸 칭호를 모으면 생겨요</small>`}</div></div>
+    <div class="tFoldBar"><small>묶음 이름을 누르면 펼쳐지고 접혀요</small><button class="tB" id="tAll">${TB_OPEN.size?"▲ 모두 접기":"▼ 모두 펼치기"}</button></div>
     <div class="tBox">${sec("💪 장착해서 쓰는 칭호","장착한 칭호 <b>하나만</b> 효과가 나요 · 게임에서 세져요","eqs",EQ)}${sec("🪙 모으면 항상 효과","장착 안 해도 <b>모으기만 하면</b> 효과가 나고 서로 쌓여요 · 같은 줄은 가장 높은 것 하나","pss",PS)}${sec("🎖 꾸미기 칭호","효과는 없지만 멋진 모양! 「👀 모양으로」를 눌러 친구에게 보여 줘요 · 👑 보스를 쓰러뜨리면 그 보스 칭호가 생겨요","dcs",DC)}</div>
     <div class="btns">${eq||look?`<button class="btn ghost" id="tOff">칭호 모두 빼기</button>`:""}<button class="btn gold" id="tClose">닫기</button></div>`,true);
   const redraw=()=>{ const y=mcard.querySelector(".tBox").scrollTop; titleBox(back); const nb=mcard.querySelector(".tBox"); if(nb) nb.scrollTop=y };
   mcard.querySelectorAll("[data-tt]").forEach(b=>b.onclick=()=>{ P.titleEq=b.dataset.tt; saveP(); sfx("pick"); const t=titleEq(); toast(`💪 '${t.n}' 효과 장착 · ${t.fxT}`); redraw() });
   mcard.querySelectorAll("[data-tl]").forEach(b=>b.onclick=()=>{ P.titleLook=P.titleLook===b.dataset.tl?"":b.dataset.tl; saveP(); sfx("pick"); const t=titleLook(); toast(t?`👀 이제 '${t.n}' 모양으로 보여요 (효과는 그대로)`:"👀 모양을 효과 칭호로 되돌렸어요"); redraw() });
+  mcard.querySelectorAll("[data-tg]").forEach(b=>b.onclick=()=>{ sfx("tap"); const k=b.dataset.tg; if(TB_OPEN.has(k)) TB_OPEN.delete(k); else TB_OPEN.add(k); redraw() });
+  { const a=document.getElementById("tAll"); if(a) a.onclick=()=>{ sfx("tap"); if(TB_OPEN.size) TB_OPEN.clear(); else for(const t of TITLES) TB_OPEN.add(t.g); redraw() } }
   { const o=document.getElementById("tOff"); if(o) o.onclick=()=>{ P.titleEq=""; P.titleLook=""; saveP(); titleBox(back) } }
   document.getElementById("tClose").onclick=()=>{ closeModal(); if(back) back() } }
 function overcomeFx(c,cn){ sfx("win"); const n=(P.ovc||[]).length, t=OVC_TITLES.filter(x=>x[0]===n)[0];
@@ -2021,7 +2031,7 @@ function home(){
   <div class="menu4">
     <button data-go="hero"><span class="mi">${avaHtml(nextLockedOrCur(),34)}</span>용사<small>${P.heroes.length}/${HEROES.length} 해금</small></button>
     <button data-go="dex">${ico("dex","mic")}도감<small>익힌 한자 ${mastered}자${typeof SAJA!=="undefined"?` · 말 ${SAJA.concat(SOK).filter(sayMastered).length}개`:""}</small></button>
-    <button data-go="bcard">${ico("trophy","mic")}보스 카드<small>${typeof cardCount==="function"?cardCount():0}/120장 모음</small></button>
+    <button data-go="bcard">${ico("trophy","mic")}보스 카드<small>${typeof cardCount==="function"?cardCount():0}/${typeof CARD_N==="function"?CARD_N()*3:120}장 모음</small></button>
     <button data-go="notes">${ico("note","mic")}오답 노트<small>${P.wrong.length}자</small></button>
     <button data-go="title"><span class="mi" style="font-size:30px;line-height:34px">🏷</span>칭호함<small>${TITLES.filter(titleOwned).length}/${TITLES.length} 모음${Math.max(0,TITLES.filter(titleOwned).length-(P.tSeen||0))?` · <b style="color:#e0567a">새 칭호!</b>`:""}</small></button>
     <button data-go="rec">${ico("trophy","mic")}내 기록<small>도장 ${P.done.length+(typeof sayDoneWeeks==="function"?sayDoneWeeks():0)}/${WEEKS.length+(typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S+SAY_WEEKS.P:0)}</small></button>
@@ -2151,7 +2161,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10271807"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10272247"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2893,4 +2903,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10271807"></script>
+<script src="game.js?v=10272247"></script>

@@ -171,12 +171,13 @@ function bossArtSrc(bid){ const B=BOSSES[bid]||{}, F=typeof BOSS_ART_FILES!=="un
 function cardHtml(bid,lv,big){ const B=BOSSES[bid]||{}, src=bossArtSrc(bid), fin=B.tier===3;
   return `<div class="bcard ${lv?"t"+lv:"none"} ${fin?"fin":""} ${big?"big":""}"><div class="bcin">${lv?`<img src="${src}" alt="">`:`<span class="bq">?</span>`}</div><b>${lv?esc(B.name||""):"???"}</b><small>${lv?`${B.tn||""} · ${CARD_TIER[lv]} 카드`:(B.tn||"")}</small></div>` }
 function keySrc(id){ return typeof SKILL_ART_FILES!=="undefined"?(SKILL_ART_FILES["key"+id]||""):"" }
-/* 동·은·금 카드를 따로 모아요 (40장 × 3 = 120장). bcm: 보스마다 가진 등급 표시 */
+/* 동·은·금 카드를 따로 모아요 (1~10단계 맵 40장 × 3 = 120장 · 11단계 보스 카드는 세지 않아요). bcm: 보스마다 가진 등급 표시 */
 function cardMask(){ P.bcm=P.bcm||{}; if(!P.bcmV){ for(const k in (P.bcard||{})){ const L=P.bcard[k]||0; let m=0; for(let t=1;t<=L;t++) m|=1<<(t-1); P.bcm[k]=(P.bcm[k]||0)|m } P.bcmV=1; saveP() } return P.bcm }
 const hasCard=(bid,t)=>!!(cardMask()[bid]&(1<<(t-1)));
-function cardCount(t){ const M=cardMask(); let n=0; for(const k in M) for(let i=1;i<=3;i++) if((!t||t===i)&&(M[k]&(1<<(i-1)))) n++; return n }
+const CARD_N=()=>MAPS.length*4;
+function cardCount(t){ const M=cardMask(), V={}; for(const m of MAPS) for(const k of mapCardKeys(m.id)) V[k]=1; let n=0; for(const k in M) if(V[k]) for(let i=1;i<=3;i++) if((!t||t===i)&&(M[k]&(1<<(i-1)))) n++; return n }
 function bossCardDex(){ const T=P.set.ctier||1; $app.innerHTML = topbar("도감") + (typeof dexTabs==="function"?dexTabs("B"):"") + `
-  <div class="ctabs">${[1,2,3].map(t=>`<button class="ctab ${T===t?"on":""}" data-ct="${t}" style="--cc:${CARD_COL[t]}">${CARD_TIER[t]} 카드 <small>${cardCount(t)}/40</small></button>`).join("")}<button class="ctab ${T===4?"on":""}" data-ct="4" style="--cc:#c39bff">🎖 명예 카드 <small>${Object.keys(P.honor||{}).length}/9</small></button><span class="ctot">전체 ${cardCount()}/120장</span></div>
+  <div class="ctabs">${[1,2,3].map(t=>`<button class="ctab ${T===t?"on":""}" data-ct="${t}" style="--cc:${CARD_COL[t]}">${CARD_TIER[t]} 카드 <small>${cardCount(t)}/${CARD_N()}</small></button>`).join("")}<button class="ctab ${T===4?"on":""}" data-ct="4" style="--cc:#c39bff">🎖 명예 카드 <small>${Object.keys(P.honor||{}).length}/9</small></button><span class="ctot">전체 ${cardCount()}/${CARD_N()*3}장</span></div>
   ${typeof isAdmin==="function"&&isAdmin()?`<div class="btns" style="margin:0 0 10px"><button class="btn gold" id="cardAll">🛠 선생님: 보스·명예 카드 모두 채우기</button>${P._bcBak?`<button class="btn ghost" id="cardBack">↩ 채우기 전으로 되돌리기</button>`:""}</div>`:""}
   <section class="panel"><div class="dexHead"><span class="meta">보스를 물리치면 카드를 받아요 · 보통=동 · 어려움=은 · 지옥=금 · 한 맵의 4장을 다 모으면 모든 직업의 능력치가 올라가요</span></div>
   ${(()=>{ const S=cardBonusSum(); const t=Object.entries(S).map(([k,v])=>`${{hp:"최대 체력",spd:"이동 속도",armor:"받는 피해",xp:"경험치",dmg:"공격력",cd:"공격 속도",mag:"줍는 거리",crit:"급소 확률"}[k]} ${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%`).join(" · "); return `<p class="cardsum">🃏 지금 받는 수집 보너스: <b>${t||"아직 없어요"}</b></p>` })()}
@@ -188,7 +189,7 @@ function bossCardDex(){ const T=P.set.ctier||1; $app.innerHTML = topbar("도감"
   document.querySelectorAll(".ctab").forEach(b=>b.onclick=()=>{ P.set.ctier=+b.dataset.ct; saveP(); bossCardDex() });
   /* 선생님 모드 (2026-10-27): 가장 센 상태로 점검할 수 있게 카드를 한 번에 채워요 · 되돌리기 가능 */
   { const ca=document.getElementById("cardAll"); if(ca) ca.onclick=()=>{ if(!P._bcBak) P._bcBak=JSON.stringify({b:P.bcard||{},m:P.bcm||{},h:P.honor||{}}); P.bcard=P.bcard||{}; const M=cardMask();
-      for(const m of MAPS) for(const k of mapCardKeys(m.id)){ P.bcard[k]=3; M[k]=7 } P.honor=P.honor||{}; for(const h of HEROES) P.honor[h.id]=3; saveP(); toast("보스 카드 120장 · 명예 카드 9장을 모두 채웠어요 (선생님 모드)"); bossCardDex() };
+      for(const m of MAPS) for(const k of mapCardKeys(m.id)){ P.bcard[k]=3; M[k]=7 } P.honor=P.honor||{}; for(const h of HEROES) P.honor[h.id]=3; saveP(); toast(`보스 카드 ${CARD_N()*3}장 · 명예`+" 카드 9장을 모두 채웠어요 (선생님 모드)"); bossCardDex() };
     const cb=document.getElementById("cardBack"); if(cb) cb.onclick=()=>{ try{ const o=JSON.parse(P._bcBak); P.bcard=o.b; P.bcm=o.m; P.honor=o.h }catch(e){} delete P._bcBak; saveP(); toast("카드를 채우기 전으로 되돌렸어요"); bossCardDex() } } }
 const medalsOf=id=>((P.medal||{})[id])||[0,0,0];
 const medalCount=()=>Object.values(P.medal||{}).reduce((a,m)=>a+m.filter(Boolean).length,0);
@@ -447,7 +448,8 @@ function gameLobby(){
           ${bossDefOf(M.id,mapDif(M.id))?`<button class="btn gold" id="pkStat" style="width:100%;font-size:18px;padding:12px">⭐ 이 군단장 맞춤으로 다시 찍기</button>`:`<button class="btn gold" id="pkStat" style="width:100%;font-size:18px;padding:12px">⭐ 추천대로 다시 찍기 (1~10단계 공통)</button>`}<button class="btn ghost" id="pkStatGo" style="width:100%;margin-top:6px;font-size:16px;padding:10px">✋ 직접 찍으러 가기</button>`) })()}
       ${typeof TITLES!=="undefined"?(()=>{ const eq=titleEq(), own=TITLES.filter(titleOwned).filter(t=>t.fx&&!titlePassive(t)||!t.fx), adm=isAdmin();   /* 2026-10-27: 출전 준비에서 칭호도 바꿔요 (장착 효과가 있는 칭호 먼저) */
         const L=TITLES.filter(t=>titleOwned(t)&&t.fx&&!titlePassive(t));
-        return sec("title","🏷","칭호",`${eq?`💪 ${titlePill(eq)} ${eq.fxT?esc(eq.fxT):""}`:"효과 칭호 없음"}${titleShown()&&titleShown()!==eq?` · 👀 ${titlePill(titleShown())}`:""}`,`<p class="pkK">여기서는 <b>💪 효과 칭호</b>를 바꿔요 (장착한 하나만 효과). 친구에게 <b>보이는 모양</b>은 칭호함에서 따로 고를 수 있어요.</p>
+        return sec("title","🏷","칭호",`${eq?`💪 ${titlePill(eq)} ${eq.fxT?esc(eq.fxT):""}`:"효과 칭호 없음"}${titleShown()&&titleShown()!==eq?` · 👀 ${titlePill(titleShown())}`:""}`,`<p class="pkK">위의 묶음을 고르고 칭호를 눌러 <b>💪 효과</b>를 바꿔요 (장착한 하나만 효과).</p>
+          ${(()=>{ const gs=[...new Set(L.map(t=>t.g))]; let cur=P.set.ptg; if(!gs.includes(cur)) cur=eq&&gs.includes(eq.g)?eq.g:gs[0]; L.splice(0,L.length,...L.filter(t=>t.g===cur)); return gs.length>1?`<div class="pkTg">${gs.map(gn=>`<button class="${gn===cur?"on":""} ${eq&&eq.g===gn?"has":""}" data-ptg="${esc(gn)}">${gn}<em>${TITLES.filter(t=>t.g===gn&&titleOwned(t)&&t.fx&&!titlePassive(t)).length}</em></button>`).join("")}</div>`:"" })()}
           <div class="pkTitles">${L.length?L.map(t=>`<button class="pkTt ${eq&&eq.id===t.id?"on":""}" data-ptt="${t.id}">${titlePill(t)}<small>${t.fxT?esc(t.fxT):"꾸미기"}</small></button>`).join(""):`<p class="muted">아직 모은 칭호가 없어요. 공부하면 생겨요!</p>`}</div>
           <button class="btn ghost" id="pkTBox" style="width:100%;margin-top:6px">🏷 칭호함 전체 보기</button>`) })():""}
       <div class="gbtns"><button class="big red" id="pkGo">⚔ 입장하기<small style="display:block;font-size:13px">${esc(H.name)} · 전투력 ${fmtPow(pw)} · 코인 ${GAME_COST}개</small></button><button class="big alt" id="pkNo">취소</button></div>`;
@@ -459,6 +461,7 @@ function gameLobby(){
         const pg2=document.getElementById("pkStatGo"); if(pg2) pg2.onclick=()=>{ sfx("tap"); modal.hidden=true; grow(P.hero,()=>{ gameLobby(); openPick("stat") }) } }
       const pe=document.getElementById("pkEng"); if(pe) pe.onclick=()=>{ sfx("tap"); engraveUI(()=>openPick("eng")) };
       mcard.querySelectorAll("[data-ptt]").forEach(b=>b.onclick=()=>{ sfx("pick"); P.titleEq=b.dataset.ptt; saveP(); T=""; draw() });   /* 효과 칭호만 바꿔요 (보이는 모양은 칭호함에서) */
+      mcard.querySelectorAll("[data-ptg]").forEach(b=>b.onclick=()=>{ sfx("tap"); P.set.ptg=b.dataset.ptg; saveP(); draw() });   /* 칭호 묶음 고르기 (한자 · 사자성어 · 오답 극복 …) */
       { const tb=document.getElementById("pkTBox"); if(tb) tb.onclick=()=>{ sfx("tap"); titleBox(()=>{ gameLobby(); openPick("title") }) } }
       document.getElementById("pkNo").onclick=()=>{ modal.hidden=true; const y=window.scrollY; gameLobby(); window.scrollTo(0,y) };
       document.getElementById("pkGo").onclick=()=>{ modal.hidden=true; if(payGame()) wrongWarmup(()=>startGame()); else gameLobby() } };
@@ -1731,9 +1734,9 @@ function startGame(opts){ opts=opts||{};
       else { c.fillStyle=r.c; c.beginPath(); for(let k=0;k<8;k++){ const b=k*Math.PI/4+Math.PI/8; c.lineTo(p[0]+Math.cos(b)*s,p[1]+Math.sin(b)*s) } c.closePath(); c.fill();
       c.strokeStyle="rgba(255,255,255,.75)"; c.lineWidth=1.2; c.stroke() } if(r.lv>=3||res){ c.save(); c.globalCompositeOperation=GLOW; c.globalAlpha=.5; c.fillStyle=r.c; c.beginPath(); c.arc(p[0],p[1],s*1.7,0,7); c.fill(); c.restore() }
       c.lineWidth=2.5; c.strokeStyle="rgba(20,10,30,.85)"; c.strokeText(r.h,p[0],p[1]+.5); c.fillStyle="#fff"; c.fillText(r.h,p[0],p[1]+.5) }); c.restore() }
-  function drawTitleTag(x,y,tx,col,col2){ const c=ctx; c.save(); c.font='12px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; const w=c.measureText(tx).width+16;
-    let fs=col||"#ffd36a"; if(col2){ const lg=c.createLinearGradient(x-w/2,0,x+w/2,0); lg.addColorStop(0,col); lg.addColorStop(1,col2); fs=lg } c.fillStyle=fs; c.globalAlpha=.94; c.beginPath(); c.roundRect?c.roundRect(x-w/2,y-8,w,16,8):c.rect(x-w/2,y-8,w,16); c.fill();
-    c.globalAlpha=1; c.lineWidth=1.2; c.strokeStyle=col2?"#fff3c0":"rgba(255,255,255,.7)"; c.stroke(); c.fillStyle=col2?"#ffffff":"#1a1020"; if(col2){ c.lineWidth=2.5; c.strokeStyle="rgba(20,8,30,.7)"; c.strokeText(tx,x,y+1) } c.fillText(tx,x,y+1); c.restore() }   /* 장착한 칭호: 발밑에 칭호 색으로 */
+  function drawTitleTag(x,y,tx,col,col2){ const c=ctx; c.save(); y+=4; c.font='17px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; const w=c.measureText(tx).width+22;   /* 2026-10-27: 잘 보이게 크게 (12→17px) */
+    let fs=col||"#ffd36a"; if(col2){ const lg=c.createLinearGradient(x-w/2,0,x+w/2,0); lg.addColorStop(0,col); lg.addColorStop(1,col2); fs=lg } c.fillStyle=fs; c.globalAlpha=.94; c.beginPath(); c.roundRect?c.roundRect(x-w/2,y-12,w,24,12):c.rect(x-w/2,y-12,w,24); c.fill();
+    c.globalAlpha=1; c.lineWidth=1.6; c.strokeStyle=col2?"#fff3c0":"rgba(255,255,255,.7)"; c.stroke(); c.fillStyle=col2?"#ffffff":"#1a1020"; if(col2){ c.lineWidth=3.5; c.strokeStyle="rgba(20,8,30,.75)"; c.strokeText(tx,x,y+1) } c.fillText(tx,x,y+1); c.restore() }   /* 장착한 칭호: 발밑에 칭호 색으로 */
   function drawAwkTag(x,y){ const c=ctx; c.save(); c.font='bold 13px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; const tx="✦ 5차 각성 ✦", w=c.measureText(tx).width+16, pu=.5+.5*Math.sin(g.t*4);
     const lg=c.createLinearGradient(x-w/2,0,x+w/2,0); lg.addColorStop(0,"#ff5ad8"); lg.addColorStop(.5,"#ffb347"); lg.addColorStop(1,"#ff5ad8"); c.fillStyle=lg; c.shadowColor="#ff5ad8"; c.shadowBlur=8+8*pu;
     c.beginPath(); c.roundRect?c.roundRect(x-w/2,y-9,w,18,9):c.rect(x-w/2,y-9,w,18); c.fill(); c.shadowBlur=0; c.lineWidth=1.5; c.strokeStyle="#fff2c0"; c.stroke(); c.lineWidth=3; c.strokeStyle="#3a0a2a"; c.strokeText(tx,x,y+1); c.fillStyle="#ffffff"; c.fillText(tx,x,y+1); c.restore() }
