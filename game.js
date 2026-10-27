@@ -326,7 +326,7 @@ const MAXLV = 5;
 function setMainSkill(){ const H=heroById(P.hero); SK.main={t:"w",cls:H.cls,name:H.main.name,d:H.main.d}; }
 function gameLobby(){
   if(typeof studyLeft==="function"&&studyLeft()>0){ const n=studyLeft(), d0=day();   /* 하루 학습 5세트를 먼저 (2026-10-26) */
-    openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 문제를 하나도 맞히지 못한 세트는 세지 않아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
+    openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 퀴즈는 60% 이상 맞혀야 세트로 쳐요. 코인은 만점일 때만 받아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
     document.getElementById("gateGo").onclick=()=>{ closeModal(); const b=document.getElementById("goLearn"); if(b) b.click(); else home() };
     document.getElementById("gateNo").onclick=()=>closeModal(); return }
   setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)){ P.set.map=mapOpenN(); saveP() }
@@ -1216,7 +1216,7 @@ function startGame(opts){ opts=opts||{};
     if(m.weak&&m.weak.length){ const by=new Map(g.en.map(e=>[e.id,e])); for(const id of m.weak) weakVote(by.get(id),from) }
     if(m.duel){ const by=new Map(g.en.map(e=>[e.id,e])), pct=.09/(1+.5*(nPlayers()-1)); for(const id of m.duel){ const e=by.get(id); if(e&&e.hp>0&&!e.b11inv){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) } } } }
   function clientRecv(m){
-    if(m.t!=="s") return;
+    if(m.t!=="s") return; g._snapT=performance.now();   /* 방장 화면이 멈췄는지 알기 위해 마지막으로 받은 시각 */
     g.t=m.tm; g.kills=m.k; g.lvSt=m.lr||null; if(m.b11&&BX) BX.recv(m.b11); if(m.sg!==undefined){ g.stageN=m.sg; STAGE_PH=Math.min(3,m.sg); setVph(Math.min(3,m.sg+(m.bu?1:0))); g.nextBossT=m.nb; g.bossUp=!!m.bu }
     const seen=new Set();
     for(const a of m.en){ const [id,x,y,hp,di,fl,dmg]=a; seen.add(id); let e=EN[id];
@@ -1280,16 +1280,25 @@ function startGame(opts){ opts=opts||{};
       netOut.lvd=0; netOut.ch=""; netOut.d={}; netOut.g=[]; netOut.it=[]; netOut.sh=[]; netOut.fx=[]; netOut.duel=[]; netOut.weak=[]; netOut.or=null; netOut.cc={}; netOut.b11=[] } }
   function endAll(win){ if(g.over) return; if(NM==="host"){ const m={t:"s",tm:g.t,k:g.kills,en:[],gm:[],it:[],pl:{},ev:[{t:"end",win}]}; for(const id of NET.ing){ const c=NET.conns[id]; try{ c&&c.send(m) }catch(e){} } } finish(win) }
   function down(){ const q=g.p; q.dead=true; q.hp=0; g.rescue=0; modal.hidden=true; g.paused=false; showBanner(`쓰러졌어요! 친구가 옆에 ${RESCUE}초 동안 서 있으면 다시 일어나요`); }
+  /* 같이하기 친구 찾기 (2026-10-27): 친구마다 색을 정해 발밑 고리·이름표·화면 밖 화살표를 같은 색으로 */
+  const MATE_COL=["#3fb8ff","#ff6fae","#5ee07a","#ffb53a"]; const mateCol=id=>{ const ids=Object.keys(RP).sort(); return MATE_COL[Math.max(0,ids.indexOf(id))%MATE_COL.length] };
+  const camC=()=>({x:g.p.x+(BX?(g.camOX||0):0),y:g.p.y+(BX?(g.camOY||0):0)});
   function drawRemotes(){ for(const id in RP){ const r=RP[id]; if(r.gone||!r.st) continue; r.rx+=(r.x-r.rx)*.25; r.ry+=(r.y-r.ry)*.25; const s=r.st;
       if(Math.abs(r.rx-g.p.x)>W/2+80||Math.abs(r.ry-g.p.y)>H/2+80) continue;
-      ctx.fillStyle="rgba(37,33,27,.22)"; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,16,5,0,0,7); ctx.fill(); if(!s.d){ ctx.save(); ctx.strokeStyle="rgba(80,190,255,.85)"; ctx.lineWidth=3; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,24,8,0,0,7); ctx.stroke(); ctx.restore() }   /* 친구 발밑 파란 고리 */ if(TOP&&TOP.id===id&&!s.d) drawTopAura(r.rx,r.ry);
+      ctx.fillStyle="rgba(37,33,27,.22)"; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,16,5,0,0,7); ctx.fill(); if(!s.d){ const mc=mateCol(id), pu=.5+.5*Math.sin(g.t*5); ctx.save(); ctx.strokeStyle=mc; ctx.lineWidth=4; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,26,9,0,0,7); ctx.stroke(); ctx.globalAlpha=.35+.35*pu; ctx.lineWidth=2.5; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+20,34+pu*6,12+pu*2,0,0,7); ctx.stroke(); ctx.restore() }   /* 친구 발밑 색 고리 (친구마다 다른 색 · 바깥 고리가 퍼졌다 모였다) */ if(TOP&&TOP.id===id&&!s.d) drawTopAura(r.rx,r.ry);
       if(s.tr>=5&&!s.d) drawAwaken(r.rx,r.ry,g.t,s.mv||0,r,s.h);
       if(s.tr>0){ const tc=TIER_COLOR[s.tr]; ctx.save(); ctx.globalAlpha=.4; ctx.fillStyle=tc; ctx.beginPath(); ctx.ellipse(r.rx,r.ry+18,30,10,0,0,7); ctx.fill(); ctx.restore() }
       if(r.img&&r.img.complete&&r.img.naturalWidth){ ctx.save(); ctx.translate(r.rx,r.ry+20); if(s.d){ ctx.rotate(Math.PI/2); ctx.globalAlpha=.55; ctx.filter="grayscale(1)" } else { const hop=Math.abs(Math.sin(g.t*14))*6*(s.mv||0); ctx.translate(0,-hop) } ctx.scale(s.f||1,1); if(isHeroArt(r.img.src)&&!s.d){ const T=ctx.getTransform(); REMOTE_HD.push({r,T,mv:s.mv||0}) } else ctx.drawImage(r.img,-32,-62,64,64); ctx.filter="none"; ctx.restore() }
       const w=40, k=s.mx?Math.max(0,s.hp/s.mx):0; ctx.fillStyle="rgba(0,0,0,.55)"; ctx.fillRect(r.rx-w/2-1,r.ry-52,w+2,6); ctx.fillStyle=k>.5?"#3fcf8e":k>.25?"#ffd23a":"#ff4a5a"; ctx.fillRect(r.rx-w/2,r.ry-51,w*k,4);
       if(s.d){ ctx.strokeStyle=`rgba(255,240,150,${.5+.4*Math.sin(g.t*6)})`; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(r.rx,r.ry+8,80,0,7); ctx.stroke() } } }
-  function drawRemoteNames(){ for(const id in RP){ const r=RP[id]; if(r.gone||!r.st) continue; if(Math.abs(r.rx-g.p.x)>W/2+80||Math.abs(r.ry-g.p.y)>H/2+80) continue;
-      ctx.font='14px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=4; ctx.strokeStyle="#140c20"; const tp=TOP&&TOP.id===id, t=(r.st.d?"🆘 ":"")+(tp?"최강 ":"")+r.st.n+" · Lv"+r.st.l+(r.st.pw?" · ⚔"+fmtPow(r.st.pw):""); ctx.strokeText(t,r.rx,r.ry-57); ctx.fillStyle=r.st.d?"#ffd36a":tp?"#ffe9a0":"#ffffff"; ctx.fillText(t,r.rx,r.ry-57); if(r.st.tr>=5&&!r.st.d) drawAwkTag(r.rx,r.ry-(tp?100:80)); if(tp&&!r.st.d) drawTopCrown(r.rx,r.ry) }
+  function drawRemoteNames(){ const C=camC(); for(const id in RP){ const r=RP[id]; if(r.gone||!r.st) continue; const mc=mateCol(id), dx=r.rx-C.x, dy=r.ry-C.y;
+      if(Math.abs(dx)>W/2-20||Math.abs(dy)>H/2-30){   /* 화면 밖 친구: 가장자리에 그 친구 쪽 화살표 + 이름 */
+        const sc=Math.min((W/2-50)/Math.max(1,Math.abs(dx)),(dy>0?H/2-120:H/2-80)/Math.max(1,Math.abs(dy))), ax=C.x+dx*sc, ay=C.y+dy*sc, an=Math.atan2(dy,dx), pu=.5+.5*Math.sin(g.t*6), dead=!!r.st.d;
+        ctx.save(); ctx.translate(ax,ay); ctx.fillStyle="rgba(20,14,32,.8)"; ctx.beginPath(); ctx.arc(0,0,20,0,7); ctx.fill(); ctx.lineWidth=dead?4:3; ctx.strokeStyle=dead?`rgba(255,80,90,${.6+.4*pu})`:mc; ctx.stroke();
+        ctx.save(); ctx.rotate(an); ctx.fillStyle=dead?"#ff5a6a":mc; ctx.beginPath(); ctx.moveTo(30,0); ctx.lineTo(19,-9); ctx.lineTo(19,9); ctx.closePath(); ctx.fill(); ctx.restore();
+        ctx.font='15px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="#fff"; ctx.fillText(dead?"🆘":String(r.st.n||"친구").slice(0,1),0,1);
+        ctx.font='13px "Do Hyeon",sans-serif'; ctx.lineWidth=4; ctx.strokeStyle="#140c20"; const nm=String(r.st.n||"친구").slice(0,6)+(dead?" 도와줘!":""); ctx.strokeText(nm,0,32); ctx.fillStyle=dead?"#ffd36a":mc; ctx.fillText(nm,0,32); ctx.restore(); continue }
+      ctx.font='16px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=5; ctx.strokeStyle="#140c20"; const tp=TOP&&TOP.id===id, t=(r.st.d?"🆘 ":"")+(tp?"최강 ":"")+r.st.n+" · Lv"+r.st.l+(r.st.pw?" · ⚔"+fmtPow(r.st.pw):""); ctx.strokeText(t,r.rx,r.ry-57); ctx.fillStyle=r.st.d?"#ffd36a":mc; ctx.fillText(t,r.rx,r.ry-57);   /* 이름표: 친구 색으로 크게 */ if(r.st.tr>=5&&!r.st.d) drawAwkTag(r.rx,r.ry-(tp?100:80)); if(tp&&!r.st.d) drawTopCrown(r.rx,r.ry) }
     if(g.p.dead){ ctx.font='16px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.lineWidth=5; ctx.strokeStyle="#140c20"; const t=`도와줘! ${Math.round((g.rescue||0)/RESCUE*100)}%`; ctx.strokeText(t,g.p.x,g.p.y-58); ctx.fillStyle="#ffd36a"; ctx.fillText(t,g.p.x,g.p.y-58) } }
 
   /* ===== 전직 스킬 엔진 ===== */
@@ -2243,8 +2252,11 @@ function startGame(opts){ opts=opts||{};
     if(isBest){ P.best=rec; saveP(); }
     const coop = NM?1.3:1;
     const b11P=BX&&!win?(()=>{ const e=g.en.find(x=>x.b11); if(!e) return 0; const f=1-Math.max(0,e.hp)/e.max; return BX.S.ph===2?.5+f*.5:f*.5 })():0;   /* 시간 초과·쓰러짐: 보스를 깎은 만큼 경험치 */
-    const gotExp = addExp(Math.round((g.kills*(BX?1:1.25) + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150 + Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop));
-    const qCoin = (rec.t>=60 ? QR.coin+SR.coin+(Q2.coin||0) : 0)+(g.bqC||0);   // 같이하기 보너스 문제 코인 포함
+    /* 찍기 막기 (2026-10-27): 게임 안 문제(카드·약점·기둥 등) 정답률에 따라 경험치와 퀴즈 범위 코인이 달라져요
+       80% 이상 = 그대로 · 60~79% = 60% · 40~59% = 30% · 40% 미만 = 10% (문제를 3개 넘게 풀었을 때만 적용) */
+    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1;
+    const gotExp = addExp(Math.round((g.kills*(BX?1:1.25) + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150 + Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul));
+    const qCoin = Math.round(((rec.t>=60 ? QR.coin+SR.coin+(Q2.coin||0) : 0)+(g.bqC||0))*qMul);   // 같이하기 보너스 문제 코인 포함
     const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=sCoin+qCoin+fCoin+rCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
     if(win) stamp("클리어!");
     mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:(g.timeUp||BX&&BX.S.tUp)?"⏰ 시간 초과! 다음엔 더 빨리 쓰러뜨려요":"게임 끝"}</h3>${b11P>=.01?`<p style="margin:2px 0 6px;color:#c9a6ff">검귀를 ${Math.round(b11P*100)}% 몰아붙였어요 · 그만큼 경험치를 더 받아요</p>`:""}<p>${MAP.name} · <b style="color:${DIFS[MAP.dif].c}">${dN(MAP.dif,MAP.id)}</b> · 경험치 ×${(+MAP.exp).toFixed(1)}</p>
@@ -2260,7 +2272,7 @@ function startGame(opts){ opts=opts||{};
       <p style="font-family:var(--f-ui);font-size:18px;color:#25211b">한자 퀴즈 ${g.qOk} / ${g.qN} 정답 · 한자 ${QR.label}${Q2.w?` · ${Q2.label}`:""}${SR.w?` · 사자성어·속담 ${SR.label}`:""} (경험치 ×${+(QR.exp*SR.exp).toFixed(2)})</p>
       <div class="gcoin"><b>코인 +${gotCoin}</b>${gotCoin<want?`<span style="color:#c8372d">오늘 코인 한도(${DAILY_COIN_MAX})에 닿아서 ${want}개 중 ${gotCoin}개만 받았어요</span>`:""}<span>${NM?"협동 보너스 ×1.3 · ":""}별 ${stars}개 +${sCoin}${win?" (클리어 보너스 포함)":""}${(QR.cm||1)>1?` · 퀴즈 범위 ×${QR.cm}`:""}${qCoin?` · 퀴즈 범위 +${qCoin}`:""}${fCoin?` · 처음 클리어 +${fCoin}`:""}</span></div>
       ${isBest?`<p class="gbest">새 최고 기록이에요!</p>`:""}
-      <p style="color:#2f6b55;font-family:var(--f-ui);font-size:20px">${HERO.name} 경험치 +${gotExp} · Lv ${HS(HERO.id).lv}</p>
+      <p style="color:#2f6b55;font-family:var(--f-ui);font-size:20px">${HERO.name} 경험치 +${gotExp} · Lv ${HS(HERO.id).lv}</p>${g.qN>=3?`<p style="font-size:14px;color:${qMul<1?"#c8372d":"#2f6b55"};font-weight:600">게임 속 문제 ${g.qOk} / ${g.qN} 맞힘 (${Math.round(qAcc*100)}%)${qMul<1?` · 정답률이 80%보다 낮아서 경험치·문제 코인 ×${qMul}`:" · 경험치 그대로!"}</p>`:""}
       <div class="gskills">${Object.keys(g.sk).map(k=>`<span>${skImg(k,22)}${skName(k)}</span>`).join("")}</div>
       <div class="gbtns"><button class="big red" id="ga" ${(P.coins<GAME_COST||day().plays>=DAILY_PLAYS)?"disabled":""}>한 판 더 (코인 ${GAME_COST} · 남은 판 ${Math.max(0,DAILY_PLAYS-day().plays)})</button><button class="big alt" id="gx">공부하러 가기</button></div>${(()=>{ const L=typeof todayWrongItems==="function"?todayWrongItems():[], nd=L.filter(x=>!x.done).length; return nd?`<button class="twStrip" id="gtw">📝 오늘 틀린 문제 ${nd}개 다시 보기<small>틀린 한자·사자성어·속담을 바로 복습해요</small></button>`:"" })()}`;
     modal.hidden=false;
@@ -2896,6 +2908,7 @@ function startGame(opts){ opts=opts||{};
     if(g.hitstop>0){ g.hitstop-=dt } else if(g.slowU>0) g.slowU-=dt;
     if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(g.hitstop>0?dt*.06:g.slowU>0&&!NM?dt*.4:dt);   /* 5차 궁극기가 터지는 순간 아주 잠깐 멈춰요 */
     if(NM && !g.over) netTick(dt);
+    if(NM==="client"&&!g.over&&g._snapT&&now-g._snapT>2500&&(!g._stallW||now-g._stallW>6000)){ g._stallW=now; showBanner("⚠ 방장 화면이 멈췄어요! 방장 친구는 게임 화면을 켜 두고, 다른 탭이나 앱으로 가지 마세요") }   /* 같이하기: 방장 기기가 멈추면 보스도 안 나오고 몬스터도 안 죽어요 → 알려 줘요 (2026-10-27) */
     draw();
     }catch(err){ if(!loop.errN||loop.errN<3){ loop.errN=(loop.errN||0)+1; console.error(err) } try{ ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over"; ctx.filter="none" }catch(e){} }
   }
@@ -2906,6 +2919,14 @@ function startGame(opts){ opts=opts||{};
       if(typeof SKILL_IMG!=="undefined") for(const p of ["run_","atk_","thr_"]) if(SKILL_IMG[p+id]) L.push(SKILL_IMG[p+id]) }
     let i=0; const step=()=>{ if(!document.body.contains(root)) return; const t0=performance.now(); while(i<L.length&&performance.now()-t0<6){ const it=L[i++]; try{ if(typeof it==="function") it(); else x.drawImage(it,0,0,2,2) }catch(e){} } if(i<L.length) setTimeout(step,60) };
     setTimeout(step,1500) }catch(e){} })();
+  /* 같이하기 방장: 게임 탭이 뒤로 가거나 화면이 가려져도 계산은 계속해요 (2026-10-27)
+     브라우저는 안 보이는 탭의 화면 그리기를 멈춰서, 방장이 다른 탭에 가면 친구들 화면에서 보스가 안 나오고 몬스터가 안 죽었어요 */
+  { let BG=null; const hv=()=>{ if(!document.body.contains(root)||g.over){ document.removeEventListener("visibilitychange",hv); if(BG){ clearInterval(BG); BG=null } return }
+      if(document.hidden&&NM==="host"){ if(!BG) BG=setInterval(()=>{ if(!document.hidden||g.over||!document.body.contains(root)){ clearInterval(BG); BG=null; last=performance.now(); return }
+          const now=performance.now(); let el=Math.min(2,(now-last)/1000); last=now;
+          try{ while(el>.001){ const d=Math.min(.05,el); if(!(allChoosing()||g.lvR)) update(d); netTick(d); el-=d } }catch(err){} },250) }
+      else if(BG){ clearInterval(BG); BG=null; last=performance.now() } };
+    document.addEventListener("visibilitychange",hv) }
   raf=requestAnimationFrame(loop);
   showBanner(`${MAP.name} · ${dN(MAP.dif,MAP.id)} · 경험치 ×${(+MAP.exp).toFixed(1)} · 화면을 끌어서 움직여요`); sfx("start"); SND.bgm("m"+MAP.id);
 }

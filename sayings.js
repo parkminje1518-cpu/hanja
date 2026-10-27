@@ -780,7 +780,7 @@ function sayCards(list,cat){ let order=shuffle(list), i=0, flip=false;
     bindBack();
     document.getElementById("sc").onclick=()=>{ flip=!flip; sfx("tap"); if(flip) speak(c.k); draw() };
     document.getElementById("pv").onclick=()=>{ if(i){ i--; flip=false; draw() } };
-    document.getElementById("nx").onclick=()=>{ if(i<order.length-1){ i++; flip=false; draw() } else rewardModal("카드 학습 완료!",`${SAY_NAME[cat]} ${order.length}개를 살펴봤어요. 이제 퀴즈로 확인해 볼까요?`,Math.min(8,2+order.length)*sayMul(),()=>sayCards(list,cat)) } }
+    document.getElementById("nx").onclick=()=>{ if(i<order.length-1){ i++; flip=false; draw() } else rewardModal("카드 학습 완료!",`${SAY_NAME[cat]} ${order.length}개를 살펴봤어요. 이제 퀴즈로 확인해 볼까요?`,0,()=>sayCards(list,cat))   /* 코인 막기 (2026-10-27): 카드는 넘겨 보기만 해도 돼서 코인 없음 · 퀴즈 만점으로 받아요 */ } }
   draw() }
 
 /* ----- 퀴즈 (풀이와 '이럴 때 써요' 설명이 함께 나와요) ----- */
@@ -822,14 +822,17 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P
       if(ok) setTimeout(go,1900); else { const nb=document.getElementById("nextQ"); nb.hidden=false; document.getElementById("skip").hidden=true; nb.onclick=go } } }
   function finish(){ const perfect=right===N; if(perfect) pend+=Math.round(10*WM*SM);
     const before=sayDoneWeeks(); if(rev&&perfect){ P.srev=P.srev||{}; o.review.forEach(w=>P.srev[cat+w]=Date.now()) } sayStamp();
-    const r=grantSet(pend,true,true), after=sayDoneWeeks(), um=[...new Set(miss)];
+    const acc=N?right/N:0, cnt=acc>=.6; if(!perfect) pend=0;
+    let repNote=""; if(perfect&&!o.fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
+    const accNote=perfect?repNote:acc>=.6?`${right} / ${N} · 만점이어야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 카드로 익히고 와요!`;
+    const r=grantSet(pend,true,true,cnt), after=sayDoneWeeks(), um=[...new Set(miss)];
     const newW=[]; for(let w=1;w<=SAY_WEEKS[cat];w++) if(sayWeekDone(cat,w)&&(P.srev||{})[cat+w]>Date.now()-60000&&!(rev&&o.review.includes(w))) newW.push(w);
     modal.dataset.dismiss="no";
     openModal(`<div class="eyebrow">COMPLETE</div><h3>${perfect?"만점! 학습 완료!":"학습 완료!"}</h3>
       <p>맞힌 문제 <b style="font-family:var(--f-ui);font-size:24px;color:var(--gold)">${right} / ${N}</b> · 최고 ${best}연속</p>
       ${after>before||newW.length?`<p class="sayNew">★ ${newW.length?newW.join(", ")+"주차를 다 외웠어요!":"새 주차를 외웠어요!"} (외운 주차 ${after}개 · 코인 ×${sayMul()})</p>`:""}
       ${rev&&perfect?`<p class="sayNew">★ 복습 완료! ${o.review.join(", ")}주차가 다시 반짝여요</p>`:""}
-      <div class="mc">${ico("coin","ci")}+${r.got}</div>${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
+      <div class="mc">${ico("coin","ci")}+${r.got}</div>${accNote?`<p class="muted" style="color:#c8372d;font-weight:600">${accNote}</p>`:""}${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
       ${r.capped||coinLeft()<=0?`<p class="muted" style="color:#c8372d">${capNote()||"오늘 코인 한도에 거의 닿았어요"}</p>`:""}
       ${um.length?`<div class="eyebrow">다시 볼 말</div><div class="misslist sayMiss">${um.map(c=>`<span><b>${esc(c.k)}</b>${esc(c.t)}</span>`).join("")}</div>`:""}
       <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
