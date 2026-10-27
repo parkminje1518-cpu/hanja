@@ -683,20 +683,20 @@ const SAY_WEEKS={S:Math.ceil(SAJA.length/4), P:Math.ceil(SOK.length/4)};
 
 /* ===================== 사자성어 · 속담 공부 ===================== */
 const SAY_ALL={S:SAJA,P:SOK}, SAY_NAME={S:"사자성어",P:"속담"}, SAY_JO={S:"는",P:"은"};
-const SAY_MASTER=3;          // 서로 다른 문제에서 3번 맞히고, 생활 문제(상황·빈칸·O/X)를 1번 이상 맞히면 '익힌 말'
+const SAY_MASTER=4, SAY_CTX=3;   // 4번 맞히고, 그중 생활 문제(상황·빈칸·O/X)를 3번 이상 맞히면 '익힌 말' (2026-10-27)
 const SAY_REVIEW_DAYS=7;     // 외운 주차는 7일마다 복습할 때가 돼요
 const SAY_MILE=[[3,"말 씨앗",150],[6,"말 새싹",250],[9,"지혜 나무",350],[12,"지혜 탐험가",450],[15,"말 박사",550],[18,"지혜의 달인",650],[21,"지혜의 용사",800]];
 function sayFind(h){ return SAJA.find(x=>x.h===h)||SOK.find(x=>x.h===h) }
 function saySel(cat){ const k=cat==="S"?"selS":"selP"; P.set[k]=(P.set[k]||[1]).filter(w=>w>=1&&w<=SAY_WEEKS[cat]); return P.set[k] }
 function sayItems(cat,weeks){ return SAY_ALL[cat].filter(x=>weeks.includes(x.w)) }
-function sayMastered(x){ return ((P.mastery||{})[x.h]||0)>=SAY_MASTER && !!(P.sctx||{})[x.h] }
+function sayMastered(x){ return ((P.mastery||{})[x.h]||0)>=SAY_MASTER && ((P.sctx||{})[x.h]||0)>=SAY_CTX }
 function sayWeekDone(cat,w){ const L=SAY_ALL[cat].filter(x=>x.w===w); return L.length>0&&L.every(sayMastered) }
 function sayDoneCount(cat){ let n=0; for(let w=1;w<=SAY_WEEKS[cat];w++) if(sayWeekDone(cat,w)) n++; return n }
 function sayDoneWeeks(){ return sayDoneCount("S")+sayDoneCount("P") }
 function sayMul(){ return Math.round((1+.05*sayDoneWeeks())*100)/100 }   // 외운 주차 1개마다 공부 코인 +5%
 function sayRevDue(cat,w){ const t=(P.srev||{})[cat+w]; return sayWeekDone(cat,w)&&!!t&&Date.now()-t>SAY_REVIEW_DAYS*864e5 }
 function sayStamp(){ P.srev=P.srev||{}; for(const cat of ["S","P"]) for(let w=1;w<=SAY_WEEKS[cat];w++) if(sayWeekDone(cat,w)&&!P.srev[cat+w]) P.srev[cat+w]=Date.now() }
-function sayCtx(c){ if(!c||!c.cat) return; P.sctx=P.sctx||{}; P.sctx[c.h]=1 }
+function sayCtx(c){ if(!c||!c.cat) return; P.sctx=P.sctx||{}; P.sctx[c.h]=(P.sctx[c.h]||0)+1 }
 function sayTitle(){ let t=""; for(const [n,name] of SAY_MILE) if((P.smile||0)>=n) t=name; return t }
 /* 외운 주차 이정표 보상: 3·6·9…주차를 넘을 때마다 코인 상자 + 칭호 */
 function sayCheckMile(){ if(!P) return; sayStamp(); const n=sayDoneWeeks(), got=SAY_MILE.filter(([k])=>k>(P.smile||0)&&k<=n);
@@ -744,7 +744,7 @@ function sayLearn(cat){ const sel=saySel(cat), L=sayItems(cat,sel), d=day(), ful
       return `<button class="wk ${ok?"sayok":""}" data-w="${w}" aria-pressed="${sel.includes(w)}"><span>${w}</span><small>주차</small>${ok?`<span class="done" title="외운 주차">★</span>`:`<span class="sayp">${m}/${its.length}</span>`}${rv?`<span class="sayrv">복습</span>`:""}</button>` }).join("")}</div>
     <div class="row"><span class="meta">${sel.length?`${sel.length}개 주차 · ${nm} ${L.length}개 · <b style="color:var(--gold);font-weight:400">코인 ×${sayMul()}</b>`:"주차를 하나 이상 눌러 주세요"}</span>
       <span class="meta">외운 주차 <b style="color:var(--gold);font-weight:400">${done}</b>${next?` · ${next[0]}주차를 외우면 <b style="color:var(--gold);font-weight:400">'${next[1]}'</b> 칭호와 보상 상자`:" · 모든 주차를 외웠어요!"}</span></div>
-    <div class="sayInfo">💡 말 하나를 <b>3번</b> 맞히고 <b>생활 문제</b>(상황·빈칸·O/X)도 맞히면 익힌 말이 돼요. 4개를 다 익히면 그 주차에 ★! 외운 주차가 늘수록 공부 코인이 커져요 (주차마다 +5%).</div>
+    <div class="sayInfo">💡 말 하나를 <b>4번</b> 맞히고, 그중 <b>생활 문제</b>(상황·빈칸·O/X)를 <b>3번</b> 맞히면 익힌 말이 돼요. 4개를 다 익히면 그 주차에 ★! 외운 주차가 늘수록 공부 코인이 커져요 (주차마다 +5%).</div>
   </section>
   <div class="row"><h2>무엇을 할까요?</h2><span class="meta">${full?"오늘 코인 보상 세트를 모두 받았어요. 공부는 계속할 수 있어요!":`코인 받는 세트 ${d.sets}/${DAILY_SETS} · ${stairHtml(d.sets)}`}</span></div>
   <div class="acts">
@@ -823,7 +823,8 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,typeof QUI
   function finish(){ const perfect=right===N; if(perfect) pend+=Math.round(pend*.3)+Math.round(10*WM*SM);   /* 만점 보너스: 30% + 10 */
     const before=sayDoneWeeks(); if(rev&&perfect){ P.srev=P.srev||{}; o.review.forEach(w=>P.srev[cat+w]=Date.now()) } sayStamp();
     const acc=N?right/N:0, cnt=acc>=.6, coinOk=right>=Math.max(1,N-1); if(!coinOk) pend=0;   /* 2026-10-27: 7개 이상(한 개까지 틀려도) 코인·경험치 · 만점이면 보너스 */
-    let repNote=""; if(coinOk&&!o.fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
+    let nBonus=0; if(o.fromNotes&&coinOk&&pend>0&&new Set(list.map(x=>x.h)).size>=4){ nBonus=Math.round(pend*.3); pend+=nBonus }   /* 오답 퀴즈 보너스 ×1.3 (서로 다른 4개 이상) */
+    let repNote=""; if(coinOk&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=(o.fromNotes?"n":"")+cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
     const accNote=perfect?repNote:coinOk?(repNote||`${right} / ${N} · 만점이면 보너스 코인을 더 받아요!`):acc>=.6?`${right} / ${N} · ${Math.max(1,N-1)}개 이상 맞혀야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 카드로 익히고 와요!`;
     const r=grantSet(pend,true,true,cnt), after=sayDoneWeeks(), um=[...new Set(miss)];
     const newW=[]; for(let w=1;w<=SAY_WEEKS[cat];w++) if(sayWeekDone(cat,w)&&(P.srev||{})[cat+w]>Date.now()-60000&&!(rev&&o.review.includes(w))) newW.push(w);
@@ -848,10 +849,10 @@ function dexTabs(cur){ const n=c=>SAY_ALL[c].filter(sayMastered).length, nc=type
 function bindDexTabs(){ $app.querySelectorAll(".dtab").forEach(b=>b.onclick=()=>{ P.set.dtab=b.dataset.tab; saveP(); dex() }) }
 function sayDex(cat){ const L=SAY_ALL[cat], m=L.filter(sayMastered).length, seen=L.filter(x=>(P.seen||{})[x.h]).length, nm=SAY_NAME[cat];
   $app.innerHTML = topbar("도감") + dexTabs(cat) + `
-  <section class="panel"><div class="dexHead"><div class="dexBar"><div class="prog"><div class="pt"><span>익힌 ${nm} (3번 맞히고 생활 문제도 맞히기)</span><b>${m} / ${L.length}</b></div><div class="bar"><i style="width:${m/L.length*100}%"></i></div></div></div>
+  <section class="panel"><div class="dexHead"><div class="dexBar"><div class="prog"><div class="pt"><span>익힌 ${nm} (4번 맞히고 생활 문제 3번 맞히기)</span><b>${m} / ${L.length}</b></div><div class="bar"><i style="width:${m/L.length*100}%"></i></div></div></div>
     <span class="meta">만난 ${nm} ${seen}개 · 누르면 뜻과 쓰임을 볼 수 있어요</span></div></section>
   <div class="dexgrid">${Array.from({length:SAY_WEEKS[cat]},(_,i)=>i+1).map(w=>`<div class="dweek"><h3>${w}주차${sayWeekDone(cat,w)?" ★":""}</h3><div class="drow sayrow">${L.filter(x=>x.w===w).map(x=>{ const ms=sayMastered(x), s=(P.seen||{})[x.h];
-      return `<button class="dz sayz ${ms?"ms":s?"":"un"}" data-h="${esc(x.h)}"><b>${s||ms?esc(x.k):"?"}</b>${x.hz&&(s||ms)?`<small>${esc(x.hz)}</small>`:""}<i>${ms?"익힘":s?`${Math.min(SAY_MASTER,(P.mastery||{})[x.h]||0)}/${SAY_MASTER}`:"아직"}</i></button>` }).join("")}</div></div>`).join("")}</div>`;
+      return `<button class="dz sayz ${ms?"ms":s?"":"un"}" data-h="${esc(x.h)}"><b>${s||ms?esc(x.k):"?"}</b>${x.hz&&(s||ms)?`<small>${esc(x.hz)}</small>`:""}<i>${ms?"익힘":s?`${Math.min(SAY_MASTER,(P.mastery||{})[x.h]||0)}/${SAY_MASTER} · 생활 ${Math.min(SAY_CTX,(P.sctx||{})[x.h]||0)}/${SAY_CTX}`:"아직"}</i></button>` }).join("")}</div></div>`).join("")}</div>`;
   bindBack(); bindDexTabs();
   $app.querySelectorAll(".sayz").forEach(b=>b.onclick=()=>{ const x=sayFind(b.dataset.h); if(!(P.seen||{})[x.h]){ toast(`아직 만나지 않은 ${nm}예요. 학습하기에서 만나 보세요!`); return } sayDetail(x) }) }
 function sayDetail(x){ speak(x.k);

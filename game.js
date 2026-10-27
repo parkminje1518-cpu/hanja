@@ -1,5 +1,5 @@
 /* ===== 몬스터 대작전 ===== */
-const CONF_V=.03, CONF_MAX=2, CONF_T=25;   /* 혼란: 단계마다 공격력 -3% · 받는 피해 +3% · 스킬 대기시간 +3% */
+const CONF_V=.07, CONF_MAX=3, CONF_T=30;   /* 혼란: 단계마다 공격력 -7% · 받는 피해 +7% · 스킬 대기시간 +7% · 최대 3단계 · 30초 (2026-10-27 강화: 예전 3%·2단계·25초) */
 const BOSS_VIS = 1.3;
 const BOSS_DY = .4;   /* 보스 몸 판정은 그림 몸통 가운데 (발보다 조금 위) */   /* 보스 그림 크기 배율 (몸 판정·패턴 크기는 그대로) */
 const WIN_TIME = 300;   // (예전 5분 버티기 · 이제는 보스 4마리를 잡으면 클리어)
@@ -67,8 +67,8 @@ const HONOR_BONUS={warrior:["hp",.03,"최대 체력"],archer:["cd",.02,"공격 �
 function honorHtml(id){ const L=(P.honor||{})[id]||0, H=heroById(id), B=HONOR_BONUS[id]||[];
   return `<div class="bcard hon ${L?"t"+L:"none"}"><div class="bcin">${L?avaHtml(id,92):`<span class="bq">?</span>`}</div><b>${L?esc(H.name):"???"}</b><small>${L?`${CARD_TIER[L]} 명예 · ${B[2]} +${+(B[1]*L*100).toFixed(1)}%`:`${esc(H.name)}(으)로 별의 왕좌를 깨면`}</small></div>` }
 function cardBonusSum(){ const S={}; for(const id in CARD_BONUS){ const L=mapCardLv(+id); if(L>0){ const [k,v]=CARD_BONUS[id]; S[k]=(S[k]||0)+v*L } } for(const id in (P.honor||{})){ const B=HONOR_BONUS[id], L=P.honor[id]; if(B&&L){ S[B[0]]=(S[B[0]]||0)+B[1]*L } } return S }
-/* ===== 한자 룬: 익힌 한자(3번 이상 맞힘)를 용사마다 새겨서 힘으로 만들어요 =====
-   등급은 맞힌 횟수로 정해져요: 동 3 · 은 10 · 금 25 · 빛나는 금 50 (틀려도 내려가지 않아요) */
+/* ===== 한자 룬: 익힌 한자(6번 이상 맞힘)를 용사마다 새겨서 힘으로 만들어요 =====
+   등급은 맞힌 횟수로 정해져요: 동 6 · 은 10 · 금 18 · 빛나는 금 28 (틀려도 내려가지 않아요) */
 const ENG_T={bdmg:"大氣反魔軍毒酷",ied:"無入開消滅貫散亂",dmg:"炎爆强拳打破勇暴奪火力熱彈裂犧",hp:"體活藥充人心全自根復",armor:"天地石岩固守防備鐵封盾巖禁寒凍霧束",spd:"風速快進移急流登通翼",cd:"時電現起計雷光",xp:"學記問答聞探寫解",mag:"金貝引捕合協",regen:"水氷雨安愛林花木綠樂淨治雲",crit:"目見映角切影暗黑異"};   /* 시즌 2 한자도 뜻에 맞게 넣었어요 · 보공(魔軍毒酷) · 방무(滅貫散亂)는 아주 조금씩 */   /* 숨은 조합의 두 한자는 같은 칸에 있어요 */
 const ENG_V={bdmg:.012,ied:.012,dmg:.03,hp:.05,armor:.02,spd:.03,cd:.03,xp:.04,mag:.08,regen:.002,crit:.02};
 const ENG_CAP={bdmg:.15,ied:.12,dmg:.2,hp:.3,armor:.15,spd:.15,cd:.15,xp:.3,mag:.4,regen:.012,crit:.1};
@@ -79,7 +79,7 @@ const ENG_HINT=["돌이 커지면 무엇이 될까요? 작은 돌과 큰 돌을 
 const ENG_GR=[["",""],["동","#c88a4a"],["은","#c8d2e0"],["금","#ffd36a"],["빛나는 금","#fff3a0"]];
 function engLv(h){ if(typeof isAdmin==="function"&&isAdmin()) return 4;   /* 선생님 모드: 모든 한자를 빛나는 금으로 새겨 볼 수 있어요 */
   const m=(P.mastery||{})[h]||0; return m>=ENG_STEP[3]?4:m>=ENG_STEP[2]?3:m>=ENG_STEP[1]?2:m>=ENG_STEP[0]?1:0 }
-const ENG_STEP=[3,8,15,25];   /* 동 · 은 · 금 · 빛나는 금 (2개월 일정에 맞춰 당겼어요: 원래 3·10·25·50) */
+const ENG_STEP=[6,10,18,28];   /* 동 · 은 · 금 · 빛나는 금 (2개월 일정에 맞춰 당겼어요: 원래 3·10·25·50) */
 function engType(h){ for(const k in ENG_T) if(ENG_T[k].includes(h)) return [k,1]; return [["dmg","hp","armor","spd"][h.charCodeAt(0)%4],.5] }   /* 표에 없는 한자도 작은 힘을 줘요 */
 function engVal(h){ const [k,f]=engType(h); return [k,ENG_V[k]*f*engLv(h)] }
 function engSlots(id){ return HS(id).tier>=5||(typeof isAdmin==="function"&&isAdmin())?5:HS(id).tier>=4?4:3 }
@@ -140,7 +140,7 @@ function engraveUI(back){ const id=P.hero, n=engSlots(id); P.eng=P.eng||{}; let 
     mcard.className="mcard engm"; mcard.innerHTML=`<div class="engHd"><h3>🔖 ${esc(heroById(id).name)}의 한자 룬 (${cur.length}/${n})</h3><span class="engPow">⚔ ${fmtPow(heroPower(id,{eng:engOf(id)}))} → <b>${fmtPow(heroPower(id,{eng:cur.filter(h=>engLv(h)>0)}))}</b></span><button class="helpQ" data-help="룬" aria-label="룬 도움말">?</button></div><div class="engTop"><button class="btn gold" id="engAutoT">⭐ 추천대로 새기기</button><button class="btn red" id="engOkT">💎 룬 새기기</button><button class="btn ghost" id="engNoT">닫기</button></div>
       ${(()=>{ const R=engRecOf(id); return `<div class="engRec">⭐ <b>${esc(heroById(id).name)} 추천</b>: ${ENG_NM[R[0]]} · ${ENG_NM[R[1]]} <small>(추천 효과는 10% 더 세져요)</small><span class="erH">예) ${[...R[2]].join(" ")}${R[3]&&R[3]!=="—"?` · 조합 ${R[3]}`:""}</span><span class="erM">🗺 <b>${esc((mapById(curMapId())||{}).name||"")} 맞춤</b>: ${Object.entries(mapRuneOf(curMapId()).w).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>ENG_NM[e[0]]).join(" · ")} <small>(${mapRuneOf(curMapId()).why})</small></span><button class="btn gold" id="engAuto">⭐ 직업 + 맵 맞춤으로 새기기</button></div>` })()}
       <details class="engHow" ${(P.eng&&Object.keys(P.eng).length)?"":"open"}><summary>❓ 한자 룬이 뭐예요? (눌러서 보기)</summary>
-        <div class="ehSteps"><div><i>1</i><b>외우기</b><span>학습하기에서 한자를 <b>3번</b> 맞히면 아래 목록에 나타나요</span></div><div><i>2</i><b>새기기</b><span>목록의 한자를 눌러 위 <b>${n}칸</b> 소켓에 넣고 '룬 새기기'를 눌러요${HS(id).tier>=4?"":" (4차 전직하면 4칸)"}</span></div><div><i>3</i><b>세지기</b><span>게임에서 그 한자의 <b>뜻에 맞는 힘</b>이 생겨요 (炎 불꽃 → 공격력)</span></div></div>
+        <div class="ehSteps"><div><i>1</i><b>외우기</b><span>학습하기에서 한자를 <b>6번</b> 맞히면 아래 목록에 나타나요</span></div><div><i>2</i><b>새기기</b><span>목록의 한자를 눌러 위 <b>${n}칸</b> 소켓에 넣고 '룬 새기기'를 눌러요${HS(id).tier>=4?"":" (4차 전직하면 4칸)"}</span></div><div><i>3</i><b>세지기</b><span>게임에서 그 한자의 <b>뜻에 맞는 힘</b>이 생겨요 (炎 불꽃 → 공격력)</span></div></div>
         <div class="ehLad"><span style="--c:#b8a8c8">원석<small>3번 · ×1</small></span>➜<span style="--c:#8ad0ff">보석<small>8번 · ×2</small></span>➜<span style="--c:#ffd36a">빛나는 보석<small>15번 · ×3</small></span>➜<span style="--c:#fff3a0">전설 보석<small>25번 · ×4</small></span></div>
         <p class="ehEx">예) 炎(불꽃 염): 동이면 공격력 +3%, 빛나는 금이면 +12%! 많이 맞힐수록 같은 한자가 더 세져요. 틀려도 등급은 내려가지 않아요.<br>같은 효과끼리 칸으로 모여 있어요. 어울리는 두 한자를 함께 새기면 <b>숨은 조합</b>이 더해져요.${isAdmin()?"<br><b>선생님 모드</b>: 모든 한자가 빛나는 금으로 보여요 (학생은 맞힌 횟수대로).":""}</p></details>
       <div class="engSlots big runeSlots ${cb.length?"resOn":""}">${(()=>{ const RS=new Set(cb.flatMap(c=>[c[0],c[1]])); return Array.from({length:n},(_,i)=>{ const h=cur[i]; if(!h) return `<span class="sock big empty ${RUNE_IMG?"img":""}"><small>빈 소켓</small></span>`; const [k,v]=engVal(h); return `<button class="sock big" data-rm="${i}">${runeHtml(h,RS.has(h)?"res":"")}<small>${RUNE_G[engLv(h)]} · ${engFmt(k,v)}</small><i>✕</i></button>` }).join("") })()}</div>
@@ -152,7 +152,7 @@ function engraveUI(back){ const id=P.hero, n=engSlots(id); P.eng=P.eng||{}; let 
       <div class="engList">${learned.length?(()=>{ const ci=h=>{ const k=ENG_COMBO.findIndex(c=>c[0]===h||c[1]===h); return k<0?99:k }, grp={}; learned.forEach(c=>{ const k=engType(c.h); (grp[k[1]<1?"etc":k[0]]=grp[k[1]<1?"etc":k[0]]||[]).push(c) });
         const ORD=["dmg","hp","armor","spd","cd","regen","crit","xp","mag","bdmg","ied","etc"], NM={bdmg:"👑 보스 공격력 (아주 조금)",ied:"🛡 방어율 무시 (아주 조금)",dmg:"⚔ 공격력",hp:"❤ 최대 체력",armor:"🛡 받는 피해 감소",spd:"👟 이동 속도",cd:"⚡ 공격 속도",regen:"🌿 체력 회복",crit:"🎯 급소",xp:"📖 경험치",mag:"🧲 줍는 거리",etc:"✦ 그 밖의 한자 (작은 힘)"};
         const RC=engRecOf(id), MW=mapRuneOf(curMapId()).w, gs=k=>(isRec(id,k)?1.65:1)*(MW[k]||(isRec(id,k)?1:.6)); ORD.sort((x,y)=>gs(y)-gs(x));   /* 직업 + 맵 맞춤 순서 */
-        return ORD.filter(k=>grp[k]).map(k=>`<div class="engGrp ${isRec(id,k)?"rec":""} ${shut.has(k)?"shut":""}"><b class="egT" data-g="${k}">${NM[k]}${isRec(id,k)?' <em class="recB">⭐ 직업</em>':""}${isMapRec(k)?' <em class="recB map">🗺 맵</em>':""}<i class="egA">${shut.has(k)?"▸ 펼치기":"▾ 접기"}</i></b><div class="engGL">${grp[k].sort((a,b)=>ci(a.h)-ci(b.h)||engLv(b.h)-engLv(a.h)).map(c=>{ const g=ENG_GR[engLv(c.h)], [k2,v]=engVal(c.h), on=cur.includes(c.h); return `<button class="engH ${on?"on":""}" data-h="${c.h}" data-gk="${k}">${runeHtml(c.h,"sm")}<span class="ei">${esc(c.hun)} ${esc(c.eum)}</span><small>${RUNE_G[engLv(c.h)]} · ${engFmt(k2,v)}</small></button>` }).join("")}</div></div>`).join("") })():`<p class="muted">아직 익힌 한자가 없어요. 학습하기에서 한자를 3번 이상 맞혀 봐요!</p>`}</div>
+        return ORD.filter(k=>grp[k]).map(k=>`<div class="engGrp ${isRec(id,k)?"rec":""} ${shut.has(k)?"shut":""}"><b class="egT" data-g="${k}">${NM[k]}${isRec(id,k)?' <em class="recB">⭐ 직업</em>':""}${isMapRec(k)?' <em class="recB map">🗺 맵</em>':""}<i class="egA">${shut.has(k)?"▸ 펼치기":"▾ 접기"}</i></b><div class="engGL">${grp[k].sort((a,b)=>ci(a.h)-ci(b.h)||engLv(b.h)-engLv(a.h)).map(c=>{ const g=ENG_GR[engLv(c.h)], [k2,v]=engVal(c.h), on=cur.includes(c.h); return `<button class="engH ${on?"on":""}" data-h="${c.h}" data-gk="${k}">${runeHtml(c.h,"sm")}<span class="ei">${esc(c.hun)} ${esc(c.eum)}</span><small>${RUNE_G[engLv(c.h)]} · ${engFmt(k2,v)}</small></button>` }).join("")}</div></div>`).join("") })():`<p class="muted">아직 익힌 한자가 없어요. 학습하기에서 한자를 6번 이상 맞혀 봐요!</p>`}</div>
       <div class="gbtns"><button class="big red" id="engOk">룬 새기기</button><button class="big alt" id="engNo">닫기</button></div>`;
     mcard.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ sfx("tap"); cur.splice(+b.dataset.rm,1); draw() });
     const keepY=()=>{ const L=mcard.querySelector(".engList"); return [mcard.scrollTop,L?L.scrollTop:0] }, putY=y=>{ mcard.scrollTop=y[0]; const L=mcard.querySelector(".engList"); if(L) L.scrollTop=y[1] };
@@ -160,7 +160,7 @@ function engraveUI(back){ const id=P.hero, n=engSlots(id); P.eng=P.eng||{}; let 
     mcard.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{ const h=b.dataset.h, gk=b.dataset.gk; if(cur.includes(h)) cur=cur.filter(x=>x!==h); else { if(cur.length>=n){ if(!n) return; cur.pop() }   /* 가득 차면 마지막 칸 룬과 바꿔요 */ cur.push(h); if(gk) shut.add(gk) }   /* 룬을 고르면 그 칸은 접혀요 */ sfx("tap"); const y=keepY(); draw(); putY(y) });
     { const ab=document.getElementById("engAuto"); if(ab) ab.onclick=()=>{ const R=engRecOf(id), sc=h=>runeScore(id,h)+([...R[2]].includes(h)?.3:0);   /* 직업 특성 × 맵 성격 */
       let pick=[]; { const used={}, pool=learned.map(c=>c.h); while(pick.length<n&&pool.length){ let bi=-1, bv=-1; pool.forEach((h,i)=>{ const [k,f]=engType(h), v=ENG_V[k]*f*engLv(h)*(isRec(id,k)?1.1:1), room=Math.max(0,(ENG_CAP[k]||1)-(used[k]||0)), eff=Math.min(v,room)/v; const sv=sc(h)*(.15+.85*eff)*Math.pow(.8,pick.filter(x=>engType(x)[0]===k).length); if(sv>bv){ bv=sv; bi=i } }); const h=pool.splice(bi,1)[0], [k,f]=engType(h); used[k]=(used[k]||0)+ENG_V[k]*f*engLv(h); pick.push(h) } }   /* 한 효과만 몰리지 않게: 최대치를 넘으면 점수가 줄어요 · 같은 효과가 겹칠수록 조금씩 덜 */ const cm=ENG_COMBO.find(c=>R[3]&&R[3].startsWith(c[0]+"+"+c[1])); if(cm&&engLv(cm[0])>0&&engLv(cm[1])>0&&!(pick.includes(cm[0])&&pick.includes(cm[1]))){ pick=[cm[0],cm[1],...pick.filter(h=>h!==cm[0]&&h!==cm[1])].slice(0,n) }
-      if(!pick.length){ toast("아직 익힌 한자가 없어요. 학습하기에서 3번 이상 맞혀 봐요!"); return } cur=pick; draw(); const ok=document.getElementById("engOk"); if(ok&&ok.onclick) ok.onclick() } }   /* 추천대로 새기면 바로 저장하고 창이 닫혀요 */
+      if(!pick.length){ toast("아직 익힌 한자가 없어요. 학습하기에서 6번 이상 맞혀 봐요!"); return } cur=pick; draw(); const ok=document.getElementById("engOk"); if(ok&&ok.onclick) ok.onclick() } }   /* 추천대로 새기면 바로 저장하고 창이 닫혀요 */
     { const t=(a,b)=>{ const x=document.getElementById(a), y=document.getElementById(b); if(x&&y) x.onclick=()=>y.onclick() }; setTimeout(()=>{ t("engAutoT","engAuto"); t("engOkT","engOk"); t("engNoT","engNo") },0) }
     document.getElementById("engNo").onclick=()=>{ modal.hidden=true; back&&back() };
     document.getElementById("engOk").onclick=()=>{ const before=engCombos(engOf(id)).map(c=>c[2]); P.eng[id]=cur.slice(); P.engFound=P.engFound||[]; const nw=engCombos(cur).filter(c=>!P.engFound.includes(c[2])); nw.forEach(c=>P.engFound.push(c[2])); saveP(); sfx(nw.length?"win":"pick"); modal.hidden=true;
@@ -177,6 +177,7 @@ const hasCard=(bid,t)=>!!(cardMask()[bid]&(1<<(t-1)));
 function cardCount(t){ const M=cardMask(); let n=0; for(const k in M) for(let i=1;i<=3;i++) if((!t||t===i)&&(M[k]&(1<<(i-1)))) n++; return n }
 function bossCardDex(){ const T=P.set.ctier||1; $app.innerHTML = topbar("도감") + (typeof dexTabs==="function"?dexTabs("B"):"") + `
   <div class="ctabs">${[1,2,3].map(t=>`<button class="ctab ${T===t?"on":""}" data-ct="${t}" style="--cc:${CARD_COL[t]}">${CARD_TIER[t]} 카드 <small>${cardCount(t)}/40</small></button>`).join("")}<button class="ctab ${T===4?"on":""}" data-ct="4" style="--cc:#c39bff">🎖 명예 카드 <small>${Object.keys(P.honor||{}).length}/9</small></button><span class="ctot">전체 ${cardCount()}/120장</span></div>
+  ${typeof isAdmin==="function"&&isAdmin()?`<div class="btns" style="margin:0 0 10px"><button class="btn gold" id="cardAll">🛠 선생님: 보스·명예 카드 모두 채우기</button>${P._bcBak?`<button class="btn ghost" id="cardBack">↩ 채우기 전으로 되돌리기</button>`:""}</div>`:""}
   <section class="panel"><div class="dexHead"><span class="meta">보스를 물리치면 카드를 받아요 · 보통=동 · 어려움=은 · 지옥=금 · 한 맵의 4장을 다 모으면 모든 직업의 능력치가 올라가요</span></div>
   ${(()=>{ const S=cardBonusSum(); const t=Object.entries(S).map(([k,v])=>`${{hp:"최대 체력",spd:"이동 속도",armor:"받는 피해",xp:"경험치",dmg:"공격력",cd:"공격 속도",mag:"줍는 거리",crit:"급소 확률"}[k]} ${k==="armor"?"-":"+"}${+(v*100).toFixed(1)}%`).join(" · "); return `<p class="cardsum">🃏 지금 받는 수집 보너스: <b>${t||"아직 없어요"}</b></p>` })()}
   ${T===4?`<div class="cardmap"><div class="cmh"><b>🎖 명예 카드</b><span>그 직업으로 마지막 맵 「별의 왕좌」를 깨면 받아요 · 모든 직업에 보너스</span></div><div class="cardrow">${HEROES.map(h=>honorHtml(h.id)).join("")}</div></div>`:""}
@@ -184,7 +185,11 @@ function bossCardDex(){ const T=P.set.ctier||1; $app.innerHTML = topbar("도감"
     return `<div class="cardmap"><div class="cmh"><b>${m.id}. ${m.name}</b><span>${n}/4장 · ${L?`<em style="color:${CARD_COL[L]}">${CARD_TIER[L]} 완성!</em> `:""}${bonusTxt(m.id,L)}${L?"":" (4장 모으면)"}</span></div>
       <div class="cardrow">${ks.map(k=>cardHtml(k,hasCard(k,T)?T:0)).join("")}</div></div>` }).join("")}</section>`;
   if(typeof bindDexTabs==="function") bindDexTabs(); if(typeof bindBack==="function") bindBack();   // 메인으로 버튼
-  document.querySelectorAll(".ctab").forEach(b=>b.onclick=()=>{ P.set.ctier=+b.dataset.ct; saveP(); bossCardDex() }) }
+  document.querySelectorAll(".ctab").forEach(b=>b.onclick=()=>{ P.set.ctier=+b.dataset.ct; saveP(); bossCardDex() });
+  /* 선생님 모드 (2026-10-27): 가장 센 상태로 점검할 수 있게 카드를 한 번에 채워요 · 되돌리기 가능 */
+  { const ca=document.getElementById("cardAll"); if(ca) ca.onclick=()=>{ if(!P._bcBak) P._bcBak=JSON.stringify({b:P.bcard||{},m:P.bcm||{},h:P.honor||{}}); P.bcard=P.bcard||{}; const M=cardMask();
+      for(const m of MAPS) for(const k of mapCardKeys(m.id)){ P.bcard[k]=3; M[k]=7 } P.honor=P.honor||{}; for(const h of HEROES) P.honor[h.id]=3; saveP(); toast("보스 카드 120장 · 명예 카드 9장을 모두 채웠어요 (선생님 모드)"); bossCardDex() };
+    const cb=document.getElementById("cardBack"); if(cb) cb.onclick=()=>{ try{ const o=JSON.parse(P._bcBak); P.bcard=o.b; P.bcm=o.m; P.honor=o.h }catch(e){} delete P._bcBak; saveP(); toast("카드를 채우기 전으로 되돌렸어요"); bossCardDex() } } }
 const medalsOf=id=>((P.medal||{})[id])||[0,0,0];
 const medalCount=()=>Object.values(P.medal||{}).reduce((a,m)=>a+m.filter(Boolean).length,0);
 const medalTitle=()=>{ let t=""; for(const [n,nm] of MEDAL_MILE) if((P.mmile||0)>=n) t=nm; return t };
@@ -262,7 +267,7 @@ const QRANGE = [
 const KNOW_DMG=[0,.08,.16,.24,.32], WIS_ARM=[0,.045,.09,.135,.18], WIS_CD=[0,.03,.06,.09,.12];
 function knowRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0 }
 function wisRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=spoolOf(w); return L.length&&typeof sayMastered==="function"?L.filter(sayMastered).length/L.length:0 }
-function knowPower(qw,sw){ const qi=Math.max(0,QRANGE.findIndex(q=>q.w===qw)), si=Math.max(0,SRANGE.findIndex(q=>q.w===sw)), kr=knowRatio(qw), wr=wisRatio(sw), kf=.25+.75*kr, wf=.25+.75*wr;
+function knowPower(qw,sw){ const qi=Math.max(0,QRANGE.findIndex(q=>q.w===qw)), si=Math.max(0,SRANGE.findIndex(q=>q.w===sw)), kr=knowRatio(qw), wr=wisRatio(sw), kf=kr, wf=wr;   /* 2026-10-27: 외운 만큼만 (예전엔 하나도 안 외워도 25%) */
   return {dmg:KNOW_DMG[qi]*kf, armor:WIS_ARM[si]*wf, cd:WIS_CD[si]*wf, kr, wr, qi, si} }
 /* ===== 전투력: 레벨 · 전직 · 능력치 · 각인 · 보스 카드 · 지식/지혜의 힘을 숫자 하나로 =====
    공격(공격력×공격 속도×급소×전직) 과 버티기(체력÷받는 피해) 를 곱해 제곱근 → 직업마다 1레벨 = 1,000 */
@@ -309,7 +314,7 @@ const Q2RANGE = [
 ];
 const KNOW2_BD=[0,.05,.10,.15,.20], KNOW2_IED=[0,.05,.10,.15,.20];   /* 임시 숫자 */
 const q2rangeOf = ()=>Q2RANGE.find(q=>q.w===(P.set.q2range||0))||Q2RANGE[0];
-function know2Power(w){ w=w===undefined?q2rangeOf().w:w; const i=Math.max(0,Q2RANGE.findIndex(q=>q.w===w)), L=q2poolOf(w), r=typeof isAdmin==="function"&&isAdmin()?1:L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0, f=.25+.75*r; return {bd:KNOW2_BD[i]*f, ied:KNOW2_IED[i]*f, r, i} }
+function know2Power(w){ w=w===undefined?q2rangeOf().w:w; const i=Math.max(0,Q2RANGE.findIndex(q=>q.w===w)), L=q2poolOf(w), r=typeof isAdmin==="function"&&isAdmin()?1:L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0, f=r; return {bd:KNOW2_BD[i]*f, ied:KNOW2_IED[i]*f, r, i} }
 /* 사자성어·속담 퀴즈 범위: 넓을수록 보상이 커요 (한자 범위 보상과 곱해져요) */
 const SRANGE = [
   {w:0,  exp:1,    coin:0,  cm:1,    revive:0, label:"안 풀기",  merit:"한자 문제만 나와요 · 추가 보상 없음"},
@@ -318,6 +323,13 @@ const SRANGE = [
   {w:9,  exp:1.25, coin:14, cm:1.15, revive:0, label:"1~9주차",  merit:"경험치 ×1.25 · 게임 코인 ×1.15 · +14"},
   {w:99, exp:1.35, coin:22, cm:1.25, revive:1, label:"전체 주차", merit:"경험치 ×1.35 · 게임 코인 ×1.25 · +22 · 부활 +1번"},
 ];
+/* 퀴즈 범위 보상(경험치·코인·카드·부활)도 그 범위에서 외운 비율만큼만 (2026-10-27: 범위만 넓게 고르고 모르면 보상 없음) */
+function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0 }
+function rangeByMastery(R,r){ r=Math.max(0,Math.min(1,r||0)); return Object.assign({},R,{exp:1+((R.exp||1)-1)*r, coin:Math.round((R.coin||0)*r), cm:1+((R.cm||1)-1)*r, cards:r>=.6?(R.cards||0):0, revive:r>=.6?(R.revive||0):0, heal:R.heal!==undefined?(R.heal*(.4+.6*r)):R.heal, mr:r}) }
+/* 다음 맵 열기 (유하게): 보스 열쇠 + 익힌 한자·사자성어·속담 수 · 맵 하나마다 5개 */
+const MAP_LEARN=id=>Math.max(0,(Math.min(id,11)-1)*5);
+function learnedN(){ const m=P.mastery||{}; let n=0; for(const c of UNIQUE) if((m[c.h]||0)>=MASTER_N) n++; if(typeof SAY_ALL!=="undefined"&&typeof sayMastered==="function") for(const k of ["S","P"]) for(const x of SAY_ALL[k]) if(sayMastered(x)) n++; return n }
+const studyOK=id=>(typeof isAdmin==="function"&&isAdmin())||learnedN()>=MAP_LEARN(id);
 const srangeOf = ()=>SRANGE.find(q=>q.w===(P.set.srange??3))||SRANGE[1];
 const spoolOf = w=>(!w||typeof SAY_ALL==="undefined")?[]:[...SAY_ALL.S.filter(x=>x.w<=w),...SAY_ALL.P.filter(x=>x.w<=w)];
 const spoolCnt = w=>{ const L=spoolOf(w); return `사자성어 ${L.filter(x=>x.cat==="S").length}개 · 속담 ${L.filter(x=>x.cat==="P").length}개` };
@@ -329,7 +341,7 @@ function gameLobby(){
     openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 퀴즈는 60% 이상 맞혀야 세트로 쳐요. 코인은 8문제 중 7개 이상 맞히면 받아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
     document.getElementById("gateGo").onclick=()=>{ closeModal(); const b=document.getElementById("goLearn"); if(b) b.click(); else home() };
     document.getElementById("gateNo").onclick=()=>closeModal(); return }
-  setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)){ P.set.map=mapOpenN(); saveP() }
+  setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)||!studyOK(P.set.map||1)){ let m=mapOpenN(); while(m>1&&!studyOK(m)) m--; P.set.map=m; saveP() }
   const best = P.best, d = day();
   const left = Math.max(0, DAILY_PLAYS - d.plays);
   const need = Math.max(0, GAME_COST - P.coins);
@@ -375,18 +387,18 @@ function gameLobby(){
     <div class="msea" ${(P.set.mseason||"1")==="2"?"hidden":""}>` })()}
     <div class="mapLegend"><span><b class="lgS">★★★★</b> 그 맵에서 잡은 보스 수 (가장 좋은 기록 · 4개면 클리어)</span><span><b>🏆 ✨ 📜</b> 맵 훈장 (어려움 클리어 · 패턴 완벽 회피 · 문제 박사)</span><span><b class="lgB">지옥 클리어</b> 깬 가장 높은 단계</span><span><b class="lgP">⚔ 권장</b> 그 단계 권장 전투력 · 초록은 충분, 빨강은 부족</span></div>
     ${[["ground","🌱 지상","평화로운 들판에서 깊은 던전까지"],["sky","☁ 천공","하늘 꼭대기를 향한 도전! (용사 Lv 80부터)"]].map(([rl,ttl,sub])=>`<div class="realmHead ${rl}"><b>${ttl}</b><span>${sub}</span></div>
-    <div class="mapgrid">${MAPS.filter(m=>m.realm===rl).map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), chain=!cli&&!mapOpened(m.id), unl=!cli&&P.newOpen===m.id, lock=!cli&&!isAdmin()&&(chain||HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
+    <div class="mapgrid">${MAPS.filter(m=>m.realm===rl).map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), chain=!cli&&!mapOpened(m.id), unl=!cli&&P.newOpen===m.id, slk=!cli&&!chain&&!studyOK(m.id), lock=!cli&&!isAdmin()&&(chain||slk||HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
       return `<button class="mapc ${(chain||lock)?"":"slim"} ${on?"on":""} ${lock?"mlock":""} ${chain?"chained":""} ${m.hud==="#f3effd"?"dk":""}" data-map="${m.id}" ${lock?"disabled":""} style="--m1:${m.sky[0]};--m2:${m.sky[1]};--mt:${m.tag}">
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
         <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mmedal">${medalsOf(m.id).map((x,i)=>`<i class="${x?"on":""}">${MEDALS[i][0]}</i>`).join("")}${((P.clearD||{})[m.id]||0)>=2?`<em style="background:${DIFS[((P.clearD||{})[m.id])-1].c}">${DIFS[((P.clearD||{})[m.id])-1].n} 클리어</em>`:""}</span>${(()=>{ const df=mapDif(m.id), rp=recShow(m.id,df), mp=heroPower(P.hero); return `<span class="mrec ${mp>=rp?"ok":"lo"}">⚔ 권장 ${fmtPow(rp)}${DIFS[df]&&df?` (${dN(df,m.id)})`:""} · 나 ${fmtPow(mp)}</span>` })()}<span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         ${chain||unl?`<span class="mchain ${unl?"unl":""}"><i class="c1"></i><i class="c2"></i><span class="plock"><i class="shk"></i><i class="bod"></i></span></span>`:""}
-        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
-    </div><div class="msea s2" ${(P.set.mseason||"1")==="2"?"":"hidden"}><div class="realmHead boss"><b>👑 군단장 토벌</b><span>보스만 나오는 결투장! 보스 공격력 · 방어율 무시가 중요해요</span></div><div class="mapgrid">${S2MAPS.map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), chain=!cli&&!mapOpened(m.id), unl=!cli&&P.newOpen===m.id, lock=!cli&&!isAdmin()&&(chain||HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
+        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
+    </div><div class="msea s2" ${(P.set.mseason||"1")==="2"?"":"hidden"}><div class="realmHead boss"><b>👑 군단장 토벌</b><span>보스만 나오는 결투장! 보스 공격력 · 방어율 무시가 중요해요</span></div><div class="mapgrid">${S2MAPS.map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), chain=!cli&&!mapOpened(m.id), unl=!cli&&P.newOpen===m.id, slk=!cli&&!chain&&!studyOK(m.id), lock=!cli&&!isAdmin()&&(chain||slk||HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
       return `<button class="mapc ${(chain||lock)?"":"slim"} ${on?"on":""} ${lock?"mlock":""} ${chain?"chained":""} ${m.hud==="#f3effd"?"dk":""}" data-map="${m.id}" ${lock?"disabled":""} style="--m1:${m.sky[0]};--m2:${m.sky[1]};--mt:${m.tag}">
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
         <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mmedal">${medalsOf(m.id).map((x,i)=>`<i class="${x?"on":""}">${MEDALS[i][0]}</i>`).join("")}${((P.clearD||{})[m.id]||0)>=2?`<em style="background:${DIFS[((P.clearD||{})[m.id])-1].c}">${DIFS[((P.clearD||{})[m.id])-1].n} 클리어</em>`:""}</span>${(()=>{ const df=mapDif(m.id), rp=recShow(m.id,df), mp=heroPower(P.hero); return `<span class="mrec ${mp>=rp?"ok":"lo"}">⚔ 권장 ${fmtPow(rp)}${DIFS[df]&&df?` (${dN(df,m.id)})`:""} · 나 ${fmtPow(mp)}</span>` })()}<span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         ${chain||unl?`<span class="mchain ${unl?"unl":""}"><i class="c1"></i><i class="c2"></i><span class="plock"><i class="shk"></i><i class="bod"></i></span></span>`:""}
-        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div><div class="s2soon"><b>🌌 12단계</b><span>다음 군단장이 곧 나타나요!</span></div></div></details>
+        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div><div class="s2soon"><b>🌌 12단계</b><span>다음 군단장이 곧 나타나요!</span></div></div></details>
     ${difPanelHtml()}
     <details class="mgBox"><summary>📖 이 맵 자세히 보기 (몬스터 · 보스 · 훈장) ▾</summary>
     ${mapGuideHtml(typeof NET!=="undefined"&&NET.role==="client"&&netInRoom()?(NET.map||1):(P.set.map||1))}
@@ -425,6 +437,7 @@ function gameLobby(){
         <small class="pkEf">👑 지금 효과: ${q2rangeOf().w?`<em>보스 공격력 +${Math.round(K2.bd*100)}% · 방어율 무시 +${Math.round(K2.ied*100)}%</em> (외운 만큼 · 최대 보공 +${Math.round(KNOW2_BD[K2.i]*100)}% 방무 +${Math.round(KNOW2_IED[K2.i]*100)}%) · 군단장 맵에서 아주 중요해요`:"없어요 · 고르면 보스 공격력과 방어율 무시가 생겨요"}</small>
         <b>사자성어·속담 범위</b><div>${SRANGE.map(q=>`<button class="pkr ${srangeOf().w===q.w?"on":""}" data-ms="${q.w}">${q.label}</button>`).join("")}</div>
         <small class="pkEf">📜 지금 효과: ${srangeOf().w?`<em>받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%</em>`:"없어요 · 고르면 받는 피해와 스킬 대기시간이 줄어요"}</small>
+        ${(()=>{ const kr=knowRatio(P.set.qrange||5), wr=srangeOf().w?wisRatio(srangeOf().w):null, pc=x=>Math.round(x*100); return `<p class="pkK" style="color:#ffd36a">📖 이 범위에서 익힌 한자 <b>${pc(kr)}%</b>${wr!=null?` · 익힌 사자성어·속담 <b>${pc(wr)}%</b>`:""} → 힘과 범위 보상(경험치·코인)도 익힌 만큼만 붙어요. 60% 넘게 익히면 기술 카드 +1 · 부활 +1!</p>` })()}
         <p class="pkK">모두 합치면: 📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%${q2rangeOf().w?` · 👑 보공 +${Math.round(K2.bd*100)}% · 방무 +${Math.round(K2.ied*100)}%`:""} <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`) })()}
       ${(()=>{ const S=HS(), used=STAT_KEYS.reduce((a,k)=>a+(S[k]||0),0), NMS={hp:"체력",atk:"공격",dmg:"데미지",spd:"속도",bd:"보공",ied:"방무"}, line=STAT_KEYS.filter(k=>S[k]).map(k=>`${NMS[k]} ${S[k]}`).join(" · ")||"아직 찍은 포인트가 없어요";
         return sec("stat","📊",`능력치 · ${esc(H.name)}`,`${line}${S.pts?` · <b style="color:#ffd36a">남은 ${S.pts}</b>`:""}`,`<p class="pkK">${bossDefOf(M.id,mapDif(M.id))?`<b>${esc(M.name)} ${dN(mapDif(M.id),M.id)}</b>은 보스 방어율이 있어서 보공·방무가 중요해요. 이 보스에 맞춰 다시 찍을 수 있어요.`:`1~10단계는 어느 맵이든 추천이 같아요. 군단장 맵에서 바꿨다면 여기서 공통 추천으로 되돌려요.`} (찍은 포인트 ${used}개 · 남은 ${S.pts}개)</p>
@@ -440,7 +453,7 @@ function gameLobby(){
         const pg2=document.getElementById("pkStatGo"); if(pg2) pg2.onclick=()=>{ sfx("tap"); modal.hidden=true; grow(P.hero,()=>{ gameLobby(); openPick("stat") }) } }
       const pe=document.getElementById("pkEng"); if(pe) pe.onclick=()=>{ sfx("tap"); engraveUI(()=>openPick("eng")) };
       document.getElementById("pkNo").onclick=()=>{ modal.hidden=true; const y=window.scrollY; gameLobby(); window.scrollTo(0,y) };
-      document.getElementById("pkGo").onclick=()=>{ modal.hidden=true; if(payGame()) startGame(); else gameLobby() } };
+      document.getElementById("pkGo").onclick=()=>{ modal.hidden=true; if(payGame()) wrongWarmup(()=>startGame()); else gameLobby() } };
     mcard.className="mcard"; draw(); modal.hidden=false }
   if(typeof mpBind==="function"){ mpBind(); if(netInRoom()) document.getElementById("go").style.display="none" }
 }
@@ -577,7 +590,24 @@ function payGame(){
   window.__pend=1; window.__paid=0; return true;
 }
 function chargeGame(){ if(!window.__pend) return; window.__pend=0; const d=day(); d.plays++; P.coins=Math.max(0,P.coins-GAME_COST); P.stats.games++; saveP(); window.__paid=1 }
-const PLAY_MIN_T = 60;   // 이 시간(초)을 넘게 해야 1판으로 셈
+const PLAY_MIN_T = 60;
+/* ===== 오답 활용 (2026-10-27): 한자 오답 + 사자성어·속담 오답 ===== */
+function wrongPool(){ const H=(P.wrong||[]).map(h=>UNIQUE.find(c=>c.h===h)).filter(Boolean), S=(P.swrong||[]).map(h=>typeof sayFind==="function"?sayFind(h):null).filter(Boolean); return [...H,...S] }
+/* 게임 전 오답 3문제: 다 맞히면 이번 판 공격력 +8% · 경험치 +10% (틀려도 입장은 그대로) */
+function wrongWarmup(go){ const W=wrongPool(); if(!W.length||(typeof NM!=="undefined"&&NM)) { window.__wBuff=0; return go() }
+  const qs=shuffle(W).slice(0,Math.min(3,W.length)).map(c=>({c,q:makeQ(c,{short:true})})); let i=0, ok=0; window.__wBuff=0;
+  const show=()=>{ const {c,q}=qs[i];
+    openModal(`<h3>📝 출전 전 오답 복습 (${i+1} / ${qs.length})</h3><p class="muted" style="margin:0 0 6px">전에 틀린 ${c.cat?"사자성어·속담":"한자"}예요. ${qs.length}문제 다 맞히면 이번 판 <b>공격력 +8% · 경험치 +10%</b>!</p>
+      ${q.desc?`<p style="font-family:var(--f-ui);font-size:17px;line-height:1.5;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;margin:4px 0">${esc(q.desc)}</p>`:""}${q.big?`<div class="gq">${esc(q.big)}</div>`:""}<p style="font-family:var(--f-ui);font-size:20px;line-height:1.45;margin:4px 0">${esc(q.q)}</p>
+      <div class="gopts two">${q.opts.map((o,j)=>`<button class="gans ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div>
+      <div class="btns"><button class="btn ghost" id="wwSkip">건너뛰고 바로 출발</button></div>`);
+    document.getElementById("wwSkip").onclick=()=>{ closeModal(); go() };
+    mcard.querySelectorAll(".gans").forEach(b=>b.onclick=()=>{ const r=!!q.opts[+b.dataset.j].ok; mcard.querySelectorAll(".gans").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.j].ok) x.classList.add("ok") });
+      trackAns(c,r); P.stats.q++; if(r){ ok++; P.stats.c++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) } saveP();
+      setTimeout(()=>{ i++; if(i<qs.length) return show(); const all=ok===qs.length; window.__wBuff=all?1:0;
+        openModal(`<h3>${all?"🔥 오답 복습 완벽!":"📝 오답 복습 끝"}</h3><p>${ok} / ${qs.length} 맞혔어요.</p><p>${all?"이번 판 <b>공격력 +8% · 경험치 +10%</b>로 출발해요!":"다 맞히면 보너스를 받아요. 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요!"}</p><div class="btns"><button class="btn gold big" id="wwGo">⚔ 출발!</button></div>`);
+        document.getElementById("wwGo").onclick=()=>{ closeModal(); go() } }, r?700:1500) }) };
+  show() }   // 이 시간(초)을 넘게 해야 1판으로 셈
 const fmtT = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
 
 function difPanelHtml(){ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), id=cli?(NET.map||1):(P.set.map||1), cur=cli?(NET.dif||0):mapDif(id), m=mapById(id), L=HS().lv;
@@ -687,9 +717,9 @@ function startGame(opts){ opts=opts||{};
   })();
   if(HSt.tier>=5) g.pending.push({t:.8,run:()=>{ showBanner(`${({warrior:"🔥",archer:"⚡",thief:"🌑",mage:"☀️",pirate:"🐋",healer:"🌕",calli:"🖌️",zodiac:"🐉",mech:"🤖"})[HERO.id]||"✨"} 5차 각성 용사 「${JOBS[HERO.id].titles[5]}」 출전!`); g.fx.push({k:"flash",col:"#ff8a2a",life:.6,max:.6}); g.shake=.3; sfx("awaken") }});
   const PK = Object.assign({xp:1,start:0,revive:1,cards:3},HERO.perks||{});
-  const QR = qrangeOf(), Q2 = q2rangeOf(), QPOOL = [...new Map([...qpoolOf(QR.w),...q2poolOf(Q2.w)].map(c=>[c.h,c])).values()];
+  const QR = rangeByMastery(qrangeOf(),knowRatio(qrangeOf().w)), Q2 = rangeByMastery(q2rangeOf(),know2Ratio(q2rangeOf().w)), QPOOL = [...new Map([...qpoolOf(QR.w),...q2poolOf(Q2.w)].map(c=>[c.h,c])).values()];
   /* 학습하기에서 공부한 사자성어·속담도 게임 문제에 섞여 나와요 (10문제 중 4문제쯤) */
-  const SR = srangeOf(), SPOOL = spoolOf(SR.w);
+  const SR = rangeByMastery(srangeOf(),wisRatio(srangeOf().w)), SPOOL = spoolOf(SR.w);
   /* 넓은 범위를 골랐으면 모든 주차에서 고루고루: 주차를 돌아가며 하나씩 고르고, 그 주차 안에서는 약한 한자가 더 자주 나와요 */
   /* 혼자: 이번 판에 나왔던 한자·사자성어·속담은 다시 안 나와요 (다 나오면 처음부터)
      같이하기: 친구마다 다른 문제가 나오게 한자를 나눠 가져요 (내 몫을 다 쓰면 나머지에서) */
@@ -704,11 +734,15 @@ function startGame(opts){ opts=opts||{};
     for(let i=0;i<n&&pool.length;i++){ let cy=WCY[key]; if(!cy||!cy.length) cy=WCY[key]=shuffle(ws.slice()); const wk=cy.pop();
       let cand=pool.filter(c=>grp(c)===wk&&!used.has(c.h)); if(!cand.length) cand=pool.filter(c=>!used.has(c.h)); if(!cand.length) cand=list.filter(c=>!used.has(c.h)); if(!cand.length) cand=list;
       const c=pickWeighted(cand,1)[0]; if(c){ used.add(c.h); out.push(c); ASKED.add(c.h) } } return out };   /* 고침 (2026-10-26): 뽑는 순간 "낸 문제"로 기록 → 모든 문제를 한 번씩 다 낼 때까지 겹치지 않아요 */
-  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
+  /* 오답 복수전: 전에 틀린 한자·사자성어·속담이 게임 문제로 먼저 나와요 (한 판에 하나씩 한 번) · 맞히면 12초 동안 공격력 +15% */
+  const REVP=shuffle(wrongPool()), REVQ=new Set(), REVD=new Set();
+  const revPick=()=>{ const c=REVP.find(x=>!REVQ.has(x.h)&&!ASKED.has(x.h)); if(!c) return null; REVQ.add(c.h); ASKED.add(c.h); setTimeout(()=>{ try{ showBanner(`⚔ 복수전! 전에 틀린 ${c.cat?"말":"한자"}이에요 · 맞히면 공격력 +15%`) }catch(e){} },60); return c };
+  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(c){} else if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
   if(opts.mp) M.xp *= .7;
+  g.wBuff=window.__wBuff?1:0; window.__wBuff=0; if(g.wBuff) M.xp*=1.1;   /* 게임 전 오답 복습 다 맞힘 */
   M.xp *= PK.xp; g.revives = PK.revive + QR.revive + (SR.revive||0); g.qOk=0; g.qN=0;
   shuffle(Object.keys(SK).filter(k=>k!=="main"&&SK[k].t==="w"&&skOK(k,MAP.id))).slice(0,PK.start).forEach(k=>g.sk[k]=1);
-  const st = ()=>({dmg:M.dmg*(1+.15*lv("str"))*(1-CONF_V*(g.conf||0)), cd:Math.max(.4,M.cd*(1-.09*lv("qi"))*(1+CONF_V*(g.conf||0))), spd:165*HERO.spd*M.spd*(g.bbuff?g.bbuff.spd:1)*(1+.1*lv("spd")), maxHp:HERO.hp+bonusHp+20*lv("body"), mag:110*M.mag*(1+.4*lv("pull"))});
+  const st = ()=>({dmg:M.dmg*(1+.15*lv("str"))*(1-CONF_V*(g.conf||0))*(g.revT>0?1.15:1)*(g.wBuff?1.08:1), cd:Math.max(.4,M.cd*(1-.09*lv("qi"))*(1+CONF_V*(g.conf||0))), spd:165*HERO.spd*M.spd*(g.bbuff?g.bbuff.spd:1)*(1+.1*lv("spd")), maxHp:HERO.hp+bonusHp+20*lv("body"), mag:110*M.mag*(1+.4*lv("pull"))});
 
   // 입력
   const keys = {}; const joy = {on:false,id:null,ox:0,oy:0,x:0,y:0};
@@ -719,8 +753,9 @@ function startGame(opts){ opts=opts||{};
   cv.addEventListener("pointermove",e=>{ if(joy.on&&e.pointerId===joy.id){joy.x=e.clientX;joy.y=e.clientY} });
   const jend = e=>{ if(e.pointerId===joy.id){joy.on=false;joy.id=null} };
   cv.addEventListener("pointerup",jend); cv.addEventListener("pointercancel",jend);
-  const vis = ()=>{ if(document.hidden) pause() };
+  const vis = ()=>{ if(document.hidden){ savePart(); pause() } };
   document.addEventListener("visibilitychange",vis);
+  const phide = ()=>savePart(); window.addEventListener("pagehide",phide);   /* 창·탭을 닫을 때 지금까지 한 만큼 적어 둬요 */
   $(".gpause").onclick = pause;
   // ===== 선생님 도구: 무적 · 레벨 올리기 · 시간 당기기 · 보스 바로 부르기 (선생님 계정에서만) =====
   if(typeof isAdmin==="function"&&isAdmin()){ const tb=$(".gtoolbox"), btn=$(".gtool"); btn.hidden=false;
@@ -1977,11 +2012,12 @@ function startGame(opts){ opts=opts||{};
       if(!NM){ close(); if(all) castOrigin(); else originFail(0,1); return }
       if(NM==="client") netOut.or={id,ok:all}; else originRes(NET.myId,id,all);
       mcard.innerHTML=`<div class="oriHead">✦ ORIGIN ✦</div><h3 style="font-family:'HF-${HERO.id}',var(--f-hz)">${all?"성공! 친구들을 기다려요":"아쉬워요…"}</h3><p>${all?"모두가 다 맞히면 오리진이 터져요!":"한 명이라도 틀리면 오리진이 발동하지 않아요. 친구들 결과를 기다려요."}</p><p class="gdh">⏳</p>`;
-      originWait=setTimeout(close,32000) }
+      if(all) g.p.inv=Math.max(g.p.inv||0,10.5);   /* 다 맞히고 기다리는 동안은 무적 (창이 화면을 가리니까) */
+      originWait=setTimeout(close,all?10500:1200) }   /* 고침 (2026-10-27): 틀렸으면 1.2초 뒤 바로 닫기 · 다 맞혔으면 최대 10초만 기다려요 (예전엔 32초 동안 창이 남아 그 뒤에서 쓰러졌어요) */
     function close(){ clearTimeout(originWait); if(!mcard.classList.contains("origin")) return; modal.hidden=true; mcard.className="gcard"; g.paused=false; last=performance.now() }
     originClose=close; show() }
   let originWait=0, originClose=()=>{};
-  function originRes(from,id,ok){ const o=g.orig; if(!o||o.id!==id) return; o.res[from]=ok; originSettle() }
+  function originRes(from,id,ok){ const o=g.orig; if(!o||o.id!==id) return; o.res[from]=ok; originSettle(!ok) }   /* 한 명이라도 틀리면 그 자리에서 실패로 정하고 모두의 창을 닫아요 */
   function originSettle(force){ const o=g.orig; if(!o) return;
     for(const id of [...o.need]) if(id!==NET.myId && (!RP[id]||RP[id].gone)) o.need.delete(id);
     const all=[...o.need].every(id=>id in o.res);
@@ -2029,7 +2065,7 @@ function startGame(opts){ opts=opts||{};
       ${g.conf?`<div class="bad"><i>😵 혼란 ${g.conf}</i>공격력 -${Math.round(CONF_V*100*g.conf)}% · 받는 피해 +${Math.round(CONF_V*100*g.conf)}% (문제를 맞히면 풀려요)</div>`:""}
       <small>화면 아무 곳이나 누르면 닫혀요</small>`;
     root.appendChild(d); setTimeout(()=>{ if(d.isConnected) d.remove() },6000) });
-  window.__qHook=(c,ok)=>{ if(g.over) return; if(BX){ if(ok) BX.quizOk(); else BX.quizNo() } if(ok){ if(g.conf>0){ g.conf--; g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"✨ 집중 회복!",life:1.2,max:1.2}) } }
+  window.__qHook=(c,ok)=>{ if(g.over) return; if(BX){ if(ok) BX.quizOk(); else BX.quizNo() } if(c&&REVQ.has(c.h)&&!REVD.has(c.h)){ REVD.add(c.h); if(ok){ g.revT=12; g.revN=(g.revN||0)+1; g.fx.push({k:"label",x:g.p.x,y:g.p.y-120,text:"⚔ 복수 성공! 공격력 +15%",life:2,max:2}); try{ showBanner("⚔ 복수 성공! 12초 동안 공격력 +15%") }catch(e){} } else { try{ showBanner("아쉬워요! 오답 노트에서 한 번 더 복습해요") }catch(e){} } } if(ok){ if(g.conf>0){ g.conf--; g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"✨ 집중 회복!",life:1.2,max:1.2}) } }
     else { g.conf=Math.min(CONF_MAX,g.conf+1); g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:`😵 혼란 ${g.conf}`,life:1.4,max:1.4}) } confHud() };
   /* ===== 보스 약점 한자: 보스 체력 50%·25%에서 약점 한자가 떠요. 게임은 멈추지 않고 6초 안에 뜻을 맞히면 보스 기절 + 큰 피해 ===== */
   const WEAK_H={1:"木風花",2:"風石木",3:"水木",4:"電炎",5:"水冷氷",6:"石固地",7:"破拳打",8:"炎",9:"天地",10:"天地永"};
@@ -2043,9 +2079,9 @@ function startGame(opts){ opts=opts||{};
       const p=e.hp/e.max, s0=e.wq||0, TH=[.5,.25]; let k=s0; while(k<TH.length&&p<TH[k]) k++;
       if(k>s0){ e.wq=k; if(NM==='host') e.bt=Math.max(e.bt||0,6.5); openWeak(e); return } } }
   const Q2P=q2poolOf(Q2.w);
-  function pick11(){ const r=Math.random(); let c=null; if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
+  function pick11(){ const r=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(c){} else if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
   function openWeak(e,X){ const th=WEAK_H[MAP.id]||"", useS=SPOOL.length&&Math.random()<.4;
-    let c=X&&X.c||(BX?pick11():null); if(!c&&useS){ c=spreadPick(SPOOL,1,"s")[0] } if(!c){ const cand=QPOOL.filter(x=>th.includes(x.h)&&!ASKED.has(x.h)); c=cand.length?cand[Math.random()*cand.length|0]:(spreadPick(QPOOL,1,"q")[0]||QPOOL[Math.random()*QPOOL.length|0]) } if(!c) return; ASKED.add(c.h);
+    let c=X&&X.c||(BX?pick11():null)||(REVP.length&&Math.random()<.5?revPick():null); if(!c&&useS){ c=spreadPick(SPOOL,1,"s")[0] } if(!c){ const cand=QPOOL.filter(x=>th.includes(x.h)&&!ASKED.has(x.h)); c=cand.length?cand[Math.random()*cand.length|0]:(spreadPick(QPOOL,1,"q")[0]||QPOOL[Math.random()*QPOOL.length|0]) } if(!c) return; ASKED.add(c.h);
     let big, ask, opts;
     if(c.cat){ const q=makeQ(c,{short:true}); big=q.big||q.q; ask=q.big?q.q:"알맞은 답을 골라요"; opts=shuffle(q.opts.map(o=>({t:o.text,ok:o.ok?1:0}))).slice(0,4); if(!opts.some(o=>o.ok)) opts[0]=q.opts.find(o=>o.ok)&&{t:q.opts.find(o=>o.ok).text,ok:1}||opts[0] }
     else { const lab=x=>`${x.hun} ${x.eum}`, others=shuffle(QPOOL.filter(x=>x.h!==c.h&&lab(x)!==lab(c))).slice(0,2); big=c.h; ask="이 한자의 뜻과 소리는?"; opts=shuffle([{t:lab(c),ok:1},...others.map(x=>({t:lab(x),ok:0}))]) }
@@ -2124,7 +2160,7 @@ function startGame(opts){ opts=opts||{};
     modal.classList.add("lvmodal");
     mcard.className="gcard lvcard";
     mcard.innerHTML = `<div class="lvhead"><div class="lvsub">${b11s?"★ 군단장 결투 준비 ★":"★ LEVEL UP ★"}</div><h3 class="lvbig">${b11s?`출발 준비 ${3-g.b11Q} / 3`:BX?"각성 보상!":`LV.${g.lvl} 달성!`}</h3>
-        <div class="lvtip">${b11s?"✦ 문제를 맞히면 이 판에서 쓸 카드를 골라요! (틀리면 다른 카드 문제에 도전) ✦":BX?"✦ 검귀가 각성했어요! 보스와 싸울 카드를 1장 골라요 ✦":free?"✦ 쉬는 레벨! 문제 없이 원하는 기술을 바로 골라요 · 다음 레벨에는 다 같이 문제를 풀어요 ✦":"✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 ✦"}</div>${free?coopNote():""}${MPL?`<div class="lvtip coopNote">👫 다 같이 레벨업! 모두 풀 때까지 몬스터도 멈춰요 · <b id="lvhint">10초가 지나면 힌트가 나와요</b></div><div class="lvtime"><i id="lvbar"></i><b id="lvsec">${LV_T}</b></div>`:""}</div>
+        <div class="lvtip">${b11s?"✦ 문제를 맞히면 이 판에서 쓸 카드를 골라요! (기회는 2번! 두 번 다 틀리면 카드가 없어요) ✦":BX?"✦ 검귀가 각성했어요! 보스와 싸울 카드를 1장 골라요 ✦":free?"✦ 쉬는 레벨! 문제 없이 원하는 기술을 바로 골라요 · 다음 레벨에는 다 같이 문제를 풀어요 ✦":"✦ 카드마다 문제를 맞히면 그 기술을 고를 수 있어요 · 기회는 2번! 두 번 다 틀리면 카드가 없어요 ✦"}</div>${free?coopNote():""}${MPL?`<div class="lvtip coopNote">👫 다 같이 레벨업! 모두 풀 때까지 몬스터도 멈춰요 · <b id="lvhint">10초가 지나면 힌트가 나와요</b></div><div class="lvtime"><i id="lvbar"></i><b id="lvsec">${LV_T}</b></div>`:""}</div>
       <div class="lvcards c${N}">${cards.map((k,i)=>{ const s=SK[k], l=lv(k)+1, Q=qs[i].q;
         const cv=CV&&CV[i];
         return `<div class="lvk ${REC===k?"rec":""}" data-i="${i}">${REC===k?`<span class="lvrec">⭐ 추천</span>`:""}
@@ -2137,7 +2173,7 @@ function startGame(opts){ opts=opts||{};
             <div class="lvopts">${Q.opts.map((o,j)=>`<button class="lvo ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div></div>
           <button class="lvpick" disabled>문제를 먼저 풀어요</button>
         </div>` }).join("")}</div>
-      <div class="lvfoot"><span id="lvstat">맞힌 카드 0 / ${N}</span><button class="lvskip" id="lvskip" hidden>모두 틀렸어요 · 계속하기</button></div>${MPL?cheerBtns():""}`;
+      <div class="lvfoot"><span id="lvstat">맞힌 카드 0 / ${N}</span><button class="lvskip" id="lvskip" hidden>두 번 다 틀렸어요 · 이번엔 카드 없이 계속하기</button></div>${MPL?cheerBtns():""}`;
     modal.hidden=false;
     const els=[...mcard.querySelectorAll(".lvk")];
     const upd=()=>{ const ok=qs.filter(q=>q.st==="ok").length, done=qs.every(q=>q.st!=="ask");
@@ -2146,12 +2182,13 @@ function startGame(opts){ opts=opts||{};
     els.forEach((el,i)=>{
       const Q=qs[i].q, btns=[...el.querySelectorAll(".lvo")], pick=el.querySelector(".lvpick");
       btns.forEach(b=>b.onclick=()=>{
-        if(qs[i].st!=="ask") return;
+        if(qs[i].st!=="ask") return; if(!g.qskip&&!free&&qs.filter(q=>q.st!=="ask").length>=2) return;
         const ok=Q.opts[+b.dataset.j].ok; g.qN++;
         btns.forEach(x=>{ x.disabled=true; if(Q.opts[+x.dataset.j].ok) x.classList.add("ok") });
         trackAns(qs[i].c,!!ok); if(ok){ qs[i].st="ok"; g.qOk++; sfx("ok"); el.classList.add("ok"); P.mastery[qs[i].c.h]=(P.mastery[qs[i].c.h]||0)+1; if(Q.ctx&&typeof sayCtx==="function") sayCtx(qs[i].c); saveP();
           g.p.hp=Math.min(st().maxHp,g.p.hp+st().maxHp*QR.heal); pick.disabled=false; pick.textContent="선택하기" }
         else { qs[i].st="no"; b.classList.add("no"); el.classList.add("no"); addWrong(qs[i].c.h); sfx("no"); pick.textContent=`정답: ${label(qs[i].c)}` }
+        if(!g.qskip&&!free&&qs.filter(q=>q.st!=="ask").length>=2&&!qs.some(q=>q.st==="ok")) qs.forEach((q,k)=>{ if(q.st==="ask"){ q.st="lock"; els[k].classList.add("no"); els[k].querySelectorAll(".lvo").forEach(x=>x.disabled=true); els[k].querySelector(".lvpick").textContent="기회를 다 썼어요" } });   /* 2026-10-27: 카드 문제는 2번까지만 · 두 번 다 틀리면 이번 레벨은 카드 없음 */
         upd();
       });
       pick.onclick=()=>{ if(closed||qs[i].st!=="ok") return; apply(cards[i]); close() };
@@ -2234,8 +2271,20 @@ function startGame(opts){ opts=opts||{};
     });
   }
 
+  /* 중간에 창을 닫아도 (2026-10-27): 1분이 지난 판은 8초마다 '지금까지 한 만큼' 보상을 적어 둬요 → 다음에 켜면 받아요 */
+  function partRes(){
+    const t=g.t, coop=NM?1.3:1, stars=Math.min(3,g.bossKills);
+    const b11P=BX?(()=>{ const e=g.en.find(x=>x.b11); if(!e) return 0; const f=1-Math.max(0,e.hp)/e.max; return BX.S.ph===2?.5+f*.5:f*.5 })():0;
+    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1;
+    const exp=Math.round((g.kills*(BX?1:1.25)+Math.min(t,480)/3+g.bossKills*150+Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul);
+    const qCoin=Math.round(((t>=60?QR.coin+SR.coin+(Q2.coin||0):0)+(g.bqC||0))*qMul);
+    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1));
+    return {hero:HERO.id,map:MAP.name,t:Math.round(t),k:g.kills,exp,coin:Math.round(sCoin*qMul)+qCoin,day:new Date().toDateString()};
+  }
+  function savePart(){ try{ if(!P||g.over||window.__pend||g.t<PLAY_MIN_T) return; P.pendRes=partRes(); saveP() }catch(e){} }
+  g._psv=0; window.__savePart=savePart;
   function finish(win){ window.__qHook=null;
-    if(g.over) return; SND.setIntensity(0); if(NM==="host") NET.ing=new Set();
+    if(g.over) return; if(P&&P.pendRes){ delete P.pendRes }   /* 끝까지(또는 그만하기로) 끝냈으면 적어 둔 보상은 지워요 (두 번 안 받게) */ SND.setIntensity(0); if(NM==="host") NET.ing=new Set();
     g.over=true; g.paused=true;
     const best = P.best;
     const rec = {t:g.t,k:g.kills,win};
@@ -2262,7 +2311,7 @@ function startGame(opts){ opts=opts||{};
     const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=(qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1)*(freeRun?0:1);
     const gotExp = addExp(Math.round((g.kills*(BX?1:1.25) + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150 + Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul));
     const qCoin = Math.round(((rec.t>=60 ? QR.coin+SR.coin+(Q2.coin||0) : 0)+(g.bqC||0))*qMul);   // 같이하기 보너스 문제 코인 포함
-    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=freeRun?0:sCoin+qCoin+fCoin+rCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
+    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=freeRun?0:Math.round((sCoin+rCoin)*qMul)+qCoin+fCoin, gotCoin=earn(want);   /* 2026-10-27: 보스 처치 코인에도 게임 속 문제 정답률 배율 (첫 클리어 코인은 그대로) */   // 하루 코인 한도까지만
     if(win) stamp("클리어!");
     mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:(g.timeUp||BX&&BX.S.tUp)?"⏰ 시간 초과! 다음엔 더 빨리 쓰러뜨려요":"게임 끝"}</h3>${freeRun?`<p style="margin:2px 0 6px;color:#c8372d;font-weight:600">1분 안에 끝나서 오늘 판 수와 입장료는 그대로예요. 대신 이번 판 보상은 없어요.</p>`:""}${b11P>=.01?`<p style="margin:2px 0 6px;color:#c9a6ff">검귀를 ${Math.round(b11P*100)}% 몰아붙였어요 · 그만큼 경험치를 더 받아요</p>`:""}<p>${MAP.name} · <b style="color:${DIFS[MAP.dif].c}">${dN(MAP.dif,MAP.id)}</b> · 경험치 ×${(+MAP.exp).toFixed(1)}</p>
       ${newDif&&MAP.dif<2?`<p class="gbest">🔓 ${dN(MAP.dif+1,MAP.id)} 단계가 열렸어요!</p>`:""}
@@ -2277,7 +2326,7 @@ function startGame(opts){ opts=opts||{};
       <p style="font-family:var(--f-ui);font-size:18px;color:#25211b">한자 퀴즈 ${g.qOk} / ${g.qN} 정답 · 한자 ${QR.label}${Q2.w?` · ${Q2.label}`:""}${SR.w?` · 사자성어·속담 ${SR.label}`:""} (경험치 ×${+(QR.exp*SR.exp).toFixed(2)})</p>
       <div class="gcoin"><b>코인 +${gotCoin}</b>${gotCoin<want?`<span style="color:#c8372d">오늘 코인 한도(${DAILY_COIN_MAX})에 닿아서 ${want}개 중 ${gotCoin}개만 받았어요</span>`:""}<span>${NM?"협동 보너스 ×1.3 · ":""}별 ${stars}개 +${sCoin}${win?" (클리어 보너스 포함)":""}${(QR.cm||1)>1?` · 퀴즈 범위 ×${QR.cm}`:""}${qCoin?` · 퀴즈 범위 +${qCoin}`:""}${fCoin?` · 처음 클리어 +${fCoin}`:""}</span></div>
       ${isBest?`<p class="gbest">새 최고 기록이에요!</p>`:""}
-      <p style="color:#2f6b55;font-family:var(--f-ui);font-size:20px">${HERO.name} 경험치 +${gotExp} · Lv ${HS(HERO.id).lv}</p>${g.qN>=3?`<p style="font-size:14px;color:${qMul<1?"#c8372d":"#2f6b55"};font-weight:600">게임 속 문제 ${g.qOk} / ${g.qN} 맞힘 (${Math.round(qAcc*100)}%)${qMul<1?` · 정답률이 80%보다 낮아서 경험치·문제 코인 ×${qMul}`:" · 경험치 그대로!"}</p>`:""}
+      <p style="color:#2f6b55;font-family:var(--f-ui);font-size:20px">${HERO.name} 경험치 +${gotExp} · Lv ${HS(HERO.id).lv}</p>${g.qN>=3&&!freeRun?`<p style="font-size:14px;color:${qMul<1?"#c8372d":"#2f6b55"};font-weight:600">게임 속 문제 ${g.qOk} / ${g.qN} 맞힘 (${Math.round(qAcc*100)}%)${qMul<1?` · 정답률이 80%보다 낮아서 경험치·코인 ×${qMul}`:" · 경험치 그대로!"}</p>`:""}
       <div class="gskills">${Object.keys(g.sk).map(k=>`<span>${skImg(k,22)}${skName(k)}</span>`).join("")}</div>
       <div class="gbtns"><button class="big red" id="ga" ${(P.coins<GAME_COST||day().plays>=DAILY_PLAYS)?"disabled":""}>한 판 더 (코인 ${GAME_COST} · 남은 판 ${Math.max(0,DAILY_PLAYS-day().plays)})</button><button class="big alt" id="gx">공부하러 가기</button></div>${(()=>{ const L=typeof todayWrongItems==="function"?todayWrongItems():[], nd=L.filter(x=>!x.done).length; return nd?`<button class="twStrip" id="gtw">📝 오늘 틀린 문제 ${nd}개 다시 보기<small>틀린 한자·사자성어·속담을 바로 복습해요</small></button>`:"" })()}`;
     modal.hidden=false;
@@ -2290,6 +2339,7 @@ function startGame(opts){ opts=opts||{};
     cancelAnimationFrame(raf); window.removeEventListener("resize",resize);
     window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku);
     document.removeEventListener("visibilitychange",vis);
+    window.removeEventListener("pagehide",phide);
     document.body.style.overflow=""; root.remove(); SND.setIntensity(0); SND.bgm("home"); if(NM){ NET.onGame=null; NET.onDrop=null }
   }
 
@@ -2302,7 +2352,7 @@ function startGame(opts){ opts=opts||{};
     for(const q of g.pending){ q.t-=dt; if(q.t<=0){ q.done=true; if(q.boss&&q.boss.hp<=0&&q.boss.deadT) continue; const n0=g.pending.length; q.run(); if(q.boss) for(let i=n0;i<g.pending.length;i++) g.pending[i].boss=q.boss } } g.pending=g.pending.filter(q=>!q.done);   /* 쓰러진 보스가 남긴 예약 공격은 취소 */
     g.shake=Math.max(0,g.shake-dt);
     if(NM && g.oriQ!=null && !g.paused && !g.p.dead){ const q=g.oriQ; g.oriQ=null; if(NM==="client"||(g.orig&&g.orig.id===q)) originQuiz(q) }
-    if(NM!=="client"){ g.oriAcc=(g.oriAcc||0)+dt; if(g.oriAcc>.5){ g.oriAcc=0; originCheck(); if(g.orig&&performance.now()-g.orig.t0>30000) originSettle(true) } }
+    if(NM!=="client"){ g.oriAcc=(g.oriAcc||0)+dt; if(g.oriAcc>.5){ g.oriAcc=0; originCheck(); if(g.orig&&performance.now()-g.orig.t0>10000) originSettle(true) } }
 
     { const ph=phaseOf(g.t); if(g.ph===undefined) g.ph=ph; if(ph!==g.ph){ g.ph=ph; g.phT=g.t; g.shake=.6; g.fx.push({k:"flash",col:ph>=2?"#9a6bff":"#ff8a2a",life:.7,max:.7}); stamp(ph>=3?"최종<br>결전!":`${ph+1}단계!`);
       if(NM!=="client") say(ph>=3?`최종 결전 · ${PH_NAME[MAP.id][2]}! 마지막 보스가 다가와요!`:`${ph+1}단계 · ${PH_NAME[MAP.id][ph]}! 몬스터가 ${ph===2?"훨씬 ":""}강해졌어요!`,"enrage") } }
@@ -2336,6 +2386,7 @@ function startGame(opts){ opts=opts||{};
     if(!out && !g.god && inLava(MAP,P.x,P.y)){ P.hp-=34*dt; g.lavaT=(g.lavaT||0)-dt; if(g.lavaT<=0){ g.lavaT=.35; sfx("lava"); g.fx.push({k:"num",x:P.x,y:P.y-40,v:-12,me:true,life:.6,max:.6}); g.shake=Math.max(g.shake,.08) } if(!g.lavaMsg||g.t-g.lavaMsg>8){ g.lavaMsg=g.t; showBanner("앗 뜨거워! 용암 웅덩이에서 빨리 나와요!") } } P.inv=Math.max(0,P.inv-dt); if(M.regen&&!(g.healBlk>g.t)) P.hp=Math.min(s.maxHp,P.hp+M.regen*dt);
     g.wkT=(g.wkT||0)-dt; if(g.wkT<=0){ g.wkT=.2; weakCheck() }
     g.padT=(g.padT||0)-dt; if(g.padT<=0){ g.padT=5; PADAPT=padapt() }
+    if(g.revT>0&&!g.paused) g.revT-=dt;
     if(g.conf>0&&!g.paused){ g.confT-=dt; if(g.confT<=0){ g.conf--; g.confT=CONF_T; confHud(); if(!g.conf) g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"✨ 집중 회복!",life:1.2,max:1.2}) } }
     if(TOP&&!g.topShown&&g.t>2.6){ g.topShown=1; showBanner(`👑 오늘의 최강 용사: ${TOP.name} (전투력 ${fmtPow(TOP.pw)})${TOP.id===NET.myId?" · 바로 나예요!":""}`) }
     if(!g.engShown&&g.t>1.2){ g.engShown=1; const L=engOf(P.hero); if(L.length){ L.forEach((h,i)=>g.fx.push({k:"label",x:P.x+(i-(L.length-1)/2)*56,y:P.y-95,text:h,life:2.2,max:2.2})); const cb=engCombos(L); showBanner(cb.length?`✨ 룬 공명! ${cb.map(c=>c[0]+"+"+c[1]+" "+c[2]).join(" · ")}`:`💎 한자 룬의 힘! ${L.map(h=>h+"("+engInfo(h).hun+" "+engInfo(h).eum+")").join(" · ")}`); if(cb.length){ g.resT=g.t; sfx("awaken") } } }
@@ -2825,6 +2876,10 @@ function startGame(opts){ opts=opts||{};
       ctx.font='bold 17px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineWidth=4; ctx.strokeStyle="#1a0a24"; const tx="🎯 너무 멀어요! 보스에게 다가가요"; ctx.strokeText(tx,P.x,P.y+58); ctx.fillStyle="#ffe9a0"; ctx.fillText(tx,P.x,P.y+58); ctx.restore() }
     if(HERO_HD){ const q=HERO_HD; ctx.save(); ctx.translate(q.x,q.y); ctx.rotate(q.rot); ctx.scale(q.sx,q.sy); drawHeroRig(ctx,heroImg,HSZ,q.rs); ctx.restore() }   // 최종 보스는 선명하게
     for(const e of g.en){ if(e.elite && e.hp>0 && vis(e)){ ctx.font='13px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=3; ctx.strokeStyle="#25211b"; ctx.strokeText("정예",e.x,e.y-e.r*1.5); ctx.fillStyle="#f6c544"; ctx.fillText("정예",e.x,e.y-e.r*1.5) } }
+    /* 체력바 (2026-10-27): 모든 맵에서 내 머리 위 체력 + 같이하기 친구 체력 (군단장 맵은 내 체력을 보스 쪽에서 크게 그려요) */
+    { const bar=(x,y,W,Hh,k,txt,edge)=>{ k=Math.max(0,Math.min(1,k)); ctx.fillStyle="rgba(10,6,20,.82)"; ctx.fillRect(x-W/2-2,y-2,W+4,Hh+4); const HC=hpCol(k); ctx.fillStyle=HC[1]; ctx.fillRect(x-W/2,y,W*k,Hh); ctx.fillStyle=HC[0]; ctx.fillRect(x-W/2,y,W*k,Hh*.55); ctx.lineWidth=1.5; ctx.strokeStyle=edge; ctx.strokeRect(x-W/2-1,y-1,W+2,Hh+2); if(txt){ ctx.font='bold 11px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineWidth=3; ctx.strokeStyle="#0a0612"; ctx.strokeText(txt,x,y+Hh/2+.5); ctx.fillStyle="#fff"; ctx.fillText(txt,x,y+Hh/2+.5) } };
+      if(!BX&&!g.p.dead){ const mx=st().maxHp, k=g.p.hp/mx, low=k<.3; bar(g.p.x,g.p.y-60,84,12,k,Math.ceil(Math.max(0,g.p.hp))+" / "+Math.round(mx),low?`rgba(255,120,120,${.6+.4*Math.sin(g.t*10)})`:"rgba(255,255,255,.9)") }
+      if(NM){ const C=camC(); for(const id in RP){ const r=RP[id]; if(r.gone||!r.st||r.st.d||!r.st.mx) continue; if(Math.abs(r.rx-C.x)>W/2-20||Math.abs(r.ry-C.y)>H/2-30) continue; bar(r.rx,r.ry-52,72,10,r.st.hp/r.st.mx,"",mateCol(id)) } } }
     if(NM) drawRemoteNames();
     if(TOP&&TOP.id===NET.myId&&!g.p.dead) drawTopCrown(g.p.x,g.p.y);
     if(!g.p.dead&&g.livePow){ const tx="⚔ "+fmtPow(g.livePow), y=g.p.y-(BX?100:(TOP&&NM&&TOP.id===NET.myId?92:70)), up=g.t-(g.powUpT||-9)<1;   /* 내 머리 위 전투력 (보스맵: 체력바 위에 옅게) */
@@ -2914,6 +2969,7 @@ function startGame(opts){ opts=opts||{};
     if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(g.hitstop>0?dt*.06:g.slowU>0&&!NM?dt*.4:dt);   /* 5차 궁극기가 터지는 순간 아주 잠깐 멈춰요 */
     if(NM && !g.over) netTick(dt);
     { const B=!modal.hidden&&mcard.querySelectorAll(".gans"); if(B&&B.length&&[...B].every(x=>x.disabled)){ g._ansStuck=(g._ansStuck||now); if(now-g._ansStuck>4000){ g._ansStuck=0; modal.hidden=true; mcard.className="gcard"; g.paused=false; last=performance.now() } } else g._ansStuck=0 }   /* 안전장치 (2026-10-27): 답을 고른 뒤 4초 넘게 문제 창이 그대로면 저절로 닫아요 (멈춤 방지) */
+    if(!g.over&&(g._psv-=dt)<=0){ g._psv=8; savePart() }
     if(window.__pend&&!g.over&&g.t>=PLAY_MIN_T){ chargeGame(); g.fx.push({k:"label",x:g.p.x,y:g.p.y-110,text:`🎮 1판 시작! (오늘 ${day().plays}/${DAILY_PLAYS}판)`,life:2,max:2}) }   /* 1분이 지나면 판 수·입장료 차감 */
     if(NM==="client"&&!g.over&&g._snapT&&now-g._snapT>2500&&(!g._stallW||now-g._stallW>6000)){ g._stallW=now; showBanner("⚠ 방장 화면이 멈췄어요! 방장 친구는 게임 화면을 켜 두고, 다른 탭이나 앱으로 가지 마세요") }   /* 같이하기: 방장 기기가 멈추면 보스도 안 나오고 몬스터도 안 죽어요 → 알려 줘요 (2026-10-27) */
     draw();

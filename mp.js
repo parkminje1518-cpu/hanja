@@ -100,6 +100,15 @@ function reportTick(){
   if(REP.peer.open) go(); else REP.peer.once("open",go);
 }
 setInterval(reportTick,30000); setTimeout(reportTick,4000);
+/* 학생: 「선생님께 기록 보내기」 버튼 (2026-10-27) · 선생님 기기에서 우리 반 현황판이 켜져 있어야 들어가요 */
+function sendReportNow(cb){ if(!netAvailable()) return cb("net"); const p=prof(); if(!p||!p.g||!p.c) return cb("cls");
+  let done=false; const fin=r=>{ if(done) return; done=true; cb(r,p) };
+  try{ if(!REP.peer||REP.peer.destroyed||REP.peer.disconnected){ try{ REP.peer&&REP.peer.destroy() }catch(e){} REP.peer=new Peer(netOpts()); REP.peer.on("error",()=>{}) }
+    REP.peer.on("error",e=>{ if(e&&e.type==="peer-unavailable") fin("noboard") });
+    const go=()=>{ try{ const c=REP.peer.connect(boardId(p.g,p.c),{reliable:true,serialization:"json"});
+      c.on("open",()=>{ try{ c.send({t:"rep",r:myReport()}); fin("ok") }catch(e){ fin("fail") } setTimeout(()=>{ try{ c.close() }catch(e){} },1500) }); c.on("error",()=>fin("noboard")) }catch(e){ fin("fail") } };
+    if(REP.peer.open) go(); else REP.peer.once("open",go) }catch(e){ fin("fail") }
+  setTimeout(()=>fin("noboard"),9000) }
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(reportTick,1500) });
 
 /* 선생님 현황판: 받은 기록은 선생님 기기에 저장돼요 */
