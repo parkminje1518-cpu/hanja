@@ -265,8 +265,8 @@ const QRANGE = [
 /* ===== 지식의 힘(한자) · 지혜의 힘(사자성어·속담): 넓게 고르고 진짜로 외울수록 게임에서 세져요 =====
    실제 효과 = 범위 보너스 × (0.25 + 0.75 × 그 범위에서 익힌 비율) · 선생님 모드는 다 익힌 것으로 미리 보기 */
 const KNOW_DMG=[0,.08,.16,.24,.32], WIS_ARM=[0,.045,.09,.135,.18], WIS_CD=[0,.03,.06,.09,.12];
-function knowRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0 }
-function wisRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=spoolOf(w); return L.length&&typeof sayMastered==="function"?L.filter(sayMastered).length/L.length:0 }
+function knowRatio(w,all){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(all||typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }   /* 흐려진 것(복습을 오래 안 함)은 빼요 */
+function wisRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=spoolOf(w); return L.length&&typeof sayMastered==="function"?L.filter(x=>sayMastered(x)&&(typeof rvFaded!=="function"||!rvFaded(x.h))).length/L.length:0 }
 function knowPower(qw,sw){ const qi=Math.max(0,QRANGE.findIndex(q=>q.w===qw)), si=Math.max(0,SRANGE.findIndex(q=>q.w===sw)), kr=knowRatio(qw), wr=wisRatio(sw), kf=kr, wf=wr;   /* 2026-10-27: 외운 만큼만 (예전엔 하나도 안 외워도 25%) */
   return {dmg:KNOW_DMG[qi]*kf, armor:WIS_ARM[si]*wf, cd:WIS_CD[si]*wf, kr, wr, qi, si} }
 /* ===== 전투력: 레벨 · 전직 · 능력치 · 각인 · 보스 카드 · 지식/지혜의 힘을 숫자 하나로 =====
@@ -275,7 +275,7 @@ function heroPower(id,o){ o=o||{}; id=id||P.hero; const H=heroById(id), S=o.S||H
   (JOBS[id]?JOBS[id].skills.slice(0,S.tier||0):[]).forEach(k=>{ if(k.type==="passive"||k.ult) for(const key in k.p){ const v=k.p[key]; if(key==="hp") hp+=v; else if(key==="crit") M.crit+=v; else if(typeof M[key]==="number"&&key!=="crit") M[key]*=v } });
   M.dmg*=(1+STAT.atk*(S.atk||0))*(1+STAT.dmg*(S.dmg||0));
   const CB=o.noBonus?{}:Object.assign({},cardBonusSum()), EB=o.noBonus?{}:engraveBonus(id,o.eng), K=o.noBonus?{dmg:0,armor:0,cd:0}:o.kfull?{dmg:KNOW_DMG[Math.max(0,QRANGE.findIndex(q=>q.w===o.qw))],armor:WIS_ARM[Math.max(0,SRANGE.findIndex(q=>q.w===(o.sw!==undefined?o.sw:srangeOf().w)))],cd:WIS_CD[Math.max(0,SRANGE.findIndex(q=>q.w===(o.sw!==undefined?o.sw:srangeOf().w)))]}:knowPower(o.qw!==undefined?o.qw:(P.set.qrange||5), o.sw!==undefined?o.sw:srangeOf().w);
-  const add=(k,v)=>CB[k]=(CB[k]||0)+v; for(const k in EB) if(k!=="regen"&&k!=="bdmg"&&k!=="ied") add(k,EB[k]); add("dmg",K.dmg); add("armor",K.armor); add("cd",K.cd);
+  const add=(k,v)=>CB[k]=(CB[k]||0)+v; for(const k in EB) if(k!=="regen"&&k!=="bdmg"&&k!=="ied") add(k,EB[k]); add("dmg",K.dmg); add("armor",K.armor); add("cd",K.cd); if(!o.noBonus&&typeof titleFx==="function"){ add("dmg",titleFx("dmg")); add("cd",titleFx("cd")) }   /* 장착한 학습 칭호 */
   if(CB.hp) hp+=H.hp*CB.hp; if(CB.dmg) M.dmg*=1+CB.dmg; if(CB.cd) M.cd*=1-CB.cd; if(CB.armor) M.armor*=1-CB.armor; if(CB.crit) M.crit+=CB.crit;
   M.cd/=1+STAT.spd*Math.min(S.spd||0,STAT.spdMax);
   /* 메이플식: 공격% × (1 + 데미지% + 보공%) × 방무 (기준 방어율 40%) × 크리 */
@@ -324,7 +324,7 @@ const SRANGE = [
   {w:99, exp:1.35, coin:22, cm:1.25, revive:1, label:"전체 주차", merit:"경험치 ×1.35 · 게임 코인 ×1.25 · +22 · 부활 +1번"},
 ];
 /* 퀴즈 범위 보상(경험치·코인·카드·부활)도 그 범위에서 외운 비율만큼만 (2026-10-27: 범위만 넓게 고르고 모르면 보상 없음) */
-function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0 }
+function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }
 function rangeByMastery(R,r){ r=Math.max(0,Math.min(1,r||0)); return Object.assign({},R,{exp:1+((R.exp||1)-1)*r, coin:Math.round((R.coin||0)*r), cm:1+((R.cm||1)-1)*r, cards:r>=.6?(R.cards||0):0, revive:r>=.6?(R.revive||0):0, heal:R.heal!==undefined?(R.heal*(.4+.6*r)):R.heal, mr:r}) }
 /* 다음 맵 열기 (유하게): 보스 열쇠 + 익힌 한자·사자성어·속담 수 · 맵 하나마다 5개 */
 const MAP_LEARN=id=>Math.max(0,(Math.min(id,11)-1)*5);
@@ -437,7 +437,7 @@ function gameLobby(){
         <small class="pkEf">👑 지금 효과: ${q2rangeOf().w?`<em>보스 공격력 +${Math.round(K2.bd*100)}% · 방어율 무시 +${Math.round(K2.ied*100)}%</em> (외운 만큼 · 최대 보공 +${Math.round(KNOW2_BD[K2.i]*100)}% 방무 +${Math.round(KNOW2_IED[K2.i]*100)}%) · 군단장 맵에서 아주 중요해요`:"없어요 · 고르면 보스 공격력과 방어율 무시가 생겨요"}</small>
         <b>사자성어·속담 범위</b><div>${SRANGE.map(q=>`<button class="pkr ${srangeOf().w===q.w?"on":""}" data-ms="${q.w}">${q.label}</button>`).join("")}</div>
         <small class="pkEf">📜 지금 효과: ${srangeOf().w?`<em>받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%</em>`:"없어요 · 고르면 받는 피해와 스킬 대기시간이 줄어요"}</small>
-        ${(()=>{ const kr=knowRatio(P.set.qrange||5), wr=srangeOf().w?wisRatio(srangeOf().w):null, pc=x=>Math.round(x*100); return `<p class="pkK" style="color:#ffd36a">📖 이 범위에서 익힌 한자 <b>${pc(kr)}%</b>${wr!=null?` · 익힌 사자성어·속담 <b>${pc(wr)}%</b>`:""} → 힘과 범위 보상(경험치·코인)도 익힌 만큼만 붙어요. 60% 넘게 익히면 기술 카드 +1 · 부활 +1!</p>` })()}
+        ${(()=>{ const kr=knowRatio(P.set.qrange||5), ka=knowRatio(P.set.qrange||5,1), wr=srangeOf().w?wisRatio(srangeOf().w):null, pc=x=>Math.round(x*100), fdn=qpoolOf(P.set.qrange||5).filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&typeof rvFaded==="function"&&rvFaded(c.h)).length; return `<p class="pkK" style="color:#ffd36a">📖 이 범위에서 익힌 한자 <b>${pc(kr)}%</b>${fdn?` <span style="color:#ff9ab0">(흐려진 것 ${fdn}개 · 🔁 복습하면 +${pc(ka-kr)}%)</span>`:""}${wr!=null?` · 익힌 사자성어·속담 <b>${pc(wr)}%</b>`:""} → 힘과 범위 보상(경험치·코인)도 익힌 만큼만 붙어요. 60% 넘게 익히면 기술 카드 +1 · 부활 +1!</p>` })()}
         <p class="pkK">모두 합치면: 📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%${q2rangeOf().w?` · 👑 보공 +${Math.round(K2.bd*100)}% · 방무 +${Math.round(K2.ied*100)}%`:""} <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`) })()}
       ${(()=>{ const S=HS(), used=STAT_KEYS.reduce((a,k)=>a+(S[k]||0),0), NMS={hp:"체력",atk:"공격",dmg:"데미지",spd:"속도",bd:"보공",ied:"방무"}, line=STAT_KEYS.filter(k=>S[k]).map(k=>`${NMS[k]} ${S[k]}`).join(" · ")||"아직 찍은 포인트가 없어요";
         return sec("stat","📊",`능력치 · ${esc(H.name)}`,`${line}${S.pts?` · <b style="color:#ffd36a">남은 ${S.pts}</b>`:""}`,`<p class="pkK">${bossDefOf(M.id,mapDif(M.id))?`<b>${esc(M.name)} ${dN(mapDif(M.id),M.id)}</b>은 보스 방어율이 있어서 보공·방무가 중요해요. 이 보스에 맞춰 다시 찍을 수 있어요.`:`1~10단계는 어느 맵이든 추천이 같아요. 군단장 맵에서 바꿨다면 여기서 공통 추천으로 되돌려요.`} (찍은 포인트 ${used}개 · 남은 ${S.pts}개)</p>
@@ -691,7 +691,7 @@ function startGame(opts){ opts=opts||{};
   const GROW=[1.25,1.8,2.5,3.2], PCAP=[[1.6,1.15],[4,1.7],[4.5,1.85]];
   const padapt=()=>{ const now=(g&&g.livePow)||heroPower(HERO.id), Gm=(g?(g.stageN>=1?GROW[Math.min(3,g.stageN-1)]:1+Math.min(.25,(g.t||0)/240)):1), r=Math.sqrt(now/Math.max(1,recPower(MAP.id,MAP.dif)))/Gm;   /* 큰 수 전투력은 제곱이라 제곱근으로 비교 */
     if(r<=1) return {hp:1,dmg:1,r}; const cap=PCAP[MAP.dif]; return {hp:Math.min(cap[0],Math.pow(r,MAP.dif?1:.8)), dmg:Math.min(cap[1],Math.pow(r,MAP.dif?.45:.3)), r} };
-  let PADAPT={hp:1,dmg:1,r:1}; const g0eng={regen:0}; { const CB=cardBonusSum(), EB=engraveBonus(HERO.id); CB.dmg=(CB.dmg||0)+KP.dmg; CB.armor=(CB.armor||0)+KP.armor; CB.cd=(CB.cd||0)+KP.cd; for(const k in EB) if(k!=="regen") CB[k]=(CB[k]||0)+EB[k]; g0eng.regen=EB.regen||0; if(CB.hp) bonusHp+=HERO.hp*CB.hp; if(CB.spd) M.spd*=1+CB.spd; if(CB.armor) M.armor*=1-CB.armor; if(CB.xp) M.xp*=1+CB.xp; if(CB.dmg) M.dmg*=1+CB.dmg; if(CB.cd) M.cd*=1-CB.cd; if(CB.mag) M.mag*=1+CB.mag; if(CB.crit) M.crit+=CB.crit }   // 보스 카드 수집 보너스
+  let PADAPT={hp:1,dmg:1,r:1}; const g0eng={regen:0}; { const CB=cardBonusSum(), EB=engraveBonus(HERO.id); CB.dmg=(CB.dmg||0)+KP.dmg+(typeof titleFx==="function"?titleFx("dmg"):0); CB.armor=(CB.armor||0)+KP.armor; CB.cd=(CB.cd||0)+KP.cd+(typeof titleFx==="function"?titleFx("cd"):0); for(const k in EB) if(k!=="regen") CB[k]=(CB[k]||0)+EB[k]; g0eng.regen=EB.regen||0; if(CB.hp) bonusHp+=HERO.hp*CB.hp; if(CB.spd) M.spd*=1+CB.spd; if(CB.armor) M.armor*=1-CB.armor; if(CB.xp) M.xp*=1+CB.xp; if(CB.dmg) M.dmg*=1+CB.dmg; if(CB.cd) M.cd*=1-CB.cd; if(CB.mag) M.mag*=1+CB.mag; if(CB.crit) M.crit+=CB.crit }   // 보스 카드 수집 보너스
   const spdMul = 1+STAT.spd*Math.min(HSt.spd,STAT.spdMax); M.cd/=spdMul; M.spd*=spdMul;
   const F = {}; SKL.forEach(k=>{ if(k.flag) F[k.flag]=true; if(k.flag2) F[k.flag2]=true });
   const ACT = SKL.filter(k=>k.type!=="passive"&&k.type!=="aura").map(k=>Object.assign({},k,{t:k.cd*.5}));
@@ -736,10 +736,12 @@ function startGame(opts){ opts=opts||{};
       const c=pickWeighted(cand,1)[0]; if(c){ used.add(c.h); out.push(c); ASKED.add(c.h) } } return out };   /* 고침 (2026-10-26): 뽑는 순간 "낸 문제"로 기록 → 모든 문제를 한 번씩 다 낼 때까지 겹치지 않아요 */
   /* 오답 복수전: 전에 틀린 한자·사자성어·속담이 게임 문제로 먼저 나와요 (한 판에 하나씩 한 번) · 맞히면 12초 동안 공격력 +15% */
   const REVP=shuffle(wrongPool()), REVQ=new Set(), REVD=new Set();
+  const DUEP=(typeof rvDueList==="function"?shuffle(rvDueList()):[]), DUEQ=new Set(), DUED=new Set();   /* 🔁 복습할 때가 된 것도 게임 문제로 먼저 나와요 */
+  const duePick=()=>{ const c=DUEP.find(x=>!DUEQ.has(x.h)&&!ASKED.has(x.h)&&!REVQ.has(x.h)); if(!c) return null; DUEQ.add(c.h); ASKED.add(c.h); setTimeout(()=>{ try{ showBanner(`🔁 복습할 때가 된 ${c.cat?"말":"한자"}이에요 · 맞히면 체력 회복!`) }catch(e){} },60); return c };
   const revPick=()=>{ const c=REVP.find(x=>!REVQ.has(x.h)&&!ASKED.has(x.h)); if(!c) return null; REVQ.add(c.h); ASKED.add(c.h); setTimeout(()=>{ try{ showBanner(`⚔ 복수전! 전에 틀린 ${c.cat?"말":"한자"}이에요 · 맞히면 공격력 +15%`) }catch(e){} },60); return c };
-  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(c){} else if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
+  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
   if(opts.mp) M.xp *= .7;
-  g.wBuff=window.__wBuff?1:0; window.__wBuff=0; if(g.wBuff) M.xp*=1.1;   /* 게임 전 오답 복습 다 맞힘 */
+  g.wBuff=window.__wBuff?1:0; window.__wBuff=0; if(g.wBuff) M.xp*=1.1; if(typeof titleFx==="function") M.xp*=1+titleFx("xpG"); g._tEq=typeof titleEq==="function"?titleEq():null;   /* 장착 칭호는 시작할 때 한 번만 계산 (렉 없게) */   /* 게임 전 오답 복습 다 맞힘 */
   M.xp *= PK.xp; g.revives = PK.revive + QR.revive + (SR.revive||0); g.qOk=0; g.qN=0;
   shuffle(Object.keys(SK).filter(k=>k!=="main"&&SK[k].t==="w"&&skOK(k,MAP.id))).slice(0,PK.start).forEach(k=>g.sk[k]=1);
   const st = ()=>({dmg:M.dmg*(1+.15*lv("str"))*(1-CONF_V*(g.conf||0))*(g.revT>0?1.15:1)*(g.wBuff?1.08:1), cd:Math.max(.4,M.cd*(1-.09*lv("qi"))*(1+CONF_V*(g.conf||0))), spd:165*HERO.spd*M.spd*(g.bbuff?g.bbuff.spd:1)*(1+.1*lv("spd")), maxHp:HERO.hp+bonusHp+20*lv("body"), mag:110*M.mag*(1+.4*lv("pull"))});
@@ -1212,7 +1214,7 @@ function startGame(opts){ opts=opts||{};
   function onAoe(m){ const q=g.p; if(q.dead) return;
     if(m.s==="c"){ if((q.x-m.x)**2+(q.y-m.y)**2<(m.r+q.r)**2) hitPlayer(m.d) }
     else { const px=q.x-m.x, py=q.y-m.y, along=px*Math.cos(m.a)+py*Math.sin(m.a), across=Math.abs(-px*Math.sin(m.a)+py*Math.cos(m.a)); if(along>0&&along<m.len&&across<26+q.r) hitPlayer(m.d) } }
-  function meState(){ const q=g.p; return {x:Math.round(q.x),y:Math.round(q.y),f:q.face||1,mv:+(q.mv||0).toFixed(2),hp:Math.max(0,Math.round(q.hp)),mx:Math.round(st().maxHp),d:q.dead?1:0,h:HERO.id,tr:HSt.tier,n:myName,l:g.lvl,pw:g.livePow||0} }
+  function meState(){ const q=g.p; return {x:Math.round(q.x),y:Math.round(q.y),f:q.face||1,mv:+(q.mv||0).toFixed(2),hp:Math.max(0,Math.round(q.hp)),mx:Math.round(st().maxHp),d:q.dead?1:0,h:HERO.id,tr:HSt.tier,n:myName,l:g.lvl,pw:g.livePow||0,tt:g._tEq?g._tEq.n:"",tc:g._tEq?g._tEq.col:""} }
   function setRP(id,s){ let r=RP[id]; if(!r){ r=RP[id]={id,x:s.x,y:s.y,r:16,img:null,rx:s.x,ry:s.y} } r.st=s; r.x=s.x; r.y=s.y; r.dead=!!s.d; r.gone=false;
     if(!r.img||r.imgKey!==s.h+s.tr){ r.img=new Image(); r.img.src=(SPRITE_T[s.h]&&(SPRITE_T[s.h][s.tr]||SPRITE_T[s.h][Math.min(4,s.tr)]))||SPRITE_URLS[s.h]||""; r.imgKey=s.h+s.tr } }
   function mkEnt(id,di,fl,x,y){ let e;
@@ -1337,7 +1339,7 @@ function startGame(opts){ opts=opts||{};
         ctx.save(); ctx.rotate(an); ctx.fillStyle=dead?"#ff5a6a":mc; ctx.beginPath(); ctx.moveTo(30,0); ctx.lineTo(19,-9); ctx.lineTo(19,9); ctx.closePath(); ctx.fill(); ctx.restore();
         ctx.font='15px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.fillStyle="#fff"; ctx.fillText(dead?"🆘":String(r.st.n||"친구").slice(0,1),0,1);
         ctx.font='13px "Do Hyeon",sans-serif'; ctx.lineWidth=4; ctx.strokeStyle="#140c20"; const nm=String(r.st.n||"친구").slice(0,6)+(dead?" 도와줘!":""); ctx.strokeText(nm,0,32); ctx.fillStyle=dead?"#ffd36a":mc; ctx.fillText(nm,0,32); ctx.restore(); continue }
-      ctx.font='16px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=5; ctx.strokeStyle="#140c20"; const tp=TOP&&TOP.id===id, t=(r.st.d?"🆘 ":"")+(tp?"최강 ":"")+r.st.n+" · Lv"+r.st.l+(r.st.pw?" · ⚔"+fmtPow(r.st.pw):""); ctx.strokeText(t,r.rx,r.ry-57); ctx.fillStyle=r.st.d?"#ffd36a":mc; ctx.fillText(t,r.rx,r.ry-57);   /* 이름표: 친구 색으로 크게 */ if(r.st.tr>=5&&!r.st.d) drawAwkTag(r.rx,r.ry-(tp?100:80)); if(tp&&!r.st.d) drawTopCrown(r.rx,r.ry) }
+      ctx.font='16px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="alphabetic"; ctx.lineWidth=5; ctx.strokeStyle="#140c20"; const tp=TOP&&TOP.id===id; if(r.st.tt&&!r.st.d) drawTitleTag(r.rx,r.ry+40,r.st.tt,r.st.tc); const t=(r.st.d?"🆘 ":"")+(tp?"최강 ":"")+r.st.n+" · Lv"+r.st.l+(r.st.pw?" · ⚔"+fmtPow(r.st.pw):""); ctx.strokeText(t,r.rx,r.ry-57); ctx.fillStyle=r.st.d?"#ffd36a":mc; ctx.fillText(t,r.rx,r.ry-57);   /* 이름표: 친구 색으로 크게 */ if(r.st.tr>=5&&!r.st.d) drawAwkTag(r.rx,r.ry-(tp?100:80)); if(tp&&!r.st.d) drawTopCrown(r.rx,r.ry) }
     if(g.p.dead){ ctx.font='16px "Black Han Sans","Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.lineWidth=5; ctx.strokeStyle="#140c20"; const t=`도와줘! ${Math.round((g.rescue||0)/RESCUE*100)}%`; ctx.strokeText(t,g.p.x,g.p.y-58); ctx.fillStyle="#ffd36a"; ctx.fillText(t,g.p.x,g.p.y-58) } }
 
   /* ===== 전직 스킬 엔진 ===== */
@@ -1717,6 +1719,7 @@ function startGame(opts){ opts=opts||{};
       else { c.fillStyle=r.c; c.beginPath(); for(let k=0;k<8;k++){ const b=k*Math.PI/4+Math.PI/8; c.lineTo(p[0]+Math.cos(b)*s,p[1]+Math.sin(b)*s) } c.closePath(); c.fill();
       c.strokeStyle="rgba(255,255,255,.75)"; c.lineWidth=1.2; c.stroke() } if(r.lv>=3||res){ c.save(); c.globalCompositeOperation=GLOW; c.globalAlpha=.5; c.fillStyle=r.c; c.beginPath(); c.arc(p[0],p[1],s*1.7,0,7); c.fill(); c.restore() }
       c.lineWidth=2.5; c.strokeStyle="rgba(20,10,30,.85)"; c.strokeText(r.h,p[0],p[1]+.5); c.fillStyle="#fff"; c.fillText(r.h,p[0],p[1]+.5) }); c.restore() }
+  function drawTitleTag(x,y,tx,col){ const c=ctx; c.save(); c.font='12px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; const w=c.measureText(tx).width+14; c.fillStyle=col||"#ffd36a"; c.globalAlpha=.92; c.beginPath(); c.roundRect?c.roundRect(x-w/2,y-8,w,16,8):c.rect(x-w/2,y-8,w,16); c.fill(); c.globalAlpha=1; c.fillStyle="#1a1020"; c.fillText(tx,x,y+1); c.restore() }   /* 장착한 칭호: 발밑에 칭호 색으로 */
   function drawAwkTag(x,y){ const c=ctx; c.save(); c.font='bold 13px "Do Hyeon",sans-serif'; c.textAlign="center"; c.textBaseline="middle"; const tx="✦ 5차 각성 ✦", w=c.measureText(tx).width+16, pu=.5+.5*Math.sin(g.t*4);
     const lg=c.createLinearGradient(x-w/2,0,x+w/2,0); lg.addColorStop(0,"#ff5ad8"); lg.addColorStop(.5,"#ffb347"); lg.addColorStop(1,"#ff5ad8"); c.fillStyle=lg; c.shadowColor="#ff5ad8"; c.shadowBlur=8+8*pu;
     c.beginPath(); c.roundRect?c.roundRect(x-w/2,y-9,w,18,9):c.rect(x-w/2,y-9,w,18); c.fill(); c.shadowBlur=0; c.lineWidth=1.5; c.strokeStyle="#fff2c0"; c.stroke(); c.lineWidth=3; c.strokeStyle="#3a0a2a"; c.strokeText(tx,x,y+1); c.fillStyle="#ffffff"; c.fillText(tx,x,y+1); c.restore() }
@@ -2065,7 +2068,7 @@ function startGame(opts){ opts=opts||{};
       ${g.conf?`<div class="bad"><i>😵 혼란 ${g.conf}</i>공격력 -${Math.round(CONF_V*100*g.conf)}% · 받는 피해 +${Math.round(CONF_V*100*g.conf)}% (문제를 맞히면 풀려요)</div>`:""}
       <small>화면 아무 곳이나 누르면 닫혀요</small>`;
     root.appendChild(d); setTimeout(()=>{ if(d.isConnected) d.remove() },6000) });
-  window.__qHook=(c,ok)=>{ if(g.over) return; if(BX){ if(ok) BX.quizOk(); else BX.quizNo() } if(c&&REVQ.has(c.h)&&!REVD.has(c.h)){ REVD.add(c.h); if(ok){ g.revT=12; g.revN=(g.revN||0)+1; g.fx.push({k:"label",x:g.p.x,y:g.p.y-120,text:"⚔ 복수 성공! 공격력 +15%",life:2,max:2}); try{ showBanner("⚔ 복수 성공! 12초 동안 공격력 +15%") }catch(e){} } else { try{ showBanner("아쉬워요! 오답 노트에서 한 번 더 복습해요") }catch(e){} } } if(ok){ if(g.conf>0){ g.conf--; g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"✨ 집중 회복!",life:1.2,max:1.2}) } }
+  window.__qHook=(c,ok)=>{ if(g.over) return; if(BX){ if(ok) BX.quizOk(); else BX.quizNo() } if(c&&DUEQ.has(c.h)&&!DUED.has(c.h)){ DUED.add(c.h); if(ok&&!g.p.dead){ const mx=st().maxHp; g.p.hp=Math.min(mx,g.p.hp+mx*.15); g.fx.push({k:"label",x:g.p.x,y:g.p.y-100,text:"🔁 기억 지킴! 체력 +15%",life:2,max:2}) } } if(c&&REVQ.has(c.h)&&!REVD.has(c.h)){ REVD.add(c.h); if(ok){ g.revT=12+(typeof titleFx==="function"?titleFx("revT"):0); g.revN=(g.revN||0)+1; g.fx.push({k:"label",x:g.p.x,y:g.p.y-120,text:"⚔ 복수 성공! 공격력 +15%",life:2,max:2}); try{ showBanner("⚔ 복수 성공! 12초 동안 공격력 +15%") }catch(e){} } else { try{ showBanner("아쉬워요! 오답 노트에서 한 번 더 복습해요") }catch(e){} } } if(ok){ if(g.conf>0){ g.conf--; g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:"✨ 집중 회복!",life:1.2,max:1.2}) } }
     else { g.conf=Math.min(CONF_MAX,g.conf+1); g.confT=CONF_T; g.fx.push({k:"label",x:g.p.x,y:g.p.y-80,text:`😵 혼란 ${g.conf}`,life:1.4,max:1.4}) } confHud() };
   /* ===== 보스 약점 한자: 보스 체력 50%·25%에서 약점 한자가 떠요. 게임은 멈추지 않고 6초 안에 뜻을 맞히면 보스 기절 + 큰 피해 ===== */
   const WEAK_H={1:"木風花",2:"風石木",3:"水木",4:"電炎",5:"水冷氷",6:"石固地",7:"破拳打",8:"炎",9:"天地",10:"天地永"};
@@ -2079,7 +2082,7 @@ function startGame(opts){ opts=opts||{};
       const p=e.hp/e.max, s0=e.wq||0, TH=[.5,.25]; let k=s0; while(k<TH.length&&p<TH[k]) k++;
       if(k>s0){ e.wq=k; if(NM==='host') e.bt=Math.max(e.bt||0,6.5); openWeak(e); return } } }
   const Q2P=q2poolOf(Q2.w);
-  function pick11(){ const r=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(c){} else if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
+  function pick11(){ const r=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
   function openWeak(e,X){ const th=WEAK_H[MAP.id]||"", useS=SPOOL.length&&Math.random()<.4;
     let c=X&&X.c||(BX?pick11():null)||(REVP.length&&Math.random()<.5?revPick():null); if(!c&&useS){ c=spreadPick(SPOOL,1,"s")[0] } if(!c){ const cand=QPOOL.filter(x=>th.includes(x.h)&&!ASKED.has(x.h)); c=cand.length?cand[Math.random()*cand.length|0]:(spreadPick(QPOOL,1,"q")[0]||QPOOL[Math.random()*QPOOL.length|0]) } if(!c) return; ASKED.add(c.h);
     let big, ask, opts;
@@ -2290,7 +2293,7 @@ function startGame(opts){ opts=opts||{};
     const rec = {t:g.t,k:g.kills,win};
     const stars = win?4:Math.min(3,g.bossKills);
     P.stars=P.stars||{}; const prevStars=P.stars[MAP.id]||0; if(stars>prevStars) P.stars[MAP.id]=stars;
-    P.cleared=P.cleared||{}; const firstClear = win && !P.cleared[MAP.id]; if(win) P.cleared[MAP.id]=1;
+    P.cleared=P.cleared||{}; const firstClear = win && !P.cleared[MAP.id]; if(win) P.cleared[MAP.id]=1; if(win&&NM) P.coopWin=(P.coopWin||0)+1;
     P.clearD=P.clearD||{}; const prevD=P.clearD[MAP.id]||0, newDif=win&&MAP.dif+1>prevD; if(win&&MAP.dif+1>prevD) P.clearD[MAP.id]=MAP.dif+1;
     P.medal=P.medal||{}; const md=(P.medal[MAP.id]||[0,0,0]).slice(), got=[];
     if(win&&MAP.dif>=1&&!md[0]){ md[0]=1; got.push(0) } if(g.medalSig&&!md[1]){ md[1]=1; got.push(1) } if(g.qOk>=8&&g.qN&&g.qOk/g.qN>=.8&&!md[2]){ md[2]=1; got.push(2) }
@@ -2880,6 +2883,7 @@ function startGame(opts){ opts=opts||{};
     { const bar=(x,y,W,Hh,k,txt,edge)=>{ k=Math.max(0,Math.min(1,k)); ctx.fillStyle="rgba(10,6,20,.82)"; ctx.fillRect(x-W/2-2,y-2,W+4,Hh+4); const HC=hpCol(k); ctx.fillStyle=HC[1]; ctx.fillRect(x-W/2,y,W*k,Hh); ctx.fillStyle=HC[0]; ctx.fillRect(x-W/2,y,W*k,Hh*.55); ctx.lineWidth=1.5; ctx.strokeStyle=edge; ctx.strokeRect(x-W/2-1,y-1,W+2,Hh+2); if(txt){ ctx.font='bold 11px "Do Hyeon",sans-serif'; ctx.textAlign="center"; ctx.textBaseline="middle"; ctx.lineWidth=3; ctx.strokeStyle="#0a0612"; ctx.strokeText(txt,x,y+Hh/2+.5); ctx.fillStyle="#fff"; ctx.fillText(txt,x,y+Hh/2+.5) } };
       if(!BX&&!g.p.dead){ const mx=st().maxHp, k=g.p.hp/mx, low=k<.3; bar(g.p.x,g.p.y-60,84,12,k,Math.ceil(Math.max(0,g.p.hp))+" / "+Math.round(mx),low?`rgba(255,120,120,${.6+.4*Math.sin(g.t*10)})`:"rgba(255,255,255,.9)") }
       if(NM){ const C=camC(); for(const id in RP){ const r=RP[id]; if(r.gone||!r.st||r.st.d||!r.st.mx) continue; if(Math.abs(r.rx-C.x)>W/2-20||Math.abs(r.ry-C.y)>H/2-30) continue; bar(r.rx,r.ry-52,72,10,r.st.hp/r.st.mx,"",mateCol(id)) } } }
+    { const T=g._tEq; if(T&&!g.p.dead) drawTitleTag(g.p.x,g.p.y+40,T.n,T.col) }   /* 내 칭호 (발밑) */
     if(NM) drawRemoteNames();
     if(TOP&&TOP.id===NET.myId&&!g.p.dead) drawTopCrown(g.p.x,g.p.y);
     if(!g.p.dead&&g.livePow){ const tx="⚔ "+fmtPow(g.livePow), y=g.p.y-(BX?100:(TOP&&NM&&TOP.id===NET.myId?92:70)), up=g.t-(g.powUpT||-9)<1;   /* 내 머리 위 전투력 (보스맵: 체력바 위에 옅게) */
