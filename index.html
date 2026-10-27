@@ -374,6 +374,10 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .bdWrap{overflow-x:auto;border:2px solid var(--line);border-radius:14px}
 .bdT{width:100%;border-collapse:collapse;font-family:var(--f-ui);font-size:16px;min-width:980px}
 .bdT.slim{min-width:0}
+.tChip{border-color:#ffd36a!important;color:#ffd36a!important;font-weight:400}
+.pkTitles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}.pkTt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;border:2px solid transparent;border-radius:10px;background:rgba(255,255,255,.06);padding:6px 8px;color:inherit;font-family:var(--f-ui);cursor:pointer;width:auto;min-height:0;margin:0;box-shadow:none}.pkTt .tPill{margin:0}.pkTt small{font-size:12px;opacity:.85}.pkTt.on{border-color:#ffd36a}
+.tdFade{display:block;width:100%;text-align:left;margin:0 0 8px;border:2px solid #e0567a;background:rgba(224,86,122,.15);color:#ffd0dc;border-radius:12px;padding:8px 10px;font-family:var(--f-ui);font-size:14.5px;cursor:pointer;animation:rvPulse 1.6s ease-in-out infinite;min-height:0;box-shadow:none}.tdFade b{color:#fff;font-weight:400}
+.rngWarn{margin:8px 0;border:2px solid #e0567a;background:rgba(224,86,122,.1);border-radius:12px;padding:8px 10px;font-family:var(--f-ui);font-size:14.5px;line-height:1.55}.rngWarn b{color:#c8372d;font-weight:400}
 .todayCard{border:3px solid #f6c544;border-radius:18px;background:linear-gradient(160deg,#2c2148,#1c1632);padding:12px 14px;margin:10px 0;color:#f3effd;font-family:var(--f-ui)}
 .tdHead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:8px}.tdHead b{font-size:21px;font-weight:400;color:#ffd36a}.tdHead small{font-size:14px;opacity:.8}
 .tdSteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
@@ -386,6 +390,10 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .tBox{max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:10px;text-align:left}.tGrp h4{margin:0 0 5px;font-family:var(--f-ui);font-weight:400;font-size:16px}
 .tRow{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}.tItem{width:auto;min-height:0;margin:0;box-shadow:none;border:2px solid transparent;border-radius:12px;background:rgba(0,0,0,.18);padding:7px 8px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:4px;font-family:var(--f-ui);color:inherit}
 .tItem .tPill{margin:0;align-self:flex-start}.tItem small{font-size:12px;opacity:.85}.tItem small b{color:#2f8a5a;font-weight:400}.tItem.on{border-color:#ffd36a;box-shadow:0 0 10px rgba(255,211,106,.6)}.tItem em{font-style:normal;font-size:12px;color:#c08a10}.tItem.tLk{opacity:.55;cursor:default}
+.tNow .tPill{flex:none;align-self:center;line-height:1.4!important;height:auto;min-height:0;white-space:nowrap}
+.tPill.grad{background:linear-gradient(90deg,var(--tc),var(--tc2));color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7);box-shadow:0 0 10px var(--tc),0 0 4px var(--tc2);border:1px solid rgba(255,243,192,.8)}
+.tPill.top{border:1.5px solid #fff3c0;animation:tShine 2.4s ease-in-out infinite}@keyframes tShine{50%{box-shadow:0 0 16px var(--tc),0 0 6px #fff}}
+.tBtns{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}.tB{border:1px solid #c08a10;background:rgba(192,138,16,.12);color:inherit;border-radius:8px;padding:2px 7px;font-family:var(--f-ui);font-size:12px;cursor:pointer;width:auto;min-height:0;margin:0;box-shadow:none}.tB.lk{border-color:#8a7ae0;background:rgba(138,122,224,.12)}.tB.on{background:#ffd36a;color:#2a1e08;border-color:#ffd36a}
 .tNow{display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.2);border-radius:12px;padding:8px 10px;margin:4px 0 8px;text-align:left;font-family:var(--f-ui)}.tNow>div{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.tNowL{background:#5a48c8;color:#fff;border-radius:6px;padding:0 7px;font-size:13px}.tNow small{opacity:.75;font-size:13px}.tNow span{font-size:13px}
 .tSec{border-radius:14px;padding:8px;border:2px solid}.tSec.eqs{border-color:#f0a030;background:rgba(240,160,48,.07)}.tSec.pss{border-color:#3fcf8e;background:rgba(63,207,142,.07)}.tSec.dcs{border-color:#8a7ae0;background:rgba(138,122,224,.07)}
 .tSecH{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:6px}.tSecH b{font-family:var(--f-ui);font-weight:400;font-size:18px}.tSecH small{font-size:13px;opacity:.85}.tSecH small b{font-size:13px}
@@ -1235,18 +1243,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10271541"></script>
-<script src="jobs.js?v=10271541"></script>
-<script src="maps.js?v=10271541"></script>
-<script src="art.js?v=10271541"></script>
-<script src="art2.js?v=10271541"></script>
-<script src="monsters.js?v=10271541"></script>
-<script src="jobfx.js?v=10271541"></script>
-<script src="words.js?v=10271541"></script>
-<script src="sayings.js?v=10271541"></script>
-<script src="sfx.js?v=10271541"></script>
+<script src="sprites.js?v=10271807"></script>
+<script src="jobs.js?v=10271807"></script>
+<script src="maps.js?v=10271807"></script>
+<script src="art.js?v=10271807"></script>
+<script src="art2.js?v=10271807"></script>
+<script src="monsters.js?v=10271807"></script>
+<script src="jobfx.js?v=10271807"></script>
+<script src="words.js?v=10271807"></script>
+<script src="sayings.js?v=10271807"></script>
+<script src="sfx.js?v=10271807"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10271541"></script>
+<script src="mp.js?v=10271807"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1433,7 +1441,7 @@ function reviewQuiz(){ const L=rvDueList().slice(0,10); if(!L.length){ toast("�
 function tStat(){ const m=P.mastery||{}, hz=UNIQUE.filter(c=>(m[c.h]||0)>=MASTER_N).length, SA=typeof SAJA!=="undefined"?SAJA.concat(SOK):[], sy=typeof sayMastered==="function"?SA.filter(sayMastered).length:0;
   const cl=id=>!!(P.cleared||{})[id], c10=[1,2,3,4,5,6,7,8,9,10].filter(cl).length, hell=Object.values(P.clearD||{}).filter(v=>v>=3).length, hs=Object.values(P.hl||{});
   return {hz,hzAll:UNIQUE.length,sy,syAll:SA.length,rv:Math.max(P.rvBest||0,(typeof rvStreak==="function"?rvStreak():0)),ovc:(P.ovc||[]).length,wp:P.wp||0,done:(P.done||[]).length,q:(P.rq||"").length,acc:(P.rq||"").length?(P.rq.split("1").length-1)/P.rq.length:0,
-    cl1:Object.keys(P.cleared||{}).length,c10,c11:cl(11),hell,cards:typeof cardCount==="function"?cardCount():0,t5:hs.some(x=>(x.tier||0)>=5),lv:Math.max(1,...hs.map(x=>x.lv||1)),heroes:(P.heroes||[]).length,games:P.stats.games||0,mm:P.mmile||0,coop:P.coopWin||0} }
+    cl1:Object.keys(P.cleared||{}).length,clr:P.cleared||{},c10,c11:cl(11),hell,cards:typeof cardCount==="function"?cardCount():0,t5:hs.some(x=>(x.tier||0)>=5),lv:Math.max(1,...hs.map(x=>x.lv||1)),heroes:(P.heroes||[]).length,games:P.stats.games||0,mm:P.mmile||0,coop:P.coopWin||0} }
 const TITLE_DEF=[
   /* [묶음, id, 이름, 조건 글, 조건(S), 효과 {키:값}, 효과 글] */
   ["📖 한자","hz1","한자 새싹","익힌 한자 10개",S=>S.hz>=10,{dmg:.02},"게임 공격력 +2%"],["📖 한자","hz2","한자 탐험가","익힌 한자 30개",S=>S.hz>=30,{dmg:.04},"게임 공격력 +4%"],["📖 한자","hz3","한자 박사","익힌 한자 80개",S=>S.hz>=80,{dmg:.06},"게임 공격력 +6%"],["📖 한자","hz4","한자의 왕","한자를 모두 익히기",S=>S.hz>=S.hzAll,{dmg:.08},"게임 공격력 +8%"],
@@ -1448,15 +1456,22 @@ const TITLE_DEF=[
   ["🃏 카드","cd1","카드 수집가","보스 카드 40장",S=>S.cards>=40],["🃏 카드","cd2","카드 마스터","보스 카드 120장",S=>S.cards>=120],
   ["⚔ 용사","hr1","5차 각성자","5차 전직",S=>S.t5],["⚔ 용사","hr2","만렙 용사","Lv 150",S=>S.lv>=150],["⚔ 용사","hr3","만능 탐험가","용사 9명 모두",S=>S.heroes>=9],
   ["🤝 같이하기","co1","우정의 용사","같이하기 클리어 5번",S=>S.coop>=5],["💪 끈기","gm1","백전노장","게임 100판",S=>S.games>=100],
+  ["👑 보스 정복","bs1","꽃밭의 슬라임 사냥꾼","햇살 꽃밭 클리어 (왕 풀잎 슬라임)",S=>S.clr[1],null,"",["🌼","#7ee08a","#ffb3d1"]],["👑 보스 정복","bs2","버섯 숲의 길잡이","바람 숲길 클리어 (대왕 버섯)",S=>S.clr[2],null,"",["🍄","#5fc46a","#c98a4a"]],["👑 보스 정복","bs3","도깨비 퇴치사","노을 유적 클리어 (유적의 수호 도깨비)",S=>S.clr[3],null,"",["🏮","#ffb347","#ff6a3a"]],
+  ["👑 보스 정복","bs4","박쥐 왕을 이긴 자","어둠 동굴 클리어 (동굴의 박쥐 왕)",S=>S.clr[4],null,"",["🦇","#9a6aff","#3a2a7a"]],["👑 보스 정복","bs5","마왕성의 정복자","어둠의 마왕성 클리어 (어둠 마왕)",S=>S.clr[5],null,"",["🔥","#ff4a3a","#5a0a1a"]],["👑 보스 정복","bs6","폭풍을 가른 자","용오름 첨탑 클리어 (폭풍군주 천풍)",S=>S.clr[6],null,"",["🌪","#5ae0ff","#2a7ab8"]],
+  ["👑 보스 정복","bs7","하늘성의 수문장","하늘 성 클리어 (하늘성 수문장)",S=>S.clr[7],null,"",["🏰","#8ad8ff","#ffd36a"]],["👑 보스 정복","bs8","빙궁의 얼음 왕관","천공 빙궁 클리어 (승천한 아스라)",S=>S.clr[8],null,"",["❄","#bff0ff","#5a9aff"]],["👑 보스 정복","bs9","뇌신을 꺾은 자","천상 신전 클리어 (뇌신 장군)",S=>S.clr[9],null,"",["⚡","#ffe94a","#9a5aff"]],
+  ["👑 보스 정복","bs10","별의 왕좌 정복자","별의 왕좌 클리어 (성좌의 종언신 아스트라카)",S=>S.clr[10],null,"",["🌌","#ff7ad8","#4a3aff"]],["👑 보스 정복","bs11","달빛 결투의 승자","검귀의 달빛 결투장 클리어 (암흑의 검귀)",S=>S.clr[11],null,"",["🌙","#e0d0ff","#5a1a8a"]],
   ["🎖 훈장","md1","새내기 탐험가","훈장 5개",S=>S.mm>=5],["🎖 훈장","md2","용감한 탐험가","훈장 10개",S=>S.mm>=10],["🎖 훈장","md3","노련한 탐험가","훈장 15개",S=>S.mm>=15],["🎖 훈장","md4","전설의 탐험가","훈장 20개",S=>S.mm>=20],["🎖 훈장","md5","지혜의 영웅","훈장 25개",S=>S.mm>=25],["🎖 훈장","md6","탐험대장","훈장 30개",S=>S.mm>=30]];
-const TITLES=TITLE_DEF.map((d,i)=>({g:d[0],id:d[1],n:d[2],need:d[3],ok:d[4],fx:d[5]||null,fxT:d[6]||"",col:`hsl(${Math.round(i*137.508)%360},78%,62%)`}));
+const TITLES=TITLE_DEF.map((d,i)=>({g:d[0],id:d[1],n:d[2],need:d[3],ok:d[4],fx:d[5]||null,fxT:d[6]||"",ic:d[7]?d[7][0]:"",col:d[7]?d[7][1]:`hsl(${Math.round(i*137.508)%360},78%,62%)`,col2:d[7]?d[7][2]:""}));
+TITLES.forEach(t=>{ const L=TITLES.filter(x=>x.g===t.g); t.top=L.length>1&&L[L.length-1]===t });   /* 줄의 마지막(최고) 칭호는 반짝이 테두리 */
 function titleOwned(t){ try{ return (typeof isAdmin==="function"&&isAdmin())||!!t.ok(tStat()) }catch(e){ return false } }
 function titleEq(){ if(!P||!P.titleEq) return null; const t=TITLES.find(x=>x.id===P.titleEq); return t&&titleOwned(t)?t:null }
+function titleLook(){ if(!P||!P.titleLook) return null; const t=TITLES.find(x=>x.id===P.titleLook); return t&&titleOwned(t)?t:null }
+function titleShown(){ return titleLook()||titleEq() }   /* 보이는 모양: 따로 고른 모양 칭호가 있으면 그것, 없으면 효과 칭호 */
 const TITLE_PASSIVE={rvCoin:1,wCoin:1,xpS:1,xpG:1};   /* 경험치·코인 효과는 모으기만 하면 항상 (분류마다 가장 높은 것 하나) · 공격력·대기시간·복수 시간은 장착한 칭호만 */
 function titleFx(k){ if(TITLE_PASSIVE[k]){ if(!P) return 0; const adm=typeof isAdmin==="function"&&isAdmin(); let S=null; try{ S=tStat() }catch(e){ return 0 } let m=0; for(const t of TITLES) if(t.fx&&t.fx[k]>m&&(adm||t.ok(S))) m=t.fx[k]; return m }
   const t=titleEq(); return (t&&t.fx&&t.fx[k])||0 }
 const titlePassive=t=>!!(t.fx&&Object.keys(t.fx).some(k=>TITLE_PASSIVE[k]));
-function titlePill(t,big){ return t?`<span class="tPill${big?" big":""}" style="--tc:${t.col}">${esc(t.n)}</span>`:"" }
+function titlePill(t,big){ return t?`<span class="tPill${big?" big":""}${t.col2?" grad":""}${t.top?" top":""}" style="--tc:${t.col};--tc2:${t.col2||t.col}">${t.ic?t.ic+" ":""}${t.top&&!t.col2?"✦ ":""}${esc(t.n)}</span>`:"" }
 /* 칭호함 (2026-10-27 정리): 위에 '지금 받는 효과' · 세 칸(장착해서 쓰는 · 모으면 항상 · 꾸미기) · 분류마다 진행도와 다음 칭호까지 */
 const TGRP_P={"📖 한자":S=>[S.hz,"익힌 한자","개"],"📜 사자성어·속담":S=>[S.sy,"익힌 사자성어·속담","개"],"🔁 복습":S=>[S.rv,"최고 연속 복습","일"],"🏅 오답 극복":S=>[S.ovc,"극복한 문제","개"],"🖌 쓰기":S=>[S.wp,"기억해서 쓰기 완벽","번"],"⭐ 만점":S=>[S.done,"만점 도장","개"],
   "🎯 정확":S=>[Math.round(S.acc*100),`최근 ${S.q}문제 정답률`,"%"],"🗺 클리어":S=>[S.c10,"1~10단계 클리어","맵"],"🔥 도전":S=>[S.hell,"지옥 클리어","맵"],"🃏 카드":S=>[S.cards,"보스 카드","장"],"🤝 같이하기":S=>[S.coop,"같이하기 클리어","번"],"💪 끈기":S=>[S.games,"게임","판"],"🎖 훈장":S=>[S.mm,"훈장","개"]};
@@ -1467,8 +1482,9 @@ function todayCard(){ const d=day(), rvAll=Object.keys(P.rv||{}).length, rvN=rvD
     {k:"learn",ic:"📚",t:"학습하기",done:sets>=gate,sub:sets>=gate?`오늘 ${sets}세트 ✔ · 더 하면 코인·익힌 한자가 늘어요`:`${sets} / ${gate}세트 · 퀴즈는 8개 중 5개 이상 맞히면 1세트`},
     {k:"game",ic:"🎮",t:"게임하기",done:plays>0,lock:sets<gate&&!isAdmin(),sub:sets<gate&&!isAdmin()?`학습 ${gate}세트를 하면 열려요`:`오늘 ${plays}판 · 하루 ${DAILY_PLAYS}판까지`}];
   if(newT>0) steps.push({k:"title",ic:"🏷",t:"새 칭호가 생겼어요!",done:false,sub:`${newT}개 · 눌러서 보고 장착해요`});
-  const cur=steps.find(x=>!x.done&&!x.lock);
+  const cur=steps.find(x=>!x.done&&!x.lock), fd=Object.keys(P.rv||{}).filter(rvFaded).length;
   return `<section class="todayCard"><div class="tdHead"><b>📋 오늘 할 일</b><small>위에서부터 차례로! 반짝이는 칸을 눌러요</small></div>
+    ${fd?`<button class="tdFade" data-td="rv">🌫 <b>흐려진 것 ${fd}개!</b> 복습을 오래 안 해서 <b>지식의 힘이 줄었어요</b>. 지금 🔁 복습하면 바로 되살아나요 ▶</button>`:""}
     <div class="tdSteps">${steps.map((x,i)=>`<button class="tdStep ${x.done?"done":""} ${x.lock?"tdLk":""} ${cur===x?"cur":""}" data-td="${x.k}"><span class="tdN">${x.done?"✔":i+1}</span><span class="tdI">${x.ic}</span><span class="tdT"><b>${x.t}</b><small>${x.sub}</small></span></button>`).join("")}</div>
     <details class="tdHow"><summary>💪 어떻게 하면 세질까? (눌러서 보기)</summary><ol>
       <li><b>외워요</b> — 한자는 <b>6번</b>, 사자성어·속담은 <b>4번(생활 문제 3번)</b> 맞히면 「익힌 것」이 돼요.</li>
@@ -1482,19 +1498,24 @@ function bindTodayCard(){ $app.querySelectorAll("[data-td]").forEach(b=>b.onclic
     if(k==="rv") return reviewQuiz(); if(k==="learn"){ const g=document.getElementById("goLearn"); if(g) g.click(); return } if(k==="game"){ const g=document.getElementById("goGame"); if(g) g.click(); return }
     if(k==="title"){ P.tSeen=TITLES.filter(titleOwned).length; saveP(); titleBox(home) } });
   { const m=document.getElementById("tdMore"); if(m) m.onclick=()=>guide("rules") } }
-function titleBox(back){ const S=tStat(), eq=titleEq(), own=TITLES.filter(titleOwned), adm=typeof isAdmin==="function"&&isAdmin();
+function titleBox(back){ const S=tStat(), eq=titleEq(), look=titleLook(), own=TITLES.filter(titleOwned), adm=typeof isAdmin==="function"&&isAdmin();
   const pasNow=Object.keys(TITLE_PASSIVE).map(k=>{ const v=titleFx(k); if(!v) return ""; const t=TITLES.filter(x=>x.fx&&x.fx[k]===v&&titleOwned(x))[0]; return t?`<span>${titlePill(t)} ${esc(t.fxT)}</span>`:"" }).filter(Boolean);
   const sec=(title,sub,cls,list)=>{ const gs=[...new Set(list.map(t=>t.g))]; return `<div class="tSec ${cls}"><div class="tSecH"><b>${title}</b><small>${sub}</small></div>${gs.map(gn=>{ const L=list.filter(t=>t.g===gn), pf=TGRP_P[gn], pv=pf&&!adm?pf(S):null, nx=L.find(t=>!titleOwned(t));
       return `<div class="tGrp"><div class="tGrpH"><h4>${gn}</h4>${pv?`<span class="tProg">${esc(pv[1])} <b>${pv[0]}${pv[2]}</b>${nx?` · 다음 <b>${esc(nx.n)}</b>: ${esc(nx.need)}`:" · 모두 모았어요! 🎉"}</span>`:""}</div>
-      <div class="tRow">${L.map(t=>{ const o=titleOwned(t), on=eq&&eq.id===t.id, tag=o?"button":"div"; return `<${tag} class="tItem ${o?"own":"tLk"} ${on?"on":""}" ${o?`data-tt="${t.id}"`:""}>${o?titlePill(t):`<span class="tPill lockp">🔒 ${esc(t.n)}</span>`}<small>${esc(t.need)}</small>${t.fxT?`<b class="tFx">${esc(t.fxT)}</b>`:""}${on?"<em>✔ 장착 중</em>":o?`<em class="tTap">눌러서 장착</em>`:""}</${tag}>` }).join("")}</div></div>` }).join("")}</div>` };
+      <div class="tRow">${L.map(t=>{ const o=titleOwned(t), on=eq&&eq.id===t.id, lk=look&&look.id===t.id, eqk=t.fx&&!titlePassive(t); return `<div class="tItem ${o?"own":"tLk"} ${on||lk?"on":""}">${o?titlePill(t):`<span class="tPill lockp">🔒 ${t.ic?t.ic+" ":""}${esc(t.n)}</span>`}<small>${esc(t.need)}</small>${t.fxT?`<b class="tFx">${esc(t.fxT)}</b>`:""}
+        ${o?`<span class="tBtns">${eqk?`<button class="tB ${on?"on":""}" data-tt="${t.id}">${on?"✔ 효과 장착 중":"💪 효과 장착"}</button>`:""}<button class="tB lk ${lk?"on":""}" data-tl="${t.id}">${lk?"✔ 모양 쓰는 중":"👀 모양으로"}</button></span>`:""}</div>` }).join("")}</div></div>` }).join("")}</div>` };
   const EQ=TITLES.filter(t=>t.fx&&!titlePassive(t)), PS=TITLES.filter(titlePassive), DC=TITLES.filter(t=>!t.fx);
   openModal(`<h3>🏷 칭호함 <small style="font-size:15px;opacity:.75">${own.length} / ${TITLES.length} 모음</small></h3>
-    <div class="tNow"><div><span class="tNowL">지금 장착</span>${eq?`${titlePill(eq,1)}${eq.fxT?` <b class="tFx">${esc(eq.fxT)}</b>`:" <small>(꾸미기)</small>"}`:`<small>아직 없어요 · 아래에서 모은 칭호를 눌러 장착해요</small>`}</div>
+    <p class="muted" style="margin:0 0 6px"><b>💪 효과 칭호</b>와 <b>👀 보이는 모양</b>을 따로 골라요! (예: 효과는 「한자 박사」, 모양은 「🔥 마왕성의 정복자」)</p>
+    <div class="tNow"><div><span class="tNowL">💪 효과 칭호</span>${eq?`${titlePill(eq,1)} <b class="tFx">${esc(eq.fxT)}</b>`:`<small>없어요 · 💪 칸 칭호의 「효과 장착」을 눌러요</small>`}</div>
+      <div><span class="tNowL">👀 보이는 모양</span>${titleShown()?titlePill(titleShown(),1):`<small>없어요</small>`}<small>${look?"(친구에게 이렇게 보여요)":"(따로 안 고르면 효과 칭호가 보여요)"}</small></div>
       <div><span class="tNowL">항상 받는 효과</span>${pasNow.length?pasNow.join(""):`<small>아직 없어요 · 🪙 칸 칭호를 모으면 생겨요</small>`}</div></div>
-    <div class="tBox">${sec("💪 장착해서 쓰는 칭호","장착한 칭호 <b>하나만</b> 효과가 나요 · 게임에서 세져요","eqs",EQ)}${sec("🪙 모으면 항상 효과","장착 안 해도 <b>모으기만 하면</b> 효과가 나고 서로 쌓여요 · 같은 줄은 가장 높은 것 하나","pss",PS)}${sec("🎖 꾸미기 칭호","효과는 없지만 멋지게! 게임을 잘하면 모여요","dcs",DC)}</div>
-    <div class="btns">${eq?`<button class="btn ghost" id="tOff">칭호 빼기</button>`:""}<button class="btn gold" id="tClose">닫기</button></div>`,true);
-  mcard.querySelectorAll("[data-tt]").forEach(b=>b.onclick=()=>{ P.titleEq=b.dataset.tt; saveP(); sfx("pick"); const t=titleEq(); toast(`🏷 '${t.n}' 칭호를 장착했어요${t.fxT&&!titlePassive(t)?` · ${t.fxT}`:""}`); const y=mcard.querySelector(".tBox").scrollTop; titleBox(back); const nb=mcard.querySelector(".tBox"); if(nb) nb.scrollTop=y });
-  { const o=document.getElementById("tOff"); if(o) o.onclick=()=>{ P.titleEq=""; saveP(); titleBox(back) } }
+    <div class="tBox">${sec("💪 장착해서 쓰는 칭호","장착한 칭호 <b>하나만</b> 효과가 나요 · 게임에서 세져요","eqs",EQ)}${sec("🪙 모으면 항상 효과","장착 안 해도 <b>모으기만 하면</b> 효과가 나고 서로 쌓여요 · 같은 줄은 가장 높은 것 하나","pss",PS)}${sec("🎖 꾸미기 칭호","효과는 없지만 멋진 모양! 「👀 모양으로」를 눌러 친구에게 보여 줘요 · 👑 보스를 쓰러뜨리면 그 보스 칭호가 생겨요","dcs",DC)}</div>
+    <div class="btns">${eq||look?`<button class="btn ghost" id="tOff">칭호 모두 빼기</button>`:""}<button class="btn gold" id="tClose">닫기</button></div>`,true);
+  const redraw=()=>{ const y=mcard.querySelector(".tBox").scrollTop; titleBox(back); const nb=mcard.querySelector(".tBox"); if(nb) nb.scrollTop=y };
+  mcard.querySelectorAll("[data-tt]").forEach(b=>b.onclick=()=>{ P.titleEq=b.dataset.tt; saveP(); sfx("pick"); const t=titleEq(); toast(`💪 '${t.n}' 효과 장착 · ${t.fxT}`); redraw() });
+  mcard.querySelectorAll("[data-tl]").forEach(b=>b.onclick=()=>{ P.titleLook=P.titleLook===b.dataset.tl?"":b.dataset.tl; saveP(); sfx("pick"); const t=titleLook(); toast(t?`👀 이제 '${t.n}' 모양으로 보여요 (효과는 그대로)`:"👀 모양을 효과 칭호로 되돌렸어요"); redraw() });
+  { const o=document.getElementById("tOff"); if(o) o.onclick=()=>{ P.titleEq=""; P.titleLook=""; saveP(); titleBox(back) } }
   document.getElementById("tClose").onclick=()=>{ closeModal(); if(back) back() } }
 function overcomeFx(c,cn){ sfx("win"); const n=(P.ovc||[]).length, t=OVC_TITLES.filter(x=>x[0]===n)[0];
   const d=document.createElement("div"); d.className="ovcFx"; d.innerHTML=`<b${c.cat?' style="font-size:min(9vw,56px)"':""}>${esc(c.cat?c.k:c.h)}</b><span>극복!</span><small>${c.cat?"이제 내 말이 됐어요":`${esc(c.hun||"")} ${esc(c.eum||"")}`} · 익힌 횟수 +1${cn?` · 코인 +${cn}`:""}${t?` · 칭호 '${t[1]}'`:""}</small>`; document.body.appendChild(d); setTimeout(()=>d.remove(),2600) }
@@ -1555,7 +1576,7 @@ function titleBlock(small){
 function topbar(title){ const hk=String(title).startsWith("학습 · ")?null:title; return `<header class="top"><button class="back" id="back">← 메인으로</button><div class="ttl">${title}</div>${hk&&HELP[hk]?`<button class="helpQ" data-help="${hk}" aria-label="이 화면 도움말">?</button>`:""}${coinPill()}</header>` }
 /* ===== 화면마다 ? 도움말: 눌러 보면 칸을 하나씩 반짝이며 "여기는 무엇을 하는 곳인지" 알려 줘요 ===== */
 const HELP={
-  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#guideBtn","사용 설명서","시작·학습·용사·게임·보스 칸으로 나뉘어 있어요. 궁금한 칸만 골라 읽어요."],["#tBtn","🏷 칭호","모은 칭호 중 하나를 장착해요. 학습 칭호는 장착하면 작은 효과도 생겨요!"],["#goRv","🔁 오늘의 복습","익힌 것을 잊기 전에 다시 물어봐요 (1·3·7·14·30일). 오래 안 하면 흐려져서 지식의 힘이 줄어요!"],["#sendRep","📤 선생님께 기록 보내기","선생님 화면에 우리 반 현황판이 켜져 있을 때 누르면 내 기록이 바로 들어가요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
+  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#guideBtn","사용 설명서","시작·학습·용사·게임·보스 칸으로 나뉘어 있어요. 궁금한 칸만 골라 읽어요."],["#tBtn","🏷 칭호","💪 효과 칭호와 👀 보이는 모양을 따로 골라요. 👑 보스를 쓰러뜨리면 멋진 보스 칭호가 생겨요!"],["#goRv","🔁 오늘의 복습","익힌 것을 잊기 전에 다시 물어봐요 (1·3·7·14·30일). 오래 안 하면 흐려져서 지식의 힘이 줄어요!"],["#sendRep","📤 선생님께 기록 보내기","선생님 화면에 우리 반 현황판이 켜져 있을 때 누르면 내 기록이 바로 들어가요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
   "학습하기":[[".ltabs","무엇을 공부할까?","한자 · 사자성어 · 속담 중에서 골라요."],[".weeks","주차 고르기","공부할 주차 번호를 눌러요. 여러 개 골라도 돼요. ★는 그 주차 만점!"],["#selAll","한 번에 고르기","전체 선택 · 전체 해제 버튼이에요."],[".acts","공부 방법","카드, 퀴즈, 낱말 만들기, 한자 비, 쓰기 중에서 골라요. 잘 해내야 코인을 받아요 (퀴즈 8개 중 7개 · 카드는 연습용)."],[".memoAct","기억해서 쓰기 도전","모양을 외워 획순대로 써요. 제한 시간(10초+획마다 3초) · 실수 1번까지 · 다른 화면에 다녀오면 실패!"]],
   "게임 · 몬스터 대작전":[[".pickHero","출전 용사","이번 판에 나갈 용사를 골라요."],[".engBar","🔖 한자 룬","익힌 한자를 룬으로 새기면 용사가 세져요. '룬 새기기'를 눌러 칸을 채워요."],[".mpP","친구와 같이 하기","방을 만들거나 코드를 넣어 친구와 함께 싸워요."],[".qrgrid","한자 퀴즈 범위","게임 속 퀴즈에 나올 주차예요. 넓을수록 보상이 커요. 단, 그 범위에서 익힌 만큼만 받아요!"],[".mapgrid","맵 고르기","갈 맵을 골라요. 최종 보스를 잡으면 다음 맵 열쇠가 나와요. 익힌 한자·사자성어·속담도 맵마다 5개씩 더 있어야 열려요."],[".difrow","도전 단계","보통 → 어려움 → 지옥. 어려울수록 보상과 카드 등급이 올라가요."],[".mapGuide","맵 도감","이 맵의 몬스터와 보스, 보스 고유 패턴 피하는 법을 미리 봐요."],["#go","입장!","코인을 내고 출발해요. 들어가기 전에 용사를 한 번 더 고를 수 있어요."]],
   "룬":[[".engSlots.big","룬 소켓","여기에 한자 룬을 새겨요. 3칸(4차 전직하면 4칸)이에요. 칸을 누르면 빠져요."],[".engList","익힌 한자","6번 이상 맞힌 한자예요. 눌러서 칸에 넣어요. 아래 글씨는 그 한자가 주는 힘이에요."],[".engList .engH","등급","테두리 색이 등급이에요. 동 3번 → 은 8번 → 금 15번 → 빛나는 금 15번 맞히면 세져요."],[".engHints","숨은 조합 힌트","어울리는 두 한자를 같이 새기면 특별한 힘이 더해져요. 수수께끼 힌트를 읽고 8가지를 찾아봐요! ✔ 표시는 두 한자를 이미 익혔다는 뜻이에요."],["#engOk","새기기","다 골랐으면 눌러요. 게임 화면 체력바 옆에 새긴 룬이 보여요."]],
@@ -1901,8 +1922,8 @@ function guide(start){
      x:`<span class="gdLines"><span class="gdL">❌ 틀린 한자·사자성어·속담은 <b>오답 노트</b>에 모여요.</span><span class="gdL">🔄 그냥 사라지지 않고 <b>게임 속에서 다시</b> 나와요.</span><span class="gdL">🏅 극복하면 오답 노트에서 빠지고 칭호도 받아요.</span></span>`, tip:"틀리는 건 부끄러운 게 아니에요. 복수할 기회예요!"},
     {t:"🔁 복습 시계", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📖</span>익혔어요!</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">⏰</span><b style="color:#ffd36a;font-weight:400">1·3·7·14·30일</b> 뒤</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🔁</span>오늘의 복습</div></div>`,
      x:`<span class="gdLines"><span class="gdL">🔁 첫 화면 <b>오늘의 복습</b>을 눌러요. 코인 <b>×1.3</b>!</span><span class="gdL">✅ 맞히면 다음 복습은 더 나중에, ❌ 틀리면 내일 다시.</span><span class="gdL">🌫 <b>3일</b> 넘게 안 하면 <b>흐려져서</b> 힘이 줄어요. 한 번 맞히면 돌아와요.</span></span>`, tip:"하루도 안 빼먹으면 🔥 연속 기록과 칭호를 받아요!"},
-    {t:"🏷 칭호 모으기", art:`<div class="gdIcons"><div><span class="em">💪</span><b>장착해서 쓰는 칭호</b><span class="gdD"><b>하나만</b> 효과 · 공격력 등</span></div><div><span class="em">🪙</span><b>모으면 항상 효과</b><span class="gdD">경험치·코인 · <b>모두</b> 쌓여요</span></div><div><span class="em">🎖</span><b>꾸미기 칭호</b><span class="gdD">효과 없이 멋지게</span></div></div>`,
-     x:`<span class="gdLines"><span class="gdL">🏷 첫 화면 <b>🏷 칭호</b> 버튼을 눌러요.</span><span class="gdL">👆 모은 칭호를 누르면 <b>장착</b>! 이름 옆과 게임 속 발밑에 보여요.</span><span class="gdL">📊 줄마다 <b>다음 칭호까지 얼마나</b> 남았는지 알려 줘요.</span></span>`, tip:"공부할수록 좋은 칭호가 열려요. 한자의 왕, 복습의 왕에 도전!"},
+    {t:"🏷 칭호 모으기", art:`<div class="gdIcons"><div><span class="em">💪</span><b>장착해서 쓰는 칭호</b><span class="gdD"><b>하나만</b> 효과 · 공격력 등</span></div><div><span class="em">🪙</span><b>모으면 항상 효과</b><span class="gdD">경험치·코인 · <b>모두</b> 쌓여요</span></div><div><span class="em">👑</span><b>보스·꾸미기 칭호</b><span class="gdD">보스를 쓰러뜨리면 그 보스 칭호!</span></div></div>`,
+     x:`<span class="gdLines"><span class="gdL">🏷 첫 화면 <b>🏷 칭호</b> 버튼을 눌러요.</span><span class="gdL">💪 <b>효과 장착</b>과 👀 <b>모양으로</b>를 따로 골라요. 효과는 「한자 박사」, 모양은 「🔥 마왕성의 정복자」처럼!</span><span class="gdL">📊 줄마다 <b>다음 칭호까지 얼마나</b> 남았는지 알려 줘요.</span></span>`, tip:"공부할수록 좋은 칭호가 열려요. 한자의 왕, 복습의 왕에 도전!"},
     {t:"틀린 한자 극복", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">❌</span>틀린 한자는<br>더 자주 나와요</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✅✅✅</span><b style="color:#ffd36a;font-weight:400">3번 연속</b> 맞히면</div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🏅</span><b style="color:#ffd36a;font-weight:400">극복!</b><br>칭호도 받아요</div></div>`,
      x:`한 번이라도 틀렸던 한자·사자성어·속담을 <b>3번 연속</b> 맞히면 <b>극복!</b> 오답 노트에서 빠지고 <b>코인</b>과 <b>익힌 횟수 +1</b>을 받아요. 극복한 수에 따라 <b>칭호</b>도 생겨요.<br>첫 극복 · 오답 사냥꾼(5) · 오답 정복자(10) · 오답 박멸왕(20) · 한자 불사조(40)`, tip:"공부할 때도, 게임 퀴즈에서도 모두 세어 줘요. 틀리는 건 부끄러운 게 아니라 극복할 기회예요!"},
     {t:"도전 단계와 보스 카드", n:2, art:`<div class="gdIcons"><div><span class="em">🟢</span><b>보통</b><span class="gdD">맵 원래 세기</span></div><div><span class="em">🟠</span><b>어려움</b><span class="gdD">내 레벨에 맞춰 세지고 보스 공격이 더 많아요</span></div><div><span class="em">🔴</span><b>지옥</b><span class="gdD">가장 어렵고 보스가 각성해요. 보상도 최고!</span></div><div><span class="em">🃏</span><b>보스 카드</b><span class="gdD">보스를 잡으면 동·은·금 카드 · 120장 모으기</span></div><div><span class="em">🎖</span><b>명예 카드</b><span class="gdD">그 직업으로 별의 왕좌를 정복하면!</span></div><div><span class="em">🗝</span><b>맵 열쇠</b><span class="gdD">최종 보스 보물상자에서 다음 맵 열쇠가 나와요</span></div></div>`,
@@ -1973,7 +1994,7 @@ function home(){
   const mastered=UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length;
   $app.innerHTML = `
   <div class="homeTop">
-    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}${titlePill(titleEq())}</small></span></button><button class="chip" id="tBtn">🏷 칭호 ${TITLES.filter(titleOwned).length}/${TITLES.length}</button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
+    <div class="row" style="gap:8px"><button class="who" id="who">${avaHtml(P.hero,44)}<span>${p.name?esc(p.name):`${p.c}반 ${p.n}번`}<small>${isAdmin()?"선생님 모드 · 제한 없음":pname(p)+" · 탐험대원"}${titlePill(titleShown())}</small></span></button><button class="chip tChip" id="tBtn">🏷 칭호 ${TITLES.filter(titleOwned).length}/${TITLES.length}</button><button class="chip" id="bye">${isAdmin()?"나가기":"친구 바꾸기"}</button></div>
     ${coinPill()}
   </div>
   ${titleBlock()}
@@ -2002,6 +2023,7 @@ function home(){
     <button data-go="dex">${ico("dex","mic")}도감<small>익힌 한자 ${mastered}자${typeof SAJA!=="undefined"?` · 말 ${SAJA.concat(SOK).filter(sayMastered).length}개`:""}</small></button>
     <button data-go="bcard">${ico("trophy","mic")}보스 카드<small>${typeof cardCount==="function"?cardCount():0}/120장 모음</small></button>
     <button data-go="notes">${ico("note","mic")}오답 노트<small>${P.wrong.length}자</small></button>
+    <button data-go="title"><span class="mi" style="font-size:30px;line-height:34px">🏷</span>칭호함<small>${TITLES.filter(titleOwned).length}/${TITLES.length} 모음${Math.max(0,TITLES.filter(titleOwned).length-(P.tSeen||0))?` · <b style="color:#e0567a">새 칭호!</b>`:""}</small></button>
     <button data-go="rec">${ico("trophy","mic")}내 기록<small>도장 ${P.done.length+(typeof sayDoneWeeks==="function"?sayDoneWeeks():0)}/${WEEKS.length+(typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S+SAY_WEEKS.P:0)}</small></button>
     <button data-go="set">${ico("gear","mic")}설정<small>학생·소리</small></button>
     ${isAdmin()?`<button data-go="board">${ico("trophy","mic")}학생 현황<small>선생님 전용</small></button>`:`<button id="sendRep"><span class="mi" style="font-size:30px;line-height:34px">📤</span>선생님께<small>기록 보내기</small></button>`}
@@ -2027,7 +2049,7 @@ function home(){
         else if(r==="net") toast("이 주소에서는 보낼 수 없어요. 새 주소(github.io)에서 열어 주세요")
         else toast(`선생님 화면에 ${p?`${p.g}학년 ${p.c}반 `:""}현황판이 안 열려 있어요. 선생님께 열어 달라고 말씀드린 뒤 다시 눌러요`) }) } }
   { const t=document.getElementById("goTW"); if(t) t.onclick=()=>{ sfx("tap"); todayWrong() } }
-  $app.querySelectorAll(".menu4 button[data-go]").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board()})[b.dataset.go]()});
+  $app.querySelectorAll(".menu4 button[data-go]").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board(),title:()=>{ P.tSeen=TITLES.filter(titleOwned).length; saveP(); titleBox(home) }})[b.dataset.go]()});
 }
 
 
@@ -2129,7 +2151,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10271541"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10271807"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2628,7 +2650,7 @@ function strokePanel(host,c,{trace=false,memo=false,today=false}={}){
     if(doTrace.stopT){ doTrace.stopT(); doTrace.stopT=null } let tmo=null; const myRun=run;
     if(isMemo) doTrace.stopT=memoTimer(stage,n,why=>{ if(myRun!==run) return; tmo=why; try{ w.cancelQuiz() }catch(e){} trackAns(c,false); saveP(); stage.classList.remove("memo"); w.showOutline({duration:0}); w.animateCharacter(); sfx("no"); host.querySelectorAll(".swMask").forEach(x=>x.hidden=true); host.querySelectorAll(".swFull").forEach(x=>x.hidden=false);
       msg.textContent=(why==="away"?"쓰는 중에 다른 화면으로 나가면 실패예요!":"⏱ 시간이 다 됐어요!")+" 모양을 잘 보고 「기억해서 쓰기」로 다시 도전해요" });
-    w.quiz({showHintAfterMisses:isMemo?3:2,onMistake:()=>{miss++;msg.textContent=isMemo?(miss>=3?"힌트가 깜빡여요! 따라 그어 보세요":"음, 다시 떠올려 볼까요?"):(miss>=2?"빨갛게 깜빡이는 곳을 따라 그어 보세요":"다시 한번 그어 보세요")},
+    w.quiz({leniency:1.6,showHintAfterMisses:isMemo?3:2,onMistake:()=>{miss++;msg.textContent=isMemo?(miss>=3?"힌트가 깜빡여요! 따라 그어 보세요":"음, 다시 떠올려 볼까요?"):(miss>=2?"빨갛게 깜빡이는 곳을 따라 그어 보세요":"다시 한번 그어 보세요")},
       onCorrectStroke:s=>{sfx("stroke");msg.textContent=s.strokesRemaining?`좋아요! ${s.strokeNum+2}획째`:""},
       onComplete:s=>{ if(tmo) return; if(isMemo&&doTrace.stopT){ doTrace.stopT(); doTrace.stopT=null } const good=s.totalMistakes<=1; if(isMemo&&s.totalMistakes===0) P.wp=(P.wp||0)+1;   /* 2026-10-27: 기억해서 쓰기는 실수 1번까지 */ host.querySelectorAll(".swMask").forEach(x=>x.hidden=true); host.querySelectorAll(".swFull").forEach(x=>x.hidden=false); sfx("win"); stamp(good?(isMemo?"기억<br>완벽!":"참<br>잘했어요"):"완성!"); w.showOutline({duration:300}); stage.classList.remove("memo");
         const d=day(); d.tc=d.tc||{}; let add=0;
@@ -2697,7 +2719,7 @@ function memoTest(list){
       else { w.showOutline({duration:300}); sfx(lvl===0?"win":"ok"); stamp(lvl===0?"기억<br>완벽!":lvl===1?"잘했어요":"완성!"); msg.innerHTML=`${["완벽해요!","거의 완벽!","완성!"][lvl]} <b>+${pts}점</b>${s.totalMistakes?` · 실수 ${s.totalMistakes}번`:""}${peeked?" · 살짝 봄":""}` }
       $app.querySelector(".btns").innerHTML=`<button class="btn jade big" id="mnext">${i<items.length-1?"다음 글자 ▶":"결과 보기"}</button>`;
       document.getElementById("mnext").onclick=()=>{ run0(); i++; i<items.length?draw():finish() } }
-    w.quiz({showHintAfterMisses:3,
+    w.quiz({leniency:1.6,showHintAfterMisses:3,
       onMistake:()=>{ miss++; msg.textContent=miss>=3?"힌트가 깜빡여요! 순서에 맞는 획을 그어 보세요":"그 획이 아니에요. 순서를 다시 떠올려 봐요!" },
       onCorrectStroke:s=>{ sfx("stroke"); msg.textContent=s.strokesRemaining?`좋아요! ${s.strokeNum+2}획째`:"" },
       onComplete:s=>end(s,false)});
@@ -2871,4 +2893,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10271541"></script>
+<script src="game.js?v=10271807"></script>
