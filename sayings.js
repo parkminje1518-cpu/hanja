@@ -784,7 +784,7 @@ function sayCards(list,cat){ let order=shuffle(list), i=0, flip=false;
   draw() }
 
 /* ----- 퀴즈 (풀이와 '이럴 때 써요' 설명이 함께 나와요) ----- */
-function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P.set.qn||5,5)), rev=!!o.review;
+function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,typeof QUIZ_N!=="undefined"?QUIZ_N:8), rev=!!o.review;   /* 8문제 고정 (주차 1개 = 말 4개면 8문제) */
   const src=shuffle(pickWeighted(list,N)), seenQ=new Set(); const qs=src.map(c=>{ let q; for(let t=0;t<8;t++){ q=makeSayQ(c,{types:o.types||undefined}); const key=c.h+"|"+q.tag+"|"+(q.desc||q.q); if(!seenQ.has(key)){ seenQ.add(key); break } } return q });
   let i=0, right=0, combo=0, pend=0, best=0, miss=[], busy=false; const WM=sayMul()*(rev?1.3:1);
   const SM=(()=>{ const d=day(); return d.sets>=DAILY_SETS?0:stairMul(d.sets) })(), shown=()=>Math.min(pend,coinLeft());
@@ -820,11 +820,11 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,Math.max(P
       w.innerHTML=`<b>${ok?"정답! ":"정답은 "}'${esc(q.ans)}'</b>${q.c.hz?` <span class="sayHz">${esc(q.c.hz)}</span>`:""}<br>${esc(q.why)}`;
       const go=()=>{ if(go.d) return; go.d=1; i++; busy=false; i<N?draw():finish() };
       if(ok) setTimeout(go,1900); else { const nb=document.getElementById("nextQ"); nb.hidden=false; document.getElementById("skip").hidden=true; nb.onclick=go } } }
-  function finish(){ const perfect=right===N; if(perfect) pend+=Math.round(10*WM*SM);
+  function finish(){ const perfect=right===N; if(perfect) pend+=Math.round(pend*.3)+Math.round(10*WM*SM);   /* 만점 보너스: 30% + 10 */
     const before=sayDoneWeeks(); if(rev&&perfect){ P.srev=P.srev||{}; o.review.forEach(w=>P.srev[cat+w]=Date.now()) } sayStamp();
-    const acc=N?right/N:0, cnt=acc>=.6; if(!perfect) pend=0;
-    let repNote=""; if(perfect&&!o.fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
-    const accNote=perfect?repNote:acc>=.6?`${right} / ${N} · 만점이어야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 카드로 익히고 와요!`;
+    const acc=N?right/N:0, cnt=acc>=.6, coinOk=right>=Math.max(1,N-1); if(!coinOk) pend=0;   /* 2026-10-27: 7개 이상(한 개까지 틀려도) 코인·경험치 · 만점이면 보너스 */
+    let repNote=""; if(coinOk&&!o.fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
+    const accNote=perfect?repNote:coinOk?(repNote||`${right} / ${N} · 만점이면 보너스 코인을 더 받아요!`):acc>=.6?`${right} / ${N} · ${Math.max(1,N-1)}개 이상 맞혀야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 카드로 익히고 와요!`;
     const r=grantSet(pend,true,true,cnt), after=sayDoneWeeks(), um=[...new Set(miss)];
     const newW=[]; for(let w=1;w<=SAY_WEEKS[cat];w++) if(sayWeekDone(cat,w)&&(P.srev||{})[cat+w]>Date.now()-60000&&!(rev&&o.review.includes(w))) newW.push(w);
     modal.dataset.dismiss="no";

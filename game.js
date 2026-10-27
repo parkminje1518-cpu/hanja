@@ -326,7 +326,7 @@ const MAXLV = 5;
 function setMainSkill(){ const H=heroById(P.hero); SK.main={t:"w",cls:H.cls,name:H.main.name,d:H.main.d}; }
 function gameLobby(){
   if(typeof studyLeft==="function"&&studyLeft()>0){ const n=studyLeft(), d0=day();   /* 하루 학습 5세트를 먼저 (2026-10-26) */
-    openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 퀴즈는 60% 이상 맞혀야 세트로 쳐요. 코인은 만점일 때만 받아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
+    openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 퀴즈는 60% 이상 맞혀야 세트로 쳐요. 코인은 8문제 중 7개 이상 맞히면 받아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
     document.getElementById("gateGo").onclick=()=>{ closeModal(); const b=document.getElementById("goLearn"); if(b) b.click(); else home() };
     document.getElementById("gateNo").onclick=()=>closeModal(); return }
   setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)){ P.set.map=mapOpenN(); saveP() }
@@ -569,11 +569,15 @@ function mapGuideHtml(mid){ const m=mapById(mid), F=typeof FLOOR_FILES!=="undefi
     <h3>${mid>=11?"내 용사":"나오는 몬스터"}</h3><div class="mgMobs">${mobH}${(()=>{ const df=mapDif(mid), rp=recShow(mid,df), mp=heroPower(P.hero); return `<div class="mgMob mgMe ${mp>=rp?"ok":"lo"}">${avaHtml(P.hero,64)}<b>내 용사 · ${esc(heroById(P.hero).name)}</b><small class="mgPw">⚔ ${fmtPow(mp)}</small><small>${dN(df,mid)} 권장 ${fmtPow(rp)} · ${mp>=rp?"충분해요!":"조금 부족해요"}</small></div>` })()}</div>
     ${mid===11?b11GuideHtml():`<h3>보스 (차례대로 나와요)</h3><div class="mgBosses">${bossH}</div>`}
   </section>` }
+/* 판 수·입장료는 1분 넘게 했을 때 빠져요 (2026-10-27): 같이하기에서 친구가 못 들어와 나갔다 다시 시작해도 판 수가 줄지 않게
+   1분 안에 끝난 판은 판 수·코인이 그대로인 대신 그 판의 보상(경험치·코인)도 없어요 */
 function payGame(){
   const d=day();
   if(d.plays>=DAILY_PLAYS || P.coins<GAME_COST) return false;
-  d.plays++; P.coins-=GAME_COST; P.stats.games++; saveP(); window.__paid=1; return true;
+  window.__pend=1; window.__paid=0; return true;
 }
+function chargeGame(){ if(!window.__pend) return; window.__pend=0; const d=day(); d.plays++; P.coins=Math.max(0,P.coins-GAME_COST); P.stats.games++; saveP(); window.__paid=1 }
+const PLAY_MIN_T = 60;   // 이 시간(초)을 넘게 해야 1판으로 셈
 const fmtT = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
 
 function difPanelHtml(){ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), id=cli?(NET.map||1):(P.set.map||1), cur=cli?(NET.dif||0):mapDif(id), m=mapById(id), L=HS().lv;
@@ -1925,7 +1929,7 @@ function startGame(opts){ opts=opts||{};
   }
   /* 보스 한자 결투: 보스가 나오면 한자 3문제! 맞힐 때마다 보스 체력이 크게 깎여요 */
   function duelHit(e){ const n=NM?nPlayers():1, pct=.09/(1+.5*(n-1));
-    if(NM==="client"){ netOut.duel=(netOut.duel||[]); netOut.duel.push(e.id) }
+    if(NM==="client"){ if(e){ netOut.duel=(netOut.duel||[]); netOut.duel.push(e.id) } }   /* 고침 (2026-10-27): 같이하기 친구 화면에서 보스 정보가 사라진 순간 맞히면 오류로 결투 창이 멈췄어요 */
     else if(e&&e.hp>0&&!e.b11inv){ e.hp-=e.max*pct; e.flash=.2; if(e.hp<=0) kill(e) }
     if(e){ g.fx.push({k:"bolt",x:e.x,y:e.y,life:.45,max:.45}); g.fx.push({k:"boom",x:e.x,y:e.y,r:e.r*1.4,col:"#ffd36a",life:.5,max:.5}); g.fx.push({k:"num",x:e.x,y:e.y-e.r,v:"한자 번개!",crit:true,life:1,max:1}) } g.shake=Math.max(g.shake,.3) }
   /* 같이 하기: 고르는 동안 몬스터가 다른 친구에게 간다는 안내 */
@@ -1967,8 +1971,8 @@ function startGame(opts){ opts=opts||{};
       modal.hidden=false;
       mcard.querySelectorAll(".gans").forEach(b=>b.onclick=()=>{ const r=q.opts[+b.dataset.j].ok; mcard.querySelectorAll(".gans").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.j].ok) x.classList.add("ok") });
         g.qN++; trackAns(c,r);
-        if(r){ ok++; g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c); saveP() } else { b.classList.add("no"); sfx("no"); addWrong(c.h) }
-        setTimeout(()=>{ i++; if(i<2) show(); else done(ok===2) },r?700:1300) }) };
+        try{ if(r){ ok++; g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c); saveP() } else { b.classList.add("no"); sfx("no"); addWrong(c.h) } }catch(err){ console.error(err) }
+        setTimeout(()=>{ try{ i++; if(i<2) show(); else done(ok===2) }catch(err){ console.error(err); close() } },r?700:1300) }) };
     function done(all){
       if(!NM){ close(); if(all) castOrigin(); else originFail(0,1); return }
       if(NM==="client") netOut.or={id,ok:all}; else originRes(NET.myId,id,all);
@@ -2007,8 +2011,8 @@ function startGame(opts){ opts=opts||{};
       modal.hidden=false;
       mcard.querySelectorAll(".gans").forEach(b=>b.onclick=()=>{ const ok=q.opts[+b.dataset.j].ok; mcard.querySelectorAll(".gans").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.j].ok) x.classList.add("ok") });
         g.qN++; trackAns(c,ok);
-        if(ok){ hits++; g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c); saveP(); const e=find(); duelHit(e) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) }
-        setTimeout(()=>{ i++; if(i<3) show(); else { modal.hidden=true; g.paused=false; last=performance.now(); showBanner(hits?`한자 결투 ${hits}/3 성공! 보스에게 한자 번개 ${hits}번!`:"한자 결투 실패... 다음엔 꼭 맞혀요!"); if(hits===3){ stamp("결투<br>완승!"); sfx("win") } } },ok?800:1300) }) };
+        try{ if(ok){ hits++; g.qOk++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c); saveP(); const e=find(); duelHit(e) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) } }catch(err){ console.error(err) }   /* 어떤 오류가 나도 다음 문제·창 닫기로 꼭 넘어가요 */
+        setTimeout(()=>{ i++; if(i<3) { try{ show() }catch(err){ modal.hidden=true; g.paused=false; last=performance.now() } } else { modal.hidden=true; g.paused=false; last=performance.now(); showBanner(hits?`한자 결투 ${hits}/3 성공! 보스에게 한자 번개 ${hits}번!`:"한자 결투 실패... 다음엔 꼭 맞혀요!"); if(hits===3){ stamp("결투<br>완승!"); sfx("win") } } },ok?800:1300) }) };
     sfx("bosscast"); show() }
   /* ===== 혼란 😵: 게임 속 문제를 틀리면 잠깐 약해져요 (아주 조금 · 최대 2단계 · 맞히면 바로 1단계 풀림 · 25초면 저절로 풀림) ===== */
   g.conf=0; g.confT=0;
@@ -2190,17 +2194,17 @@ function startGame(opts){ opts=opts||{};
     return "" }
 
   // 실수로 용사·맵을 잘못 골랐을 때: 시작 30초 안이면 판 수·코인을 돌려받고 다시 골라요 (혼자 하기 · 하루 5번까지)
-  function canRefund(){ return !NM&&window.__paid&&g.t<30&&!g.over&&(day().refund||0)<5&&(!isAdmin()||window.__rfTest) }
+  function canRefund(){ return !NM&&!g.over&&(window.__pend||(window.__paid&&g.t<30&&(day().refund||0)<5))&&(!isAdmin()||window.__rfTest) }
   function pause(){
     { const tbx=$(".gtoolbox"); if(tbx) tbx.hidden=true }   /* 선생님 도구 창이 멈춤 창을 가리지 않게 먼저 닫아요 */
     if(g.over||g.paused) return;
     g.paused=true;
     mcard.innerHTML = `<h3>${NM?"친구와 같이 하는 중":"잠깐 멈춤"}</h3><p>${NM?"같이 할 때는 게임이 멈추지 않아요! 빨리 돌아가요.":`${fmtT(g.t)} 버티는 중 · 몬스터 ${g.kills}마리`}</p>
       <div class="gskills">${Object.keys(g.sk).map(k=>{ const b0=g.b11Base&&g.b11Base[k]||0, pk=g.sk[k]-b0; return `<span>${skImg(k,22)}${skName(k)} · Lv ${g.sk[k]}${g.b11Base?(pk>0?` <b style="color:#e0567a">(+${pk} 내가 고름)</b>`:` <small style="opacity:.6">(기본)</small>`):""}</span>` }).join("")}</div>${g.b11Base?`<p style="font-size:13px;opacity:.7;margin:4px 0 0">군단장 맵은 기본 장비 4개를 들고 시작해요 · 시작 카드 3장은 그 위에 더해져요</p>`:""}
-      <div class="gbtns"><button class="big green" id="gc">계속하기</button>${canRefund()?`<button class="big gold" id="gr">↩ 용사·맵 다시 고르기<small style="display:block;font-size:12px">시작 30초 안이라 판 수·코인을 돌려받아요 (하루 ${5-(day().refund||0)}번 남음)</small></button>`:""}<button class="big alt" id="gq">그만하기</button></div><button class="helpQ" data-help="게임 중" style="position:absolute;top:10px;right:10px" aria-label="게임 화면 도움말">?</button>`;
+      <div class="gbtns"><button class="big green" id="gc">계속하기</button>${canRefund()?`<button class="big gold" id="gr">↩ 용사·맵 다시 고르기<small style="display:block;font-size:12px">${window.__pend?"아직 1분이 안 돼서 판 수·코인이 그대로예요":`시작 30초 안이라 판 수·코인을 돌려받아요 (하루 ${5-(day().refund||0)}번 남음)`}</small></button>`:""}<button class="big alt" id="gq">그만하기</button></div><button class="helpQ" data-help="게임 중" style="position:absolute;top:10px;right:10px" aria-label="게임 화면 도움말">?</button>`;
     modal.hidden=false;
     $("#gc").onclick=()=>{modal.hidden=true;g.paused=false;last=performance.now()};
-    if($("#gr")) $("#gr").onclick=()=>{ if(!canRefund()) return; const d=day(); d.plays=Math.max(0,d.plays-1); d.refund=(d.refund||0)+1; P.coins+=GAME_COST; P.stats.games=Math.max(0,(P.stats.games||1)-1); window.__paid=0; saveP(); cleanup(); gameLobby() };
+    if($("#gr")) $("#gr").onclick=()=>{ if(!canRefund()) return; if(window.__pend){ window.__pend=0; cleanup(); gameLobby(); return } const d=day(); d.plays=Math.max(0,d.plays-1); d.refund=(d.refund||0)+1; P.coins+=GAME_COST; P.stats.games=Math.max(0,(P.stats.games||1)-1); window.__paid=0; saveP(); cleanup(); gameLobby() };
     $("#gq").onclick=()=>{ if(NM==="client"){ try{ NET.hostConn.send({t:"quit"}) }catch(e){} } if(NM==="host"){ endAll(false); return } finish(false) };
   }
 
@@ -2254,12 +2258,13 @@ function startGame(opts){ opts=opts||{};
     const b11P=BX&&!win?(()=>{ const e=g.en.find(x=>x.b11); if(!e) return 0; const f=1-Math.max(0,e.hp)/e.max; return BX.S.ph===2?.5+f*.5:f*.5 })():0;   /* 시간 초과·쓰러짐: 보스를 깎은 만큼 경험치 */
     /* 찍기 막기 (2026-10-27): 게임 안 문제(카드·약점·기둥 등) 정답률에 따라 경험치와 퀴즈 범위 코인이 달라져요
        80% 이상 = 그대로 · 60~79% = 60% · 40~59% = 30% · 40% 미만 = 10% (문제를 3개 넘게 풀었을 때만 적용) */
-    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1;
+    const freeRun=!!window.__pend; window.__pend=0;   /* 1분 안에 끝난 판: 판 수·코인 그대로 · 보상 없음 */
+    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=(qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1)*(freeRun?0:1);
     const gotExp = addExp(Math.round((g.kills*(BX?1:1.25) + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150 + Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul));
     const qCoin = Math.round(((rec.t>=60 ? QR.coin+SR.coin+(Q2.coin||0) : 0)+(g.bqC||0))*qMul);   // 같이하기 보너스 문제 코인 포함
-    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=sCoin+qCoin+fCoin+rCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
+    const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=freeRun?0:sCoin+qCoin+fCoin+rCoin, gotCoin=earn(want);   // 하루 코인 한도까지만
     if(win) stamp("클리어!");
-    mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:(g.timeUp||BX&&BX.S.tUp)?"⏰ 시간 초과! 다음엔 더 빨리 쓰러뜨려요":"게임 끝"}</h3>${b11P>=.01?`<p style="margin:2px 0 6px;color:#c9a6ff">검귀를 ${Math.round(b11P*100)}% 몰아붙였어요 · 그만큼 경험치를 더 받아요</p>`:""}<p>${MAP.name} · <b style="color:${DIFS[MAP.dif].c}">${dN(MAP.dif,MAP.id)}</b> · 경험치 ×${(+MAP.exp).toFixed(1)}</p>
+    mcard.innerHTML = `<h3>${win?`🏆 스테이지 클리어! ${MAP.name}`:(g.timeUp||BX&&BX.S.tUp)?"⏰ 시간 초과! 다음엔 더 빨리 쓰러뜨려요":"게임 끝"}</h3>${freeRun?`<p style="margin:2px 0 6px;color:#c8372d;font-weight:600">1분 안에 끝나서 오늘 판 수와 입장료는 그대로예요. 대신 이번 판 보상은 없어요.</p>`:""}${b11P>=.01?`<p style="margin:2px 0 6px;color:#c9a6ff">검귀를 ${Math.round(b11P*100)}% 몰아붙였어요 · 그만큼 경험치를 더 받아요</p>`:""}<p>${MAP.name} · <b style="color:${DIFS[MAP.dif].c}">${dN(MAP.dif,MAP.id)}</b> · 경험치 ×${(+MAP.exp).toFixed(1)}</p>
       ${newDif&&MAP.dif<2?`<p class="gbest">🔓 ${dN(MAP.dif+1,MAP.id)} 단계가 열렸어요!</p>`:""}
       ${got.length?`<div class="gmedal">${got.map(i=>`<span>${MEDALS[i][0]} <b>${MEDALS[i][1]}</b> 훈장!</span>`).join("")}</div>`:""}
       ${mileHit.length?`<p class="gbest">🎖 훈장 ${mc}개 돌파! 칭호 '${mileHit[mileHit.length-1][1]}' · 코인 +${mileCoin}</p>`:""}
@@ -2908,6 +2913,8 @@ function startGame(opts){ opts=opts||{};
     if(g.hitstop>0){ g.hitstop-=dt } else if(g.slowU>0) g.slowU-=dt;
     if(!g.over && (!g.paused || NM) && !(NM==="host" && (allChoosing()||g.lvR))) update(g.hitstop>0?dt*.06:g.slowU>0&&!NM?dt*.4:dt);   /* 5차 궁극기가 터지는 순간 아주 잠깐 멈춰요 */
     if(NM && !g.over) netTick(dt);
+    { const B=!modal.hidden&&mcard.querySelectorAll(".gans"); if(B&&B.length&&[...B].every(x=>x.disabled)){ g._ansStuck=(g._ansStuck||now); if(now-g._ansStuck>4000){ g._ansStuck=0; modal.hidden=true; mcard.className="gcard"; g.paused=false; last=performance.now() } } else g._ansStuck=0 }   /* 안전장치 (2026-10-27): 답을 고른 뒤 4초 넘게 문제 창이 그대로면 저절로 닫아요 (멈춤 방지) */
+    if(window.__pend&&!g.over&&g.t>=PLAY_MIN_T){ chargeGame(); g.fx.push({k:"label",x:g.p.x,y:g.p.y-110,text:`🎮 1판 시작! (오늘 ${day().plays}/${DAILY_PLAYS}판)`,life:2,max:2}) }   /* 1분이 지나면 판 수·입장료 차감 */
     if(NM==="client"&&!g.over&&g._snapT&&now-g._snapT>2500&&(!g._stallW||now-g._stallW>6000)){ g._stallW=now; showBanner("⚠ 방장 화면이 멈췄어요! 방장 친구는 게임 화면을 켜 두고, 다른 탭이나 앱으로 가지 마세요") }   /* 같이하기: 방장 기기가 멈추면 보스도 안 나오고 몬스터도 안 죽어요 → 알려 줘요 (2026-10-27) */
     draw();
     }catch(err){ if(!loop.errN||loop.errN<3){ loop.errN=(loop.errN||0)+1; console.error(err) } try{ ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over"; ctx.filter="none" }catch(e){} }

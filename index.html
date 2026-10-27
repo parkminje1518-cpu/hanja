@@ -1043,6 +1043,20 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .twH{margin:12px 0 6px;font-family:var(--f-ui);font-size:17px}.note.tw.ok{border-color:#3fcf8e;background:#effcf4;color:#14603a}.note.tw.ok b,.note.tw.ok span{color:#14603a!important}.note.tw.ok small{color:#1f8a52}
 @media (max-width:560px){.grow{font-size:15px;gap:6px}.grow .gtime{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.gs{font-size:12px;padding:1px 6px}.gs.spd,.gs.cdr{display:none}.gstat{gap:5px}}
 @media (max-height:520px) and (orientation:landscape){.ghud{gap:3px}.grow{font-size:15px;gap:8px}.grow .gtime{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.gs{font-size:12px;padding:1px 6px}.gs.spd,.gs.cdr{display:none}.gstat{gap:5px}.potBtn{left:auto!important;right:18px;bottom:14px}.burstBtn{left:auto!important;right:90px;transform:none!important;bottom:4px}}   /* 휴대폰 가로: 위 상태칸은 작게 · 물약·궁극기 버튼은 오른쪽 아래로 (캐릭터를 가리지 않게) */
+/* 게임 상단 막대를 얇게 (2026-10-27: 화면을 너무 많이 가린다는 의견) · 내용은 그대로, 크기·여백만 줄이고 배경을 옅게 */
+.ghud{gap:3px;padding-top:calc(env(safe-area-inset-top,0px) + 4px);padding-bottom:6px;background:linear-gradient(rgba(243,238,224,.38) 50%,rgba(243,238,224,0))}
+.grow{text-shadow:0 0 3px #fff,0 0 6px #fff,0 1px 0 #fff}   /* 배경을 옅게 해도 글자가 잘 보이게 흰 테두리 빛 */
+.gtool,.gpause{width:36px!important;height:36px!important;border-radius:10px!important;font-size:16px!important}
+.gxp{height:6px}
+.grow{font-size:16px;gap:10px}
+.ghp{height:16px;border-width:1.5px;border-radius:6px;width:min(220px,50%)}
+.ghpt{font-size:12px}
+.gs{font-size:12px;padding:1px 6px;border-radius:6px}
+.gs b{font-size:13px}
+.gstat{gap:5px}
+.gskl span{padding:0 5px 0 0}
+.gskl b{font-size:11px}
+.gskl img,.gskl svg,.gskl .ico{width:18px!important;height:18px!important}
 .gtool{pointer-events:auto;width:48px;height:48px;border-radius:12px;border:2px solid #f6c544;background:#2a2347;color:#fff;font-size:20px;margin-right:6px}
 .gtoolbox{pointer-events:auto;position:absolute;right:10px;top:118px;z-index:30;display:flex;flex-direction:column;gap:6px;padding:10px;border-radius:14px;background:rgba(30,26,52,.92);border:2px solid #f6c544;box-shadow:0 6px 20px rgba(0,0,0,.35);max-height:calc(100vh - 140px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .gtoolbox::-webkit-scrollbar{width:8px}.gtoolbox::-webkit-scrollbar-thumb{background:#f6c544;border-radius:4px}
@@ -1177,18 +1191,18 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10271201"></script>
-<script src="jobs.js?v=10271201"></script>
-<script src="maps.js?v=10271201"></script>
-<script src="art.js?v=10271201"></script>
-<script src="art2.js?v=10271201"></script>
-<script src="monsters.js?v=10271201"></script>
-<script src="jobfx.js?v=10271201"></script>
-<script src="words.js?v=10271201"></script>
-<script src="sayings.js?v=10271201"></script>
-<script src="sfx.js?v=10271201"></script>
+<script src="sprites.js?v=10271334"></script>
+<script src="jobs.js?v=10271334"></script>
+<script src="maps.js?v=10271334"></script>
+<script src="art.js?v=10271334"></script>
+<script src="art2.js?v=10271334"></script>
+<script src="monsters.js?v=10271334"></script>
+<script src="jobfx.js?v=10271334"></script>
+<script src="words.js?v=10271334"></script>
+<script src="sayings.js?v=10271334"></script>
+<script src="sfx.js?v=10271334"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10271201"></script>
+<script src="mp.js?v=10271334"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1261,8 +1275,9 @@ const stairMul = n => STAIR[stairOf(n)];
 function stairHtml(n){ if(n>=DAILY_SETS) return "오늘 공부 계단 끝까지 올랐어요!"; const k=stairOf(n), nx=(k+1)*STAIR_N;
   return `공부 계단 <b>${k+1}단계</b> · 코인 ×${STAIR[k]}${k<STAIR.length-1?` · ${nx+1}세트부터 ×${STAIR[k+1]}`:""}` }
 const GAME_COST = 50;     // 게임 입장료
-const DAILY_PLAYS = 20;   // 하루 게임 판 수
+const DAILY_PLAYS = 30;   // 하루 게임 판 수 (2026-10-27: 20 → 30 · 1분 넘게 해야 1판으로 셈)
 const HERO_EXP_RATE = 1.0;   /* 2개월 안에 끝까지 갈 수 있게 2배로 (원래 0.5) */ // 용사가 받는 경험치 비율 (게임 판 수를 늘린 만큼 성장은 천천히)
+const QUIZ_N = 8;        // 퀴즈 문제 수: 8문제로 고정 (2026-10-27 · 예전엔 5·10 중 고름 → 짧은 5문제만 반복하던 것 막기)
 const HINT_COST = 30;     // 힌트 가격 (2026-10-27: 2 → 30 · 만점 한 세트가 약 50코인이라 힌트는 아주 비싸게)
 const DAILY_COIN_MAX = 2500;   /* 2026-10-27: 2000 → 2500 (2개월 일정, 원래 1000) */   // 하루에 벌 수 있는 코인 (공부·획순·게임 모두 합쳐서)
 const TRACE_COIN = 5, TRACE_DAILY_MAX = 150, TRACE_PER_HZ = 2;   // 같은 글자는 하루 2번까지 코인
@@ -1371,7 +1386,7 @@ function capNote(){ return coinLeft()<=0?`오늘 코인 한도 ${DAILY_COIN_MAX}
 function grantSet(amount,raw,final,count){
   if(!raw&&!final) amount=amount*weekMul();
   const d=day(); P.stats.sets++;
-  if(!(amount>0)){ if(count) d.sets++; saveP(); return {got:0,stair:stairMul(d.sets),zero:true,counted:!!count,capped:false,limited:false,exp:count?addExp(5):0} }   /* count: 코인은 없어도 오늘 공부 세트로는 쳐요 (만점이 아니어도 60% 이상) */   /* 맞힌 게 없으면(모르겠어요만 누름) 코인·경험치 없음 (2026-10-26) */
+  if(!(amount>0)){ if(count) d.sets++; saveP(); return {got:0,stair:stairMul(d.sets),zero:true,counted:!!count,capped:false,limited:false,exp:0} }   /* 경험치도 코인과 같은 기준 (2026-10-27): 코인이 없으면 경험치도 없어요 */   /* count: 코인은 없어도 오늘 공부 세트로는 쳐요 (만점이 아니어도 60% 이상) */   /* 맞힌 게 없으면(모르겠어요만 누름) 코인·경험치 없음 (2026-10-26) */
   if(!final) amount=Math.max(1,Math.round(amount*(d.sets>=DAILY_SETS?STAIR[STAIR.length-1]:stairMul(d.sets))));
   if(d.sets>=DAILY_SETS){ saveP(); return {got:0,limited:true,exp:addExp(Math.round(amount*0.75))} }
   const st=stairMul(d.sets); d.sets++; const got=earn(amount); saveP();
@@ -1681,13 +1696,13 @@ function guide(start){
     {t:"오늘의 한자와 성적표", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:40px;color:#ffd36a;line-height:1">雨</span>첫 화면<br><b style="color:#ffd36a;font-weight:400">오늘의 한자</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✍️</span>기억해서 쓰면<br><b style="color:#ffd36a;font-weight:400">보너스 +10</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📊</span>내 기록의<br><b style="color:#ffd36a;font-weight:400">한자 성적표</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🎯</span>약한 한자가<br><b style="color:#ffd36a;font-weight:400">더 자주 나와요</b></div></div>`,
      x:`첫 화면에 날마다 <b>오늘의 한자</b>가 나와요. 기억해서 써 보면 보너스 코인을 받아요. (코인은 <b>하루 한 번</b>, 연습은 몇 번이든!)<br><b>내 기록</b>에서 주차별 정답률과 자주 틀린 한자를 볼 수 있어요.`, tip:"퀴즈와 게임 문제는 내가 <b>자주 틀린 한자</b>, 아직 덜 익힌 한자가 더 자주 나와요. 틀려도 괜찮아요, 그만큼 다시 만나요!"},
     {t:"코인 모으기", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px">${ico("coin")}<span>공부 1세트 끝내면<br><b style="color:#ffd36a;font-weight:400">코인 받기!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🔥</span><span>퀴즈를 연속으로<br>맞히면 <b style="color:#ffd36a;font-weight:400">더 많이!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📈</span><span>주차를 많이 고를수록<br><b style="color:#ffd36a;font-weight:400">최대 ×3!</b></span></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📅</span><span>많이 할수록<br><b style="color:#ffd36a;font-weight:400">공부 계단 UP!</b></span></div></div>`,
-     x:`퀴즈는 <b>만점</b>일 때 코인이 생겨요(60% 이상이면 오늘 공부 세트로는 쳐요). 낱말 만들기·한자 비·짝 맞추기·기억해서 쓰기도 틀리지 않고 해내야 받아요. 같은 주차는 하루 3번까지 코인을 다 받아요.<br>공부·획순·게임을 모두 합쳐 <b>하루 ${DAILY_COIN_MAX}코인</b>까지 벌 수 있어요.<br><b>공부 계단</b>: 6세트마다 한 계단씩 올라가서 코인이 늘어나요. (×0.4 → ×0.5 → ×0.6 → ×0.7 → <b>×0.8</b>)<br><b>많은 주차</b>를 함께 고르고, <b>높은 주차</b>까지 고를수록 코인이 늘어나요. (1주차만 ×1 → 1~10주차 ×1.7 → <b>1~26주차 전체 ×3</b>)`, tip:"주차 고르는 화면에 <b>코인 ×1.6</b>처럼 지금 배율이 보여요. 어려운 주차에 도전해 봐요!"},
+     x:`퀴즈는 <b>8문제 중 7개 이상</b> 맞히면 코인과 경험치가 생기고, <b>만점</b>이면 보너스를 더 받아요(60% 이상이면 오늘 공부 세트로는 쳐요). 낱말 만들기·한자 비·짝 맞추기·기억해서 쓰기도 틀리지 않고 해내야 받아요. 같은 주차는 하루 3번까지 코인을 다 받아요.<br>공부·획순·게임을 모두 합쳐 <b>하루 ${DAILY_COIN_MAX}코인</b>까지 벌 수 있어요.<br><b>공부 계단</b>: 6세트마다 한 계단씩 올라가서 코인이 늘어나요. (×0.4 → ×0.5 → ×0.6 → ×0.7 → <b>×0.8</b>)<br><b>많은 주차</b>를 함께 고르고, <b>높은 주차</b>까지 고를수록 코인이 늘어나요. (1주차만 ×1 → 1~10주차 ×1.7 → <b>1~26주차 전체 ×3</b>)`, tip:"주차 고르는 화면에 <b>코인 ×1.6</b>처럼 지금 배율이 보여요. 어려운 주차에 도전해 봐요!"},
     {t:"나의 용사 고르기", art:`<div class="gdHeroes">${HEROES.map((h,k)=>`<div class="gdHero ${k>0?"gdlock":""}">${spr(h.id,0)}${h.cls}<small>${h.role||""} · ${h.cost?h.cost+" 코인":"처음부터"}</small></div>`).join("")}</div>`,
      x:`첫 화면의 <b>용사</b>를 누르면 용사를 볼 수 있어요.<br>코인을 모아서 <b>새 용사</b>를 열어요. 용사마다 <b>맡은 역할</b>이 달라요!`, tip:"🛡 탱커 전사 · 🏹 원거리 딜러 궁수 · 🗡 암살자 도적 · 🔥 광역 딜러 마법사 · 🚩 지원가 해적 · 🌙 힐러 치유사 · 🖌 제어형 붓의 도사 · 🐾 소환사 조련사 · ⚙ 싸움꾼 메카닉<br>전사 말고는 모두 <b>500코인</b>이에요. 같이하기에서 역할을 나눠 보세요!"},
     {t:"용사 키우기와 전직", art:`<div class="gdBar"><span>게임을 하면 경험치가 쌓여 <b style="color:#ffd36a;font-weight:400">레벨 업!</b></span><div class="bar"><i></i></div></div><div class="gdTier">${[0,1,2,3,4].map(t=>`${t?'<span class="ar">➜</span>':""}<div>${spr(hid,t)}<em>${t?["","Lv 10","Lv 30","Lv 60","Lv 100"][t]:"처음"}</em>${t?t+"차":"견습"}</div>`).join("")}</div>`,
      x:`레벨이 오르면 <b>능력치 포인트</b>로 용사를 세게 만들어요.<br><b>Lv 10 · 30 · 60 · 100</b>이 되면 <b>전직 시험</b>을 볼 수 있어요.`, tip:"전직 시험은 공부한 주차의 한자 <b>5문제 중 4문제</b>를 맞히면 합격! 옷과 무기가 멋지게 바뀌고 새 기술이 생겨요."},
     {t:"게임 시작하기", n:2, art:`<div style="display:flex;flex-direction:column;gap:12px;align-items:center;width:100%"><div class="gdFlow"><div class="gdStep">${ico("coin")}입장료 ${GAME_COST}코인</div><div class="gdStep"><span style="font-size:36px">🎮</span>하루 ${DAILY_PLAYS}판</div></div><div class="gdMaps">${MAPS.map((m,k)=>`<span style="background:${MAPC[k]}">${m.name}<br><small>${m.diff}</small></span>`).join("")}</div></div>`,
-     x:`첫 화면에서 <b>게임 시작</b>을 눌러요. 하루 <b>${DAILY_PLAYS}판</b>까지 할 수 있어요.<br><b>맵</b>과 <b>퀴즈 범위</b>를 골라요. 어려운 맵일수록 경험치와 코인을 많이 줘요.`, tip:"퀴즈 범위를 <b>넓게</b> 고를수록 보상이 커져요. <b>1~26주차</b>는 경험치 ×2.2 · 게임 코인 ×1.6 · 부활 +1번!"},
+     x:`첫 화면에서 <b>게임 시작</b>을 눌러요. 하루 <b>${DAILY_PLAYS}판</b>까지 할 수 있어요. <b>1분 넘게</b> 해야 1판으로 세고 입장료가 빠져요(1분 안에 나가면 그대로 · 대신 보상도 없어요).<br><b>맵</b>과 <b>퀴즈 범위</b>를 골라요. 어려운 맵일수록 경험치와 코인을 많이 줘요.`, tip:"퀴즈 범위를 <b>넓게</b> 고를수록 보상이 커져요. <b>1~26주차</b>는 경험치 ×2.2 · 게임 코인 ×1.6 · 부활 +1번!"},
     {t:"게임 하는 방법", n:2, art:`<div class="gdPhone"><div class="hp"></div><img class="me" src="${SPRITE_URLS[hid]||""}" alt=""><div class="mob" style="left:70%;top:20%"></div><div class="mob" style="left:80%;top:60%"></div><div class="mob" style="left:22%;top:18%"></div><div class="gem" style="left:62%;top:52%"></div><div class="gem" style="left:36%;top:66%"></div><div class="joy"><div class="knob"></div></div><span class="hand">👆</span></div>`,
      x:`화면에 손가락을 대고 <b>끌면</b> 용사가 움직여요.<br><b>공격은 저절로!</b> 몬스터를 피하면서 반짝이는 <b>경험치 구슬</b>을 먹어요.`, tip:"빨간 <b>체력 막대</b>가 0이 되면 쓰러져요. 몬스터에게 둘러싸이지 않게 조심해요!"},
     {t:"레벨 업 카드 고르기", n:2, art:`<div class="gdCards"><div class="gdCard"><span class="lb">기술 카드</span><span class="h">天</span><div class="o"><span class="ok">하늘 천</span><span>땅 지</span><span>사람 인</span><span>날 일</span></div>정답! 고를 수 있어요</div><div class="gdCard dim"><span class="lb">기술 카드</span><span class="h">地</span><div class="o"><span>하늘 천</span><span>달 월</span><span>물 수</span><span>불 화</span></div>틀리면 못 골라요</div></div>`,
@@ -1913,7 +1928,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10271201"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10271334"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2055,7 +2070,7 @@ function learn(){
   <div class="row"><h2>무엇을 할까요?</h2><span class="meta">${full?"오늘 코인 보상 세트를 모두 받았어요. 공부는 계속할 수 있어요!":`오늘 ${d.sets}세트 · ${stairHtml(d.sets)}`}</span></div>
   <div class="acts">
     <button class="act memoAct" data-a="memo" ${p.length?"":"disabled"}><span class="ai mm">${ico("brush")}</span><span><strong>기억해서 쓰기 도전 <em class="memoStar">★ 코인 최고</em></strong><small>뜻과 소리만 보고 한자 모양을 떠올려 <b>획순대로</b> 써요 · 5글자</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(MEMO_MAX)}</span></span></button>
-    <button class="act" data-a="quiz" ${p.length?"":"disabled"}><span class="ai y">${ico("quiz")}</span><span><strong>퀴즈</strong><small>${P.set.qn}문제 · 만점이면 코인!</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(quizMax(P.set.qn))}</span></span></button>
+    <button class="act" data-a="quiz" ${p.length?"":"disabled"}><span class="ai y">${ico("quiz")}</span><span><strong>퀴즈</strong><small>${QUIZ_N}문제 · ${QUIZ_N-1}개 이상이면 코인 · 만점 보너스!</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(quizMax(P.set.qn))}</span></span></button>
     <button class="act" data-a="build" ${p.length?"":"disabled"}><span class="ai r">${ico("cards")}</span><span><strong>낱말 만들기</strong><small>뜻을 읽고 한자 조각을 골라 낱말 완성하기</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(BUILD_MAX)}</span></span></button>
     <button class="act" data-a="rain" ${p.length>=3?"":"disabled"}><span class="ai g">${ico("match")}</span><span><strong>한자 비</strong><small>떨어지는 뜻·소리 구름에 맞는 한자를 눌러 막아요!</small><span class="rw">${ico("coin","ci")}최대 +${nowCoin(RAIN_MAX)}</span></span></button>
     <button class="act" data-a="strokes" ${p.length?"":"disabled"}><span class="ai b">${ico("brush")}</span><span><strong>획순 쓰기</strong><small>획순을 보고 손가락으로 따라 쓰기</small><span class="rw">${ico("coin","ci")}한 글자 +${TRACE_COIN} (같은 글자는 하루 ${TRACE_PER_HZ}번 · 하루 ${TRACE_DAILY_MAX}까지)</span></span></button>
@@ -2090,7 +2105,7 @@ function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") r
   return {c,tag:"뜻(훈)",big:c.h,q:"이 한자의 뜻은?",opts:pick(o=>o.hun).map(o=>({text:o.hun,ok:o.hun===c.hun}))};
 }
 function quiz(list,{fromNotes=false}={}){
-  const N=P.set.qn;
+  const N=QUIZ_N;
   const src=shuffle(pickWeighted(list,N));
   const qs=src.map(c=>makeQ(c));
   let i=0, right=0, combo=0, pend=0, best=0, miss=[], busy=false, hintUsed=0; const WM=weekMul();
@@ -2101,7 +2116,7 @@ function quiz(list,{fromNotes=false}={}){
     $app.innerHTML = topbar(fromNotes?"오답 퀴즈":"학습 · 퀴즈") + `
     <div class="qtop">
       <div class="prog"><div class="pt"><span>학습 진행</span><b>${i+1} / ${N}</b></div><div class="bar"><i style="width:${i/N*100}%"></i></div></div>
-      <div class="reward" id="rw"><div class="eyebrow">REWARD</div><b>${ico("coin","ci")}+<span id="pend">${shown()}</span></b><small id="cmb">${combo>=2?`${combo}연속 정답!`:fromNotes?"연속 정답이면 더 많이":"만점이면 받아요!"}</small></div>
+      <div class="reward" id="rw"><div class="eyebrow">REWARD</div><b>${ico("coin","ci")}+<span id="pend">${shown()}</span></b><small id="cmb">${combo>=2?`${combo}연속 정답!`:fromNotes?"연속 정답이면 더 많이":`${N-1}개 이상이면 받아요!`}</small></div>
     </div>
     <div class="qwrap">
       <div class="qcard"><span class="qtag"># 문제 ${i+1} · ${q.tag}</span>${q.big?`<div class="qbig">${esc(q.big)}</div>`:""}<div class="qq">${esc(q.q)}</div><div class="qhint">4개 보기 중 알맞은 것을 골라요!</div></div>
@@ -2146,11 +2161,11 @@ function quiz(list,{fromNotes=false}={}){
   }
   function finish(){
     const perfect = right===N;
-    if(perfect) pend+=Math.round(10*WM*SM);
+    const pBonus=perfect?Math.round(pend*.3)+Math.round(10*WM*SM):0; pend+=pBonus;   /* 만점 보너스: 받은 코인의 30% + 10 (경험치도 같이 늘어요) */
     /* 찍기 막기 (2026-10-27, 선생님 요청): 퀴즈 코인은 만점일 때만 · 만점이 아니어도 60% 이상 맞히면 오늘 공부 세트(게임 열기 5세트)로는 쳐요 · 60% 미만은 세트에도 안 들어가요 (오답 퀴즈는 예전 그대로) */
-    const acc=N?right/N:0, cnt=acc>=.6; if(!perfect) pend=0;   /* 오답 퀴즈도 만점일 때만 */
-    let repNote=""; if(perfect&&!fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key="h"+[...P.set.sel].sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 같은 쉬운 주차만 반복해서 코인 모으기 막기 */
-    const accNote=perfect?repNote:acc>=.6?`${right} / ${N} · 만점이어야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 「카드로 익히기」로 공부하고 와요!`;
+    const acc=N?right/N:0, cnt=acc>=.6, coinOk=right>=Math.max(1,N-1); if(!coinOk) pend=0;   /* 2026-10-27: 7개 이상(한 개까지 틀려도) 코인·경험치 · 만점이면 보너스 */   /* 오답 퀴즈도 만점일 때만 */
+    let repNote=""; if(coinOk&&!fromNotes&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key="h"+[...P.set.sel].sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 같은 쉬운 주차만 반복해서 코인 모으기 막기 */
+    const accNote=perfect?repNote:coinOk?(repNote||`${right} / ${N} · 만점이면 보너스 코인을 더 받아요!`):acc>=.6?`${right} / ${N} · ${Math.max(1,N-1)}개 이상 맞혀야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 「카드로 익히기」로 공부하고 와요!`;
     const r = grantSet(pend,true,true,cnt); r.stair=SM||r.stair;
     if(perfect && !fromNotes && P.set.sel.length){ P.set.sel.forEach(w=>{if(!P.done.includes(w))P.done.push(w)}); saveP() }
     const um=[...new Map(miss.map(c=>[c.h,c])).values()];
@@ -2158,7 +2173,7 @@ function quiz(list,{fromNotes=false}={}){
     openModal(`<div class="eyebrow">COMPLETE</div><h3>${perfect?"만점! 학습 완료!":"학습 완료!"}</h3>
       <p>맞힌 문제 <b style="font-family:var(--f-ui);font-size:24px;color:var(--gold)">${right} / ${N}</b> · 최고 ${best}연속</p>
       <div class="mc">${ico("coin","ci")}+${r.got}</div>${accNote?`<p class="muted" style="color:#c8372d;font-weight:600">${accNote}</p>`:""}${r.exp?`<p class="expline">${heroById(P.hero).name} 경험치 +${r.exp}</p>`:""}
-      ${r.capped||coinLeft()<=0?`<p class="muted" style="color:#c8372d">${capNote()||"오늘 코인 한도에 거의 닿았어요"}</p>`:""}<p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?`만점 보너스 +${Math.round(10*WM*SM)} 포함 · `:""}${hintUsed?`힌트 -${hintUsed} 사용 · `:""}${WM>1&&perfect?`높은 주차 보너스 ×${WM} · `:""}공부 계단 ×${r.stair} · 오늘 ${day().sets}세트 세트`}</p>
+      ${r.capped||coinLeft()<=0?`<p class="muted" style="color:#c8372d">${capNote()||"오늘 코인 한도에 거의 닿았어요"}</p>`:""}<p class="muted">${r.limited?`오늘 코인 받는 세트 ${DAILY_SETS}개를 모두 썼어요. 내일 또 받을 수 있어요.`:`${perfect?`만점 보너스 +${pBonus} 포함 · `:""}${hintUsed?`힌트 -${hintUsed} 사용 · `:""}${WM>1&&coinOk?`높은 주차 보너스 ×${WM} · `:""}공부 계단 ×${r.stair} · 오늘 ${day().sets}세트 세트`}</p>
       ${um.length?`<div class="eyebrow">다시 볼 한자</div><div class="misslist">${um.map(c=>`<span><b>${esc(c.h)}</b>${esc(label(c))}</span>`).join("")}</div>`:""}
       <button class="btn gold big" id="take">${r.got?"코인 받기":"확인"}</button>
       <div class="btns" id="after" hidden><button class="btn ghost" id="again">한 번 더</button>${um.length?`<button class="btn red" id="rev">틀린 것 카드로</button>`:""}<button class="btn ghost" id="mm">메인으로</button></div>`);
@@ -2596,7 +2611,7 @@ function settings(){
   </section>`) + `
   <section class="panel">
     <div class="eyebrow">SETTINGS</div>
-    <div class="setrow"><div class="lab"><strong>퀴즈 문제 수</strong><small>한 세트에 나오는 문제 수</small></div><div class="seg2" id="qn">${[5,10].map(n=>`<button data-n="${n}" aria-pressed="${P.set.qn===n}">${n}문제</button>`).join("")}</div></div>
+    <div class="setrow"><div class="lab"><strong>퀴즈 문제 수</strong><small>한 세트에 나오는 문제 수</small></div><div class="seg2" id="qn"><button aria-pressed="true" disabled>${QUIZ_N}문제 (고정)</button></div></div>
     <div class="setrow"><div class="lab"><strong>정답 읽어 주기</strong><small>맞히면 "하늘 천"처럼 소리 내어 읽어 줘요</small></div>${sw("sv",P.set.voice)}</div>
     <div class="setrow"><div class="lab"><strong>효과음</strong><small>버튼, 정답, 코인, 게임 공격·스킬 소리</small></div>${sw("ss",P.set.sfx)}</div>
     <div class="setrow"><div class="lab"><strong>자동 물약</strong><small>보스 맵에서 체력이 35% 아래로 떨어지면 물약을 저절로 마셔요</small></div>${sw("sap",P.set.autoPot!==false)}</div>
@@ -2620,7 +2635,7 @@ function settings(){
   document.getElementById("deln").onclick=()=>document.getElementById("delc").hidden=true;
   document.getElementById("dely").onclick=()=>{deleteProfile(curId);toast("내 정보를 지웠어요");picker()};
   }
-  $app.querySelectorAll("#qn button").forEach(b=>b.onclick=()=>{P.set.qn=+b.dataset.n;saveP();settings()});
+  
   document.getElementById("sv").onclick=e=>{P.set.voice=!P.set.voice;saveP();e.currentTarget.setAttribute("aria-checked",P.set.voice)};
   document.getElementById("sb").onclick=e=>{P.set.bgm=P.set.bgm===false;saveP();e.currentTarget.setAttribute("aria-checked",P.set.bgm);SND.bgm(P.set.bgm?"home":null)};
   document.getElementById("ss").onclick=e=>{P.set.sfx=!P.set.sfx;saveP();e.currentTarget.setAttribute("aria-checked",P.set.sfx);sfx("tap")};
@@ -2635,4 +2650,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10271201"></script>
+<script src="game.js?v=10271334"></script>
