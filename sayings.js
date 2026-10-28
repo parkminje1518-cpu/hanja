@@ -832,6 +832,7 @@ function sayQuiz(list,cat,o){ o=o||{}; const N=Math.min(list.length*2,typeof QUI
   function finish(){ const perfect=right===N; if(perfect) pend+=Math.round(pend*.3)+Math.round(10*WM*SM);   /* 만점 보너스: 30% + 10 */
     const before=sayDoneWeeks(); if(rev&&perfect){ P.srev=P.srev||{}; o.review.forEach(w=>P.srev[cat+w]=Date.now()) } sayStamp();
     const acc=N?right/N:0, cnt=acc>=.6, coinOk=right>=Math.max(1,N-1); if(!coinOk) pend=0;   /* 2026-10-27: 7개 이상(한 개까지 틀려도) 코인·경험치 · 만점이면 보너스 */
+    if(o.fromNotes&&coinOk&&typeof day==="function"){ day().wPass=1; saveP() }   /* 오답 퀴즈 통과 → 오늘 게임 조건 (2026-10-28) */
     let nBonus=0; if(o.fromNotes&&coinOk&&pend>0&&new Set(list.map(x=>x.h)).size>=4){ nBonus=Math.round(pend*.3); pend+=nBonus }   /* 오답 퀴즈 보너스 ×1.3 (서로 다른 4개 이상) */
     let repNote=""; if(coinOk&&pend>0){ const dd=day(); dd.wq=dd.wq||{}; const key=(o.fromNotes?"n":"")+cat+(rev?"r":"")+[...(o.review||list.map(x=>x.w))].filter((v,i,A)=>A.indexOf(v)===i).sort((a,b)=>a-b).join(","), n=dd.wq[key]||0; dd.wq[key]=n+1; if(n>=3){ pend=Math.round(pend*.3); repNote="같은 주차는 하루 3번까지 코인을 다 받아요. 이제는 30%만! 다른 주차도 공부해 봐요" } }   /* 찍기 막기 (2026-10-27): 만점일 때만 코인 · 60% 이상이면 오늘 공부 세트로는 쳐요 */
     const accNote=perfect?repNote:coinOk?(repNote||`${right} / ${N} · 만점이면 보너스 코인을 더 받아요!`):acc>=.6?`${right} / ${N} · ${Math.max(1,N-1)}개 이상 맞혀야 코인을 받아요. 오늘 공부 세트에는 들어가요!`:`${right} / ${N} · 60% 이상 맞혀야 오늘 공부 세트에 들어가요. 먼저 카드로 익히고 와요!`;

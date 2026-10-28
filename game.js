@@ -342,6 +342,7 @@ function gameLobby(){
     openModal(`<h3>📚 공부 먼저 해요!</h3><p>오늘 학습을 <b>${STUDY_GATE}세트</b> 하면 게임이 열려요.</p><div class="mc" style="font-size:30px">${d0.sets||0} / ${STUDY_GATE} 세트</div><p class="muted">앞으로 <b>${n}세트</b> 남았어요. 퀴즈는 60% 이상 맞혀야 세트로 쳐요. 코인은 8문제 중 7개 이상 맞히면 받아요.</p><div class="btns"><button class="btn gold big" id="gateGo">학습하러 가기</button><button class="btn ghost" id="gateNo">닫기</button></div>`);
     document.getElementById("gateGo").onclick=()=>{ closeModal(); const b=document.getElementById("goLearn"); if(b) b.click(); else home() };
     document.getElementById("gateNo").onclick=()=>closeModal(); return }
+  if(typeof gateModal==="function"&&gateModal()) return;   /* 🔒 복습·오답 필수 (2026-10-28) */
   setMainSkill(); ensureMapLock(); if(!mapOpened(P.set.map||1)||!studyOK(P.set.map||1)){ let m=mapOpenN(); while(m>1&&!studyOK(m)) m--; P.set.map=m; saveP() }
   const best = P.best, d = day();
   const left = Math.max(0, DAILY_PLAYS - d.plays);
@@ -606,18 +607,20 @@ const PLAY_MIN_T = 60;
 function wrongPool(){ const H=(P.wrong||[]).map(h=>UNIQUE.find(c=>c.h===h)).filter(Boolean), S=(P.swrong||[]).map(h=>typeof sayFind==="function"?sayFind(h):null).filter(Boolean); return [...H,...S] }
 /* 게임 전 오답 3문제: 다 맞히면 이번 판 공격력 +8% · 경험치 +10% (틀려도 입장은 그대로) */
 function wrongWarmup(go){ const W=wrongPool(); if(!W.length||(typeof NM!=="undefined"&&NM)) { window.__wBuff=0; return go() }
-  const qs=shuffle(W).slice(0,Math.min(3,W.length)).map(c=>({c,q:makeQ(c,{short:true})})); let i=0, ok=0, fin=false; window.__wBuff=0;
+  const MUST=typeof rvMode==="function"&&rvMode()==="must"&&!(typeof isAdmin==="function"&&isAdmin());   /* 필수 모드: 3문제를 모두 맞혀야 출발 (틀리면 다른 오답 문제가 나와요) */
+  const qs=shuffle(W).slice(0,Math.min(3,W.length)).map(c=>({c,q:makeQ(c,{short:true})})); let i=0, ok=0, fin=false, miss=0; const NQ=qs.length; window.__wBuff=0;
   const leave=()=>{ if(fin) return; fin=true; closeModal(); go() };   /* 고침 (2026-10-27): 한 문제 풀고 바로 '건너뛰기'를 누르면 남은 문제가 게임 안에서 계속 뜨던 문제 · 두 번 시작되지 않게 */
   const show=()=>{ if(fin) return; const {c,q}=qs[i];
-    openModal(`<h3>📝 출전 전 오답 복습 (${i+1} / ${qs.length})</h3><p class="muted" style="margin:0 0 6px">전에 틀린 ${c.cat?"사자성어·속담":"한자"}예요. ${qs.length}문제 다 맞히면 이번 판 <b>공격력 +8% · 경험치 +10%</b>!</p>
+    openModal(`<h3>📝 출전 전 오답 복습 (${MUST?Math.min(ok+1,NQ):i+1} / ${NQ})</h3><p class="muted" style="margin:0 0 6px">전에 틀린 ${c.cat?"사자성어·속담":"한자"}예요. ${NQ}문제 다 맞히면 이번 판 <b>공격력 +8% · 경험치 +10%</b>!</p>
       ${q.desc?`<p style="font-family:var(--f-ui);font-size:17px;line-height:1.5;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;margin:4px 0">${esc(q.desc)}</p>`:""}${q.big?`<div class="gq">${esc(q.big)}</div>`:""}<p style="font-family:var(--f-ui);font-size:20px;line-height:1.45;margin:4px 0">${esc(q.q)}</p>
       <div class="gopts two">${q.opts.map((o,j)=>`<button class="gans ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div>
-      <div class="btns"><button class="btn ghost" id="wwSkip">건너뛰고 바로 출발</button></div>`);
-    document.getElementById("wwSkip").onclick=leave;
+      ${MUST?`<p class="muted" style="margin:6px 0 0">🔒 ${NQ}문제를 <b>모두 맞혀야</b> 출발해요 (지금 ${ok}/${NQ})${miss?` · 틀린 문제 대신 다른 오답이 나와요`:""}</p>`:`<div class="btns"><button class="btn ghost" id="wwSkip">건너뛰고 바로 출발</button></div>`}`);
+    { const sk=document.getElementById("wwSkip"); if(sk) sk.onclick=leave }
     mcard.querySelectorAll(".gans").forEach(b=>b.onclick=()=>{ const r=!!q.opts[+b.dataset.j].ok; mcard.querySelectorAll(".gans").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.j].ok) x.classList.add("ok") });
       trackAns(c,r); P.stats.q++; if(r){ ok++; P.stats.c++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) } saveP();
-      setTimeout(()=>{ if(fin) return; i++; if(i<qs.length) return show(); const all=ok===qs.length; window.__wBuff=all?1:0;
-        openModal(`<h3>${all?"🔥 오답 복습 완벽!":"📝 오답 복습 끝"}</h3><p>${ok} / ${qs.length} 맞혔어요.</p><p>${all?"이번 판 <b>공격력 +8% · 경험치 +10%</b>로 출발해요!":"다 맞히면 보너스를 받아요. 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요!"}</p><div class="btns"><button class="btn gold big" id="wwGo">⚔ 출발!</button></div>`);
+      if(!r&&MUST){ miss++; const pool=shuffle(W.filter(x=>x.h!==c.h)), nc=pool[0]||c; qs.push({c:nc,q:makeQ(nc,{short:true})}); ok-=0 }
+      setTimeout(()=>{ if(fin) return; i++; if(i<qs.length) return show(); const all=MUST?true:ok===qs.length; window.__wBuff=(MUST?miss===0:all)?1:0;
+        openModal(`<h3>${window.__wBuff?"🔥 오답 복습 완벽!":"📝 오답 복습 끝"}</h3><p>${MUST?`${NQ}문제를 모두 맞혔어요!${miss?` (틀린 ${miss}번은 다른 문제로 다시 풀었어요)`:""}`:`${ok} / ${qs.length} 맞혔어요.`}</p><p>${window.__wBuff?"이번 판 <b>공격력 +8% · 경험치 +10%</b>로 출발해요!":MUST?"한 번에 다 맞히면 보너스를 받아요. 출발해요!":"다 맞히면 보너스를 받아요. 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요!"}</p><div class="btns"><button class="btn gold big" id="wwGo">⚔ 출발!</button></div>`);
         document.getElementById("wwGo").onclick=leave }, r?700:1500) }) };
   show() }   // 이 시간(초)을 넘게 해야 1판으로 셈
 const fmtT = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
@@ -2309,7 +2312,7 @@ function startGame(opts){ opts=opts||{};
   function partRes(){
     const t=g.t, coop=NM?1.3:1, stars=Math.min(3,g.bossKills);
     const b11P=BX?(()=>{ const e=g.en.find(x=>x.b11); if(!e) return 0; const f=1-Math.max(0,e.hp)/e.max; return BX.S.ph===2?.5+f*.5:f*.5 })():0;
-    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1;
+    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=(qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1)*(g.softHalf?.5:1);
     const exp=Math.round((g.kills*(BX?1:1.25)+Math.min(t,480)/3+g.bossKills*150+Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul);
     const qCoin=Math.round(((t>=60?QR.coin+SR.coin+(Q2.coin||0):0)+(g.bqC||0))*qMul);
     const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1));
@@ -2343,7 +2346,7 @@ function startGame(opts){ opts=opts||{};
     /* 찍기 막기 (2026-10-27): 게임 안 문제(카드·약점·기둥 등) 정답률에 따라 경험치와 퀴즈 범위 코인이 달라져요
        80% 이상 = 그대로 · 60~79% = 60% · 40~59% = 30% · 40% 미만 = 10% (문제를 3개 넘게 풀었을 때만 적용) */
     const freeRun=!!window.__pend; window.__pend=0;   /* 1분 안에 끝난 판: 판 수·코인 그대로 · 보상 없음 */
-    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=(qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1)*(freeRun?0:1);
+    const qAcc=g.qN>=3?g.qOk/g.qN:1, qMul=(qAcc>=.8?1:qAcc>=.6?.6:qAcc>=.4?.3:.1)*(freeRun?0:1)*(g.softHalf?.5:1);   /* 부드럽게 모드: 오늘 복습 안 했으면 절반 */
     const gotExp = addExp(Math.round((g.kills*(BX?1:1.25) + Math.min(rec.t,480)/3 + (win?200:0) + g.bossKills*150 + Math.round(b11P*300))*MAP.exp*QR.exp*SR.exp*(Q2.exp||1)*coop*qMul));
     const qCoin = Math.round(((rec.t>=60 ? QR.coin+SR.coin+(Q2.coin||0) : 0)+(g.bqC||0))*qMul);   // 같이하기 보너스 문제 코인 포함
     const sCoin=Math.round(gameCoins(MAP.id,stars)*coop*(QR.cm||1)*(SR.cm||1)*(Q2.cm||1)*difCoinX(MAP.dif)*(MAP.dif?1+Math.min(.5,((g.padMax||1)-1)*.35):1)), fCoin=(firstClear?firstClearCoin(MAP.id):0)+(newDif&&MAP.dif>=1?Math.round(firstClearCoin(MAP.id)*difCoinX(MAP.dif)):0), want=freeRun?0:Math.round((sCoin+rCoin)*qMul)+qCoin+fCoin, gotCoin=earn(want);   /* 2026-10-27: 보스 처치 코인에도 게임 속 문제 정답률 배율 (첫 클리어 코인은 그대로) */   // 하루 코인 한도까지만
@@ -3000,6 +3003,7 @@ function startGame(opts){ opts=opts||{};
 
   let last=performance.now(), raf=0;
   /* ===== 렉 기록기 (2026-10-28 · 선생님 모드 · 11단계): 실제 기기에서 어디가 무거운지 재요 ===== */
+  g.softHalf=!NM&&typeof softHalf==="function"&&softHalf();   /* 부드럽게 모드 (2026-10-28) */
   const PF=(BX&&typeof isAdmin==="function"&&isAdmin())?{seg:{},cur:null,part:{}}:null;
   if(PF){ for(const k of ["floor","ambience","drawGround","drawBoss","drawOver","drawHUD","drawMyGauge"]){ const f=BX[k]; if(typeof f!=="function") continue; BX[k]=function(){ const t0=performance.now(); try{ return f.apply(this,arguments) } finally{ PF.part[k]=(PF.part[k]||0)+performance.now()-t0 } } } }
   function pfKey(){ const S=BX.S; if(S.ph!==2) return "1페이지"; const T=(typeof B11_TOD!=="undefined"&&B11_TOD[S.tod])||{n:"?"}; return "2페이지 "+T.n }
