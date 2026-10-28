@@ -1237,7 +1237,17 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .cardmap{margin-top:12px}.cmh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-family:var(--f-ui);margin-bottom:6px}.cmh span{color:var(--muted);font-size:14px}
 .cardrow{display:flex;gap:8px;flex-wrap:wrap}
 .cardsum{font-family:var(--f-ui);font-size:16px;margin:8px 0}
-.lvk.rec{box-shadow:0 0 0 3px #ffd36a,0 0 22px rgba(255,211,106,.55)!important;position:relative}.lvrec{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#ffe58a,#f0a820);color:#3a1a00;font:700 14px var(--f-ui),sans-serif;padding:3px 12px;border-radius:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}.lvpow{display:block;margin-top:4px;font-size:13px;color:#cfe8ff}.lvpow b{color:#7dff9a}.game.bx .gbanner{margin-top:64px}</style>
+.lvk.rec{box-shadow:0 0 0 3px #ffd36a,0 0 22px rgba(255,211,106,.55)!important;position:relative}.lvrec{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#ffe58a,#f0a820);color:#3a1a00;font:700 14px var(--f-ui),sans-serif;padding:3px 12px;border-radius:12px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2}.lvpow{display:block;margin-top:4px;font-size:13px;color:#cfe8ff}.lvpow b{color:#7dff9a}.game.bx .gbanner{margin-top:64px}.pfBox{position:fixed;inset:5% 4%;z-index:9999;background:#1d1530;border:3px solid #ffd36a;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;color:#fff;font-family:var(--f-ui)}.pfBox textarea{flex:1;font:13px/1.45 monospace;background:#0e0a18;color:#d8ffe0;border:1px solid #555;border-radius:8px;padding:8px}
+.shTabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.shTabs button{width:auto;min-height:0;margin:0;box-shadow:none;border:2px solid var(--line);border-radius:999px;background:var(--bg2);padding:6px 12px;color:inherit;font-family:var(--f-ui);font-size:15px;cursor:pointer}.shTabs button.on{border-color:#ffd36a;background:rgba(255,211,106,.18)}
+.shGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.shItem{width:auto;min-height:0;margin:0;box-shadow:none;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--line);border-radius:14px;background:var(--bg2);color:inherit;font-family:var(--f-ui);cursor:pointer}.shItem b{font-weight:400;font-size:15px}.shItem small{font-size:12px;opacity:.85}.shItem.own small{color:#5ee07a}.shItem.on{border-color:#ffd36a;box-shadow:0 0 10px rgba(255,211,106,.5)}.shIc{height:52px;display:flex;align-items:center;justify-content:center}
+.cfr{display:inline-block;padding:3px 12px;border-radius:999px;border:3px solid var(--c1);background:#2a1d3a;color:#fff;font-family:var(--f-ui);font-size:14px;box-shadow:0 0 0 2px var(--c2) inset}.cbg{display:inline-block;border-radius:8px;border:2px solid rgba(255,255,255,.4)}
+.baseRoom{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;border:3px solid #6a4a2a;box-shadow:0 6px 18px rgba(0,0,0,.35)}.brWall{position:absolute;inset:0 0 40% 0}.brFloor{position:absolute;inset:60% 0 0 0;box-shadow:inset 0 6px 10px rgba(0,0,0,.25)}
+.brShelf{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:80%}.brShelf>span{background:rgba(40,24,10,.78);color:#ffe7b0;border-radius:8px;padding:3px 8px;font-family:var(--f-ui);font-size:13px}.brShelf b{color:#fff;font-weight:400}.brShelf .tPill{margin:0}
+.brSpot{position:absolute;transform:translate(-50%,-50%);width:auto;min-width:52px;min-height:52px;margin:0;padding:2px;box-shadow:none;border:2px dashed rgba(255,255,255,.55);border-radius:12px;background:rgba(0,0,0,.12);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center}.brSpot.has{border-color:transparent;background:transparent}.brSpot.sel{border:3px solid #ffd36a;background:rgba(255,211,106,.25)}
+.brH{margin:14px 0 6px;font-size:17px}
+.bnGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}.bnPack{width:auto;min-height:0;margin:0;box-shadow:none;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;border:2px solid var(--line);border-radius:14px;background:var(--bg2);color:inherit;font-family:var(--f-ui);text-align:left;cursor:pointer}.bnPack.own{border-color:#5ee07a}.bnIc{font-size:24px}.bnPack b{font-weight:400;font-size:17px}.bnPack small{font-size:12px;opacity:.8}.bnPack i{font-style:normal;font-size:13px;color:#ffd36a}
+.bnList{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}.bnCard{display:flex;flex-direction:column;gap:3px;background:#fff8e8;color:#2b2216;border-radius:12px;padding:10px 12px;font-family:var(--f-ui);position:relative}.bnCard b{font-size:18px;font-weight:400}.bnCard span{font-size:14px}.bnCard small{font-size:12px;color:#8a6a2a}.bnCard.ok{box-shadow:inset 0 0 0 3px #5ee07a}.bnCard i{position:absolute;right:8px;top:6px;font-style:normal;font-size:12px;color:#2f8a5a}
+</style>
 
 <div id="moveBar"></div>
 <div id="app"></div>
@@ -1247,18 +1257,19 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10272348"></script>
-<script src="jobs.js?v=10272348"></script>
-<script src="maps.js?v=10272348"></script>
-<script src="art.js?v=10272348"></script>
-<script src="art2.js?v=10272348"></script>
-<script src="monsters.js?v=10272348"></script>
-<script src="jobfx.js?v=10272348"></script>
-<script src="words.js?v=10272348"></script>
-<script src="sayings.js?v=10272348"></script>
-<script src="sfx.js?v=10272348"></script>
+<script src="sprites.js?v=10281022"></script>
+<script src="jobs.js?v=10281022"></script>
+<script src="maps.js?v=10281022"></script>
+<script src="art.js?v=10281022"></script>
+<script src="art2.js?v=10281022"></script>
+<script src="monsters.js?v=10281022"></script>
+<script src="jobfx.js?v=10281022"></script>
+<script src="words.js?v=10281022"></script>
+<script src="sayings.js?v=10281022"></script>
+<script src="shop.js?v=10281022"></script>
+<script src="sfx.js?v=10281022"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10272348"></script>
+<script src="mp.js?v=10281022"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1586,7 +1597,10 @@ function titleBlock(small){
 function topbar(title){ const hk=String(title).startsWith("학습 · ")?null:title; return `<header class="top"><button class="back" id="back">← 메인으로</button><div class="ttl">${title}</div>${hk&&HELP[hk]?`<button class="helpQ" data-help="${hk}" aria-label="이 화면 도움말">?</button>`:""}${coinPill()}</header>` }
 /* ===== 화면마다 ? 도움말: 눌러 보면 칸을 하나씩 반짝이며 "여기는 무엇을 하는 곳인지" 알려 줘요 ===== */
 const HELP={
-  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#guideBtn","사용 설명서","시작·학습·용사·게임·보스 칸으로 나뉘어 있어요. 궁금한 칸만 골라 읽어요."],["#tBtn","🏷 칭호","💪 효과 칭호와 👀 보이는 모양을 따로 골라요. 👑 보스를 쓰러뜨리면 멋진 보스 칭호가 생겨요!"],["#goRv","🔁 오늘의 복습","익힌 것을 잊기 전에 다시 물어봐요 (1·3·7·14·30일). 오래 안 하면 흐려져서 지식의 힘이 줄어요!"],["#sendRep","📤 선생님께 기록 보내기","선생님 화면에 우리 반 현황판이 켜져 있을 때 누르면 내 기록이 바로 들어가요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
+  "상점":[[".shTabs","종류 고르기","칭호 테두리 · 발밑 효과 · 펫을 골라 봐요. 내 기지와 보너스 학습도 여기서 가요."],[".shGrid","물건","코인으로 사요. 산 물건은 눌러서 끼웠다 뺐다 해요. 보기만 바뀌고 힘은 그대로예요."]],
+  "내 기지":[[".baseRoom","내 방","＋ 칸을 눌러 장식을 놓아요. 가운데에는 익힌 한자·말·보스 카드가 자동으로 전시돼요."],[".brH","벽지·바닥","코인으로 사서 바꿔요."]],
+  "보너스 학습":[[".bnGrid","묶음","배운 말과 비슷한 말·반대 말을 12개씩 모아 둔 묶음이에요. 한 번 열면 계속 공부해요."]],
+  "홈":[["#who","내 이름과 칭호","내 이름 옆에 모은 칭호가 붙어요."],["#goLearn","학습하기","한자·사자성어·속담을 공부해요. 공부를 끝낼 때마다 코인이 생겨요."],["#goGame","게임 시작","모은 코인으로 몬스터 대작전에 들어가요. 보스 4마리를 물리치면 클리어!"],["#heroChip","내 용사","용사를 고르고, 레벨을 올리고, 전직해서 세게 만들어요."],[".statusFold","오늘의 기록","오늘 공부·게임한 양과 오늘의 한자가 모여 있어요."],['[data-go="bcard"]',"보스 카드","보스를 잡으면 카드가 모여요. 동·은·금 120장!"],['[data-go="dex"]',"도감","익힌 한자·사자성어·속담을 모아 봐요."],['[data-go="notes"]',"오답 노트","틀린 한자만 다시 연습해요. 3번 연속 맞히면 '극복!'"],['[data-go="rec"]',"내 기록","주차별 정답률과 만점 도장을 봐요."],["#guideBtn","사용 설명서","시작·학습·용사·게임·보스 칸으로 나뉘어 있어요. 궁금한 칸만 골라 읽어요."],["#tBtn","🏷 칭호","💪 효과 칭호와 👀 보이는 모양을 따로 골라요. 👑 보스를 쓰러뜨리면 멋진 보스 칭호가 생겨요!"],["#goRv","🔁 오늘의 복습","익힌 것을 잊기 전에 다시 물어봐요 (1·3·7·14·30일). 오래 안 하면 흐려져서 지식의 힘이 줄어요!"],["#sendRep","📤 선생님께 기록 보내기","선생님 화면에 우리 반 현황판이 켜져 있을 때 누르면 내 기록이 바로 들어가요."],['[data-go="shop"]',"🛍 상점","코인으로 칭호 테두리·발밑 효과·펫을 사요. 보너스 학습 묶음도 열 수 있어요."],['[data-go="base"]',"🏠 내 기지","코인으로 내 방을 꾸며요. 익힌 한자와 보스 카드가 전시돼요."],["#helpFab","어디서든 ?","화면 위쪽 ? 를 누르면 그 화면 설명이 나와요. 자세한 건 사용 설명서 목차에서!"]],
   "학습하기":[[".ltabs","무엇을 공부할까?","한자 · 사자성어 · 속담 중에서 골라요."],[".weeks","주차 고르기","공부할 주차 번호를 눌러요. 여러 개 골라도 돼요. ★는 그 주차 만점!"],["#selAll","한 번에 고르기","전체 선택 · 전체 해제 버튼이에요."],[".acts","공부 방법","카드, 퀴즈, 낱말 만들기, 한자 비, 쓰기 중에서 골라요. 잘 해내야 코인을 받아요 (퀴즈 8개 중 7개 · 카드는 연습용)."],[".memoAct","기억해서 쓰기 도전","모양을 외워 획순대로 써요. 제한 시간(10초+획마다 3초) · 실수 1번까지 · 다른 화면에 다녀오면 실패!"]],
   "게임 · 몬스터 대작전":[[".pickHero","출전 용사","이번 판에 나갈 용사를 골라요."],[".engBar","🔖 한자 룬","익힌 한자를 룬으로 새기면 용사가 세져요. '룬 새기기'를 눌러 칸을 채워요."],[".mpP","친구와 같이 하기","방을 만들거나 코드를 넣어 친구와 함께 싸워요."],[".qrgrid","한자 퀴즈 범위","게임 속 퀴즈에 나올 주차예요. 넓을수록 보상이 커요. 단, 그 범위에서 익힌 만큼만 받아요!"],[".mapgrid","맵 고르기","갈 맵을 골라요. 최종 보스를 잡으면 다음 맵 열쇠가 나와요. 익힌 한자·사자성어·속담도 맵마다 5개씩 더 있어야 열려요."],[".difrow","도전 단계","보통 → 어려움 → 지옥. 어려울수록 보상과 카드 등급이 올라가요."],[".mapGuide","맵 도감","이 맵의 몬스터와 보스, 보스 고유 패턴 피하는 법을 미리 봐요."],["#go","입장!","코인을 내고 출발해요. 들어가기 전에 용사를 한 번 더 고를 수 있어요."]],
   "룬":[[".engSlots.big","룬 소켓","여기에 한자 룬을 새겨요. 3칸(4차 전직하면 4칸)이에요. 칸을 누르면 빠져요."],[".engList","익힌 한자","6번 이상 맞힌 한자예요. 눌러서 칸에 넣어요. 아래 글씨는 그 한자가 주는 힘이에요."],[".engList .engH","등급","테두리 색이 등급이에요. 동 3번 → 은 8번 → 금 15번 → 빛나는 금 15번 맞히면 세져요."],[".engHints","숨은 조합 힌트","어울리는 두 한자를 같이 새기면 특별한 힘이 더해져요. 수수께끼 힌트를 읽고 8가지를 찾아봐요! ✔ 표시는 두 한자를 이미 익혔다는 뜻이에요."],["#engOk","새기기","다 골랐으면 눌러요. 게임 화면 체력바 옆에 새긴 룬이 보여요."]],
@@ -1892,6 +1906,8 @@ function guide(start){
      x:`첫 화면에서 <b>학습하기</b>를 눌러요.<br>공부할 <b>주차 번호</b>를 눌러서 골라요. 여러 개 골라도 돼요.`, tip:"<b>★</b> 표시는 그 주차 퀴즈에서 <b>만점</b>을 받았다는 뜻이에요."},
     {t:"공부하는 방법 5가지", n:1, art:`<div class="gdIcons"><div><span class="em">🃏</span><b>카드</b><span class="gdD">보면서 외워요 · 연습용</span></div><div><span class="em">❓</span><b>퀴즈</b><span class="gdD">8문제 중 <b>7개</b>면 코인</span></div><div><span class="em">🧩</span><b>낱말 만들기</b><span class="gdD">한자 조각 맞추기</span></div><div><span class="em">🌧</span><b>한자 비</b><span class="gdD">구름 20개 막기</span></div><div><span class="em">✍</span><b>따라 쓰기</b><span class="gdD">획순 연습용</span></div><div><span class="em">🧠</span><b>기억해서 쓰기</b><span class="gdD">코인 최고!</span></div></div>`,
      x:`<span class="gdLines"><span class="gdL">🪙 <b>잘 해내야</b> 코인을 받아요. 카드·따라 쓰기는 연습이라 코인이 없어요.</span><span class="gdL">🧠 <b>기억해서 쓰기</b>: 시간 안에, <b>실수 1번까지</b>. 다른 화면에 다녀오면 실패!</span><span class="gdL">🌧 <b>한자 비</b>: 목숨 <b>5개</b>. 막 누르면 버튼이 잠겨요.</span></span>`, tip:"낱말 만들기에서 안 배운 한자는 회색 칸에 미리 채워져 있어요. 고른 주차 한자만 찾으면 돼요!"},
+    {t:"🛍 코인 쓰는 곳", n:1, art:`<div class="gdIcons"><div><span class="em">🏷</span><b>꾸미기 상점</b><span class="gdD">칭호 테두리·발밑 효과·펫 · 보기만 바뀌어요</span></div><div><span class="em">🏠</span><b>내 기지</b><span class="gdD">벽지·바닥·장식으로 방 꾸미기</span></div><div><span class="em">📚</span><b>보너스 학습</b><span class="gdD">비슷한 말·반대 말 묶음 열기</span></div><div><span class="em">❤</span><b>이어하기권</b><span class="gdD">쓰러지면 코인 + 문제 맞히기로 다시!</span></div></div>`,
+     x:`<span class="gdLines"><span class="gdL">💪 코인으로 <b>힘을 살 수는 없어요</b>. 세지려면 공부해서 익혀요!</span><span class="gdL">❤ 이어하기권: 한 판에 2번까지 (100 → 200코인) · <b>문제를 맞혀야</b> 일어나요 · 틀리면 절반 돌려받아요.</span><span class="gdL">📚 보너스 학습 퀴즈를 7개 이상 맞히면 코인을 조금 돌려받아요 (묶음마다 하루 한 번).</span></span>`, tip:"같이하기에서는 친구에게도 내 테두리·발밑 효과·펫이 보여요!"},
     {t:"📜 사자성어·속담 넓게 알기", n:1, art:`<div class="gdIcons"><div><span class="em">🏠</span><b>생활 예시</b><span class="gdD">말마다 여러 상황 · 퀴즈에 골고루 나와요</span></div><div><span class="em">🤝</span><b>비슷한 말</b><span class="gdD">뜻이 닮은 말도 함께 알아요</span></div><div><span class="em">↔</span><b>반대 말</b><span class="gdD">뜻이 거꾸로인 말과 비교해요</span></div><div><span class="em">★</span><b>우리가 배우는 말</b><span class="gdD">★ 붙은 말을 누르면 그 설명으로 가요</span></div></div>`,
      x:`<span class="gdLines"><span class="gdL">🃏 카드를 뒤집거나 📖 도감에서 말을 누르면 <b>비슷한 말·반대 말</b>이 나와요.</span><span class="gdL">🔄 도감의 「다른 상황 보기」로 <b>여러 생활 예시</b>를 넘겨 봐요.</span><span class="gdL">💡 예: 땅 짚고 헤엄치기 🤝 누워서 떡 먹기 ↔ 하늘의 별 따기</span></span>`, tip:"비슷한 말을 함께 알면 뜻이 더 오래 기억나요. 반대 말과 견주면 뜻이 또렷해져요!"},
     {t:"오늘의 한자와 성적표", art:`<div class="gdFlow"><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-family:'Noto Serif KR',serif;font-weight:900;font-size:40px;color:#ffd36a;line-height:1">雨</span>첫 화면<br><b style="color:#ffd36a;font-weight:400">오늘의 한자</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">✍️</span>기억해서 쓰면<br><b style="color:#ffd36a;font-weight:400">보너스 +10</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">📊</span>내 기록의<br><b style="color:#ffd36a;font-weight:400">한자 성적표</b></div><div class="gdStep" style="min-width:0;flex:1;padding:10px 6px;font-size:16px"><span style="font-size:36px">🎯</span>약한 한자가<br><b style="color:#ffd36a;font-weight:400">더 자주 나와요</b></div></div>`,
@@ -1959,7 +1975,7 @@ function guide(start){
   /* 설명서는 큰 칸(학습하기 · 게임하기 …) → 작은 칸 → 쪽 으로 나눠져 있어요 */
   const GRP=[["처음","🌟","처음 왔다면 여기부터"],["학습하기","📚","한자 공부 · 코인 · 기록"],["게임하기","🎮","용사 · 게임 · 보스 · 한자의 힘 · 친구"],["기타","🗂","다른 메뉴"]];
   const CHS=[["시작","🌟","지혜 탐험대 둘러보기","처음"],["공부하기","📖","주차 고르기 · 공부 방법","학습하기"],["코인과 기록","🪙","코인 모으기 · 오늘의 한자 · 성적표","학습하기"],["용사","🦸","용사 고르기 · 키우기 · 전직","게임하기"],["게임 기본","🕹","시작 · 조작 · 레벨 업 · 오리진","게임하기"],["보스","👑","보스 · 경고 표시 · 패턴","게임하기"],["한자의 힘","🔖","룬 · 약점 한자 · 극복","게임하기"],["보상과 맵","🗺","코인 · 천공 맵 · 도전 단계 · 카드","게임하기"],["같이하기","👥","친구와 함께 싸우기","게임하기"],["기타","🗂","도감 · 오답 노트 · 내 기록","기타"]];
-  const CHOF={"지혜 탐험대에 온 걸 환영해요!":"시작","📚 모르면 어려워요! ① 익힌 것":"게임 기본","② 익힌 만큼 세져요":"게임 기본","③ 틀리면 어떻게 돼요?":"게임 기본","중간에 그만두면?":"게임 기본","공부할 주차 고르기":"공부하기","공부하는 방법 5가지":"공부하기","📜 사자성어·속담 넓게 알기":"공부하기","오늘의 한자와 성적표":"코인과 기록","코인 모으기":"코인과 기록","나의 용사 고르기":"용사","용사 키우기와 전직":"용사","게임 시작하기":"게임 기본","게임 하는 방법":"게임 기본","레벨 업 카드 고르기":"게임 기본","오리진 스킬 (위기 탈출!)":"게임 기본","게임으로 코인 벌기":"보상과 맵","하늘로 도전! 천공 맵":"보상과 맵","도전 단계와 보스 카드":"보상과 맵","보스와 보물, 위험 신호":"보스","보스의 기술과 필살기":"보스","경고 표시 읽는 법":"보스","보스가 더 똑똑해졌어요!":"보스","보스 약점 한자":"한자의 힘","한자 룬 (한자 실력 = 힘)":"한자의 힘","5차 각성 (누가 봐도 5차!)":"용사","보스 공격력과 방어율 무시":"용사","틀린 한자 극복":"한자의 힘","🏷 칭호 모으기":"한자의 힘","🔁 복습 시계":"한자의 힘","오답 노트 활용하기":"한자의 힘","친구와 같이 하기":"같이하기","같이 하기 규칙":"같이하기","다른 메뉴도 써 봐요":"기타"};
+  const CHOF={"지혜 탐험대에 온 걸 환영해요!":"시작","📚 모르면 어려워요! ① 익힌 것":"게임 기본","② 익힌 만큼 세져요":"게임 기본","③ 틀리면 어떻게 돼요?":"게임 기본","중간에 그만두면?":"게임 기본","공부할 주차 고르기":"공부하기","공부하는 방법 5가지":"공부하기","🛍 코인 쓰는 곳":"공부하기","📜 사자성어·속담 넓게 알기":"공부하기","오늘의 한자와 성적표":"코인과 기록","코인 모으기":"코인과 기록","나의 용사 고르기":"용사","용사 키우기와 전직":"용사","게임 시작하기":"게임 기본","게임 하는 방법":"게임 기본","레벨 업 카드 고르기":"게임 기본","오리진 스킬 (위기 탈출!)":"게임 기본","게임으로 코인 벌기":"보상과 맵","하늘로 도전! 천공 맵":"보상과 맵","도전 단계와 보스 카드":"보상과 맵","보스와 보물, 위험 신호":"보스","보스의 기술과 필살기":"보스","경고 표시 읽는 법":"보스","보스가 더 똑똑해졌어요!":"보스","보스 약점 한자":"한자의 힘","한자 룬 (한자 실력 = 힘)":"한자의 힘","5차 각성 (누가 봐도 5차!)":"용사","보스 공격력과 방어율 무시":"용사","틀린 한자 극복":"한자의 힘","🏷 칭호 모으기":"한자의 힘","🔁 복습 시계":"한자의 힘","오답 노트 활용하기":"한자의 힘","친구와 같이 하기":"같이하기","같이 하기 규칙":"같이하기","다른 메뉴도 써 봐요":"기타"};
   const CI=c=>CHS.findIndex(x=>x[0]===c); P_.forEach(p=>p.ch=CHOF[p.t]||"기타"); P_.sort((a,b)=>CI(a.ch)-CI(b.ch));
   const grpOf=ch=>(CHS[CI(ch)]||[])[3]||"기타";
   const tocTop=`<div class="gdTop"><span class="pg">사용 설명서 · 목차</span><button class="x" id="gdX">닫기</button></div>`;
@@ -2037,6 +2053,8 @@ function home(){
     <button data-go="notes">${ico("note","mic")}오답 노트<small>${P.wrong.length}자</small></button>
     <button data-go="title"><span class="mi" style="font-size:30px;line-height:34px">🏷</span>칭호함<small>${TITLES.filter(titleOwned).length}/${TITLES.length} 모음${Math.max(0,TITLES.filter(titleOwned).length-(P.tSeen||0))?` · <b style="color:#e0567a">새 칭호!</b>`:""}</small></button>
     <button data-go="rec">${ico("trophy","mic")}내 기록<small>도장 ${P.done.length+(typeof sayDoneWeeks==="function"?sayDoneWeeks():0)}/${WEEKS.length+(typeof SAY_WEEKS!=="undefined"?SAY_WEEKS.S+SAY_WEEKS.P:0)}</small></button>
+    <button data-go="shop"><span class="mi" style="font-size:30px;line-height:34px">🛍</span>상점<small>꾸미기·보너스 학습</small></button>
+    <button data-go="base"><span class="mi" style="font-size:30px;line-height:34px">🏠</span>내 기지<small>꾸며 봐요</small></button>
     <button data-go="set">${ico("gear","mic")}설정<small>학생·소리</small></button>
     ${isAdmin()?`<button data-go="board">${ico("trophy","mic")}학생 현황<small>선생님 전용</small></button>`:`<button id="sendRep"><span class="mi" style="font-size:30px;line-height:34px">📤</span>선생님께<small>기록 보내기</small></button>`}
   </div>
@@ -2061,7 +2079,7 @@ function home(){
         else if(r==="net") toast("이 주소에서는 보낼 수 없어요. 새 주소(github.io)에서 열어 주세요")
         else toast(`선생님 화면에 ${p?`${p.g}학년 ${p.c}반 `:""}현황판이 안 열려 있어요. 선생님께 열어 달라고 말씀드린 뒤 다시 눌러요`) }) } }
   { const t=document.getElementById("goTW"); if(t) t.onclick=()=>{ sfx("tap"); todayWrong() } }
-  $app.querySelectorAll(".menu4 button[data-go]").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board(),title:()=>{ P.tSeen=TITLES.filter(titleOwned).length; saveP(); titleBox(home) }})[b.dataset.go]()});
+  $app.querySelectorAll(".menu4 button[data-go]").forEach(b=>b.onclick=()=>{sfx("tap");({hero:()=>heroes(),bcard:()=>{ P.set.dtab="B"; saveP(); dex() },dex,notes,rec,set:settings,board:()=>board(),shop:()=>shop(),base:()=>baseRoom(),title:()=>{ P.tSeen=TITLES.filter(titleOwned).length; saveP(); titleBox(home) }})[b.dataset.go]()});
 }
 
 
@@ -2163,7 +2181,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10272348"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10281022"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2324,8 +2342,9 @@ const nowCoin = a=>{ const d=day(); return Math.max(1,Math.round(a*weekMul()*(d.
 
 /* ===== 퀴즈 ===== */
 function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") return makeSayQ(c,opt);
-  let others=shuffle(UNIQUE.filter(x=>x.h!==c.h));
-  if(opt.hard){ const sim=o=>(o.eum===c.eum?3:0)+(o.eum&&c.eum&&o.eum[0]===c.eum[0]?1:0)+([...(o.hun||"")].some(ch=>(c.hun||"").includes(ch))?2:0); others=others.map(o=>[o,sim(o)+Math.random()]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]) }   /* 어려운 문제: 소리·뜻이 비슷한 보기부터 */
+  const DP=opt.pool||window.__distPool, inP=DP?shuffle(DP.filter(x=>x&&!x.cat&&x.h!==c.h)):[], pH=new Set(inP.map(x=>x.h));
+  let others=[...inP,...shuffle(UNIQUE.filter(x=>x.h!==c.h&&!pH.has(x.h)))];   /* 고침 (2026-10-28): 틀린 보기도 고른 범위(배운 한자)에서 먼저 골라요 · 모자랄 때만 다른 주차 한자 */
+  if(opt.hard){ const sim=o=>(o.eum===c.eum?3:0)+(o.eum&&c.eum&&o.eum[0]===c.eum[0]?1:0)+([...(o.hun||"")].some(ch=>(c.hun||"").includes(ch))?2:0); others=others.map(o=>[o,(pH.has(o.h)?10:0)+sim(o)+Math.random()]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]) }   /* 어려운 문제: 소리·뜻이 비슷한 보기부터 */
   const pick=key=>{const seen=new Set([key(c)]),out=[];for(const o of others){const k=key(o);if(!seen.has(k)){seen.add(k);out.push(o)}if(out.length===3)break}return shuffle([c,...out])};
   const W=typeof wordsOf==="function"?wordsOf(c.h):[];
   const types=opt.hard?["toh","he","hun"]:["he","toh","eum","hun"]; if(W.length){ types.push("inword"); if(!opt.short) types.push("word"); if(opt.hard) types.push("word","inword") }
@@ -2342,7 +2361,7 @@ function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") r
 function quiz(list,{fromNotes=false}={}){
   const N=QUIZ_N;
   const src=shuffle(pickWeighted(list,N));
-  const qs=src.map(c=>makeQ(c));
+  window.__distPool=list; const qs=src.map(c=>makeQ(c)); window.__distPool=null;
   let i=0, right=0, combo=0, pend=0, best=0, miss=[], busy=false, hintUsed=0; const WM=weekMul();
   const SM=(()=>{ const d=day(); return d.sets>=DAILY_SETS?0:stairMul(d.sets) })();   // 공부 계단 배율 (보이는 코인 = 실제 코인)
   const shown=()=>Math.min(pend,coinLeft());
@@ -2905,4 +2924,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10272348"></script>
+<script src="game.js?v=10281022"></script>
