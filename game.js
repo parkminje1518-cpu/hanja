@@ -265,7 +265,7 @@ const QRANGE = [
 ];
 /* ===== 지식의 힘(한자) · 지혜의 힘(사자성어·속담): 넓게 고르고 진짜로 외울수록 게임에서 세져요 =====
    실제 효과 = 범위 보너스 × (0.25 + 0.75 × 그 범위에서 익힌 비율) · 선생님 모드는 다 익힌 것으로 미리 보기 */
-const KNOW_DMG=[0,.08,.16,.24,.32], WIS_ARM=[0,.045,.09,.135,.18], WIS_CD=[0,.03,.06,.09,.12];
+const KNOW_DMG=[0,.08,.16,.24,.32], WIS_ARM=[0,.045,.09,.135,.16,.18], WIS_CD=[0,.03,.06,.09,.105,.12];
 function knowRatio(w,all){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(all||typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }   /* 흐려진 것(복습을 오래 안 함)은 빼요 */
 function wisRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=spoolOf(w); return L.length&&typeof sayMastered==="function"?L.filter(x=>sayMastered(x)&&(typeof rvFaded!=="function"||!rvFaded(x.h))).length/L.length:0 }
 function knowPower(qw,sw){ const qi=Math.max(0,QRANGE.findIndex(q=>q.w===qw)), si=Math.max(0,SRANGE.findIndex(q=>q.w===sw)), kr=knowRatio(qw), wr=wisRatio(sw), kf=kr, wf=wr;   /* 2026-10-27: 외운 만큼만 (예전엔 하나도 안 외워도 25%) */
@@ -321,9 +321,11 @@ const SRANGE = [
   {w:0,  exp:1,    coin:0,  cm:1,    revive:0, label:"안 풀기",  merit:"한자 문제만 나와요 · 추가 보상 없음"},
   {w:3,  exp:1.08, coin:4,  cm:1.05, revive:0, label:"1~3주차",  merit:"경험치 ×1.08 · 게임 코인 ×1.05 · +4"},
   {w:6,  exp:1.16, coin:8,  cm:1.1,  revive:0, label:"1~6주차",  merit:"경험치 ×1.16 · 게임 코인 ×1.1 · +8"},
-  {w:9,  exp:1.25, coin:14, cm:1.15, revive:0, label:"1~9주차",  merit:"경험치 ×1.25 · 게임 코인 ×1.15 · +14"},
+  {w:12, exp:1.25, coin:14, cm:1.15, revive:0, label:"1~12주차", merit:"경험치 ×1.25 · 게임 코인 ×1.15 · +14"},
+  {w:18, exp:1.3,  coin:18, cm:1.2,  revive:0, label:"1~18주차", merit:"경험치 ×1.3 · 게임 코인 ×1.2 · +18"},
   {w:99, exp:1.35, coin:22, cm:1.25, revive:1, label:"전체 주차", merit:"경험치 ×1.35 · 게임 코인 ×1.25 · +22 · 부활 +1번"},
-];
+];   /* 2026-10-28: 사자성어·속담 25주차로 늘어서 범위를 나눴어요 (예전 '전체'에 있던 말은 모두 1~12주차 안에 있어요) */
+
 /* 퀴즈 범위 보상(경험치·코인·카드·부활)도 그 범위에서 외운 비율만큼만 (2026-10-27: 범위만 넓게 고르고 모르면 보상 없음) */
 function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }
 function rangeByMastery(R,r){ r=Math.max(0,Math.min(1,r||0)); return Object.assign({},R,{exp:1+((R.exp||1)-1)*r, coin:Math.round((R.coin||0)*r), cm:1+((R.cm||1)-1)*r, cards:r>=.6?(R.cards||0):0, revive:r>=.6?(R.revive||0):0, heal:R.heal!==undefined?(R.heal*(.4+.6*r)):R.heal, mr:r}) }
@@ -331,7 +333,7 @@ function rangeByMastery(R,r){ r=Math.max(0,Math.min(1,r||0)); return Object.assi
 const MAP_LEARN=id=>Math.max(0,(Math.min(id,11)-1)*5);
 function learnedN(){ const m=P.mastery||{}; let n=0; for(const c of UNIQUE) if((m[c.h]||0)>=MASTER_N) n++; if(typeof SAY_ALL!=="undefined"&&typeof sayMastered==="function") for(const k of ["S","P"]) for(const x of SAY_ALL[k]) if(sayMastered(x)) n++; return n }
 const studyOK=id=>(typeof isAdmin==="function"&&isAdmin())||learnedN()>=MAP_LEARN(id);
-const srangeOf = ()=>SRANGE.find(q=>q.w===(P.set.srange??3))||SRANGE[1];
+const srangeOf = ()=>{ if(P&&P.set&&!P.set.srV){ P.set.srV=1; if(P.set.srange===99||P.set.srange===9||P.set.srange===11) P.set.srange=12 } return SRANGE.find(q=>q.w===(P.set.srange??3))||SRANGE[1] };   /* 예전에 고른 「전체」·「1~9주차」는 새 「1~12주차」로 (익힌 비율·힘이 갑자기 줄지 않게) */
 const spoolOf = w=>(!w||typeof SAY_ALL==="undefined")?[]:[...SAY_ALL.S.filter(x=>x.w<=w),...SAY_ALL.P.filter(x=>x.w<=w)];
 const spoolCnt = w=>{ const L=spoolOf(w); return `사자성어 ${L.filter(x=>x.cat==="S").length}개 · 속담 ${L.filter(x=>x.cat==="P").length}개` };
 const MAXLV = 5;
@@ -757,7 +759,7 @@ function startGame(opts){ opts=opts||{};
   const DUEP=(typeof rvDueList==="function"?shuffle(rvDueList()):[]), DUEQ=new Set(), DUED=new Set();   /* 🔁 복습할 때가 된 것도 게임 문제로 먼저 나와요 */
   const duePick=()=>{ const c=DUEP.find(x=>!DUEQ.has(x.h)&&!ASKED.has(x.h)&&!REVQ.has(x.h)); if(!c) return null; DUEQ.add(c.h); ASKED.add(c.h); setTimeout(()=>{ try{ showBanner(`🔁 복습할 때가 된 ${c.cat?"말":"한자"}이에요 · 맞히면 체력 회복!`) }catch(e){} },60); return c };
   const revPick=()=>{ const c=REVP.find(x=>!REVQ.has(x.h)&&!ASKED.has(x.h)); if(!c) return null; REVQ.add(c.h); ASKED.add(c.h); setTimeout(()=>{ try{ showBanner(`⚔ 복수전! 전에 틀린 ${c.cat?"말":"한자"}이에요 · 맞히면 공격력 +15%`) }catch(e){} },60); return c };
-  const pickMixed = n=>{ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&x<.4) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.76) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
+  const pickMixed = n=>{   /* 2026-10-28: 한자 50% · 사자성어·속담 50% (사자성어·속담 범위를 골랐을 때) */ const P2=MAP.id===11?q2poolOf(Q2.w):[], r=[]; for(let i=0;i<n;i++){ const x=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&x<.5) c=spreadPick(SPOOL,1,"s",1)[0]; else if(P2.length&&x<.75) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&P2.length) c=spreadPick(P2,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; r.push(c) } r.forEach(c=>c&&ASKED.add(c.h)); return r };   /* 고침: 어느 문제 묶음에서 낼지 먼저 정하고 그 묶음에서만 뽑아요 (안 낸 문제를 낭비하지 않아 겹침이 훨씬 늦게) */ window.__pm=pickMixed;
   if(opts.mp) M.xp *= .7;
   g.wBuff=window.__wBuff?1:0; window.__wBuff=0; if(g.wBuff) M.xp*=1.1; if(typeof titleFx==="function") M.xp*=1+titleFx("xpG"); g._tEq=typeof titleShown==="function"?titleShown():null; g._cos=typeof cosEq==="function"?cosEq():{}; g._pet={};   /* 장착 칭호는 시작할 때 한 번만 계산 (렉 없게) */   /* 게임 전 오답 복습 다 맞힘 */
   M.xp *= PK.xp; g.revives = PK.revive + QR.revive + (SR.revive||0); g.qOk=0; g.qN=0;
@@ -2104,8 +2106,8 @@ function startGame(opts){ opts=opts||{};
       const p=e.hp/e.max, s0=e.wq||0, TH=[.5,.25]; let k=s0; while(k<TH.length&&p<TH[k]) k++;
       if(k>s0){ e.wq=k; if(NM==='host') e.bt=Math.max(e.bt||0,6.5); openWeak(e); return } } }
   const Q2P=q2poolOf(Q2.w);
-  function pick11(){ const r=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&r<.3) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.8) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
-  function openWeak(e,X){ if(g.over) return; const th=WEAK_H[MAP.id]||"", useS=SPOOL.length&&Math.random()<.4;
+  function pick11(){ const r=Math.random(); let c=null; if(REVP.length&&Math.random()<.35) c=revPick(); if(!c&&DUEP.length&&Math.random()<.3) c=duePick(); if(c){} else if(SPOOL.length&&r<.5) c=spreadPick(SPOOL,1,"s",1)[0]; else if(Q2P.length&&r<.75) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&Q2P.length) c=spreadPick(Q2P,1,"q2",1)[0]; if(!c&&SPOOL.length) c=spreadPick(SPOOL,1,"s",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q",1)[0]; if(!c) c=spreadPick(QPOOL,1,"q")[0]; if(c) ASKED.add(c.h); return c }
+  function openWeak(e,X){ if(g.over) return; const th=WEAK_H[MAP.id]||"", useS=SPOOL.length&&Math.random()<.5;   /* 2026-10-28: 한자 : 사자성어·속담 = 50 : 50 */
     let c=X&&X.c||(BX?pick11():null)||(REVP.length&&Math.random()<.5?revPick():null); if(!c&&useS){ c=spreadPick(SPOOL,1,"s")[0] } if(!c){ const cand=QPOOL.filter(x=>th.includes(x.h)&&!ASKED.has(x.h)); c=cand.length?cand[Math.random()*cand.length|0]:(spreadPick(QPOOL,1,"q")[0]||QPOOL[Math.random()*QPOOL.length|0]) } if(!c) return; ASKED.add(c.h);
     let big, ask, opts;
     if(c.cat){ const q=makeQ(c,{short:true}); big=q.big||q.q; ask=q.big?q.q:"알맞은 답을 골라요"; opts=shuffle(q.opts.map(o=>({t:o.text,ok:o.ok?1:0}))).slice(0,4); if(!opts.some(o=>o.ok)) opts[0]=q.opts.find(o=>o.ok)&&{t:q.opts.find(o=>o.ok).text,ok:1}||opts[0] }
