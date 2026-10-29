@@ -677,8 +677,8 @@ function startGame(opts){ opts=opts||{};
     if(BX&&DPRCAP>.62){ DPRCAP=.62; resize(); return } }
   const $ = s=>root.querySelector(s);
   const modal = $(".gmodal"), mcard = $(".gcard"), banner = $(".gbanner");
-  let W=0,H=0,dpr=1;
-  let DPRCAP=2; function resize(){ dpr=Math.min(DPRCAP,window.__mapId>=11?(root.clientWidth*root.clientHeight>1.2e6?1:1.15):(root.clientWidth*root.clientHeight>1.2e6?1.25:1.6),window.devicePixelRatio||1);   /* 큰 화면·보스맵은 처음부터 해상도를 낮춰 렉 줄이기 */   /* 보스맵은 선명도를 조금 낮춰 렉을 줄여요 */ W=root.clientWidth; H=root.clientHeight; cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px"; low.width=Math.ceil(W/PX); low.height=Math.ceil(H/PX); }
+  let W=0,H=0,dpr=1,GZ=1;   /* GZ: 휴대폰에서 게임 화면 확대 (2026-10-28) */
+  let DPRCAP=2; function resize(){ dpr=Math.min(DPRCAP,window.__mapId>=11?(root.clientWidth*root.clientHeight>1.2e6?1:1.15):(root.clientWidth*root.clientHeight>1.2e6?1.25:1.6),window.devicePixelRatio||1);   /* 큰 화면·보스맵은 처음부터 해상도를 낮춰 렉 줄이기 */   /* 보스맵은 선명도를 조금 낮춰 렉을 줄여요 */ const CW=root.clientWidth, CH=root.clientHeight; GZ=(CW<520&&CH>CW)?1.25:(CH<500&&CW>CH)?1.12:1; if(GZ>1) dpr=Math.min(dpr*GZ,Math.max(dpr,window.devicePixelRatio||1)); W=Math.round(CW/GZ); H=Math.round(CH/GZ); cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.width=CW+"px"; cv.style.height=CH+"px";   /* 휴대폰은 화면이 작아 캐릭터가 너무 작게 보였어요 → 세로 1.25배 · 가로 1.12배 확대 (그리는 점 수는 그대로라 렉은 같아요) */ low.width=Math.ceil(W/PX); low.height=Math.ceil(H/PX); }
   resize(); window.addEventListener("resize", resize);
 
   const HERO = heroById(P.hero); setMainSkill(); window.__heroId=HERO.id; try{ document.fonts.load('40px "HF-'+HERO.id+'"') }catch(e){}
@@ -771,8 +771,8 @@ function startGame(opts){ opts=opts||{};
   const kd = e=>{keys[e.key.toLowerCase()]=true; if(e.key==="Escape") pause()};
   const ku = e=>{keys[e.key.toLowerCase()]=false};
   window.addEventListener("keydown",kd); window.addEventListener("keyup",ku);
-  cv.addEventListener("pointerdown",e=>{ if(joy.on) return; joy.on=true; joy.id=e.pointerId; joy.ox=joy.x=e.clientX; joy.oy=joy.y=e.clientY; try{cv.setPointerCapture(e.pointerId)}catch(_){} });
-  cv.addEventListener("pointermove",e=>{ if(joy.on&&e.pointerId===joy.id){joy.x=e.clientX;joy.y=e.clientY} });
+  cv.addEventListener("pointerdown",e=>{ if(joy.on) return; joy.on=true; joy.id=e.pointerId; joy.ox=joy.x=e.clientX/GZ; joy.oy=joy.y=e.clientY/GZ; try{cv.setPointerCapture(e.pointerId)}catch(_){} });
+  cv.addEventListener("pointermove",e=>{ if(joy.on&&e.pointerId===joy.id){joy.x=e.clientX/GZ;joy.y=e.clientY/GZ} });
   const jend = e=>{ if(e.pointerId===joy.id){joy.on=false;joy.id=null} };
   cv.addEventListener("pointerup",jend); cv.addEventListener("pointercancel",jend);
   const vis = ()=>{ if(document.hidden){ savePart(); pause() } };
@@ -2961,7 +2961,7 @@ function startGame(opts){ opts=opts||{};
     }
      else if(BX&&!g.cine&&!(typeof isAdmin==="function"&&isAdmin())){ const wl=Math.max(0,Math.ceil(60-(g.wq11||0))); ctx.font='bold 14px "Do Hyeon",sans-serif'; const tx2=BX.S.ph===2?(B11_TOD[BX.S.tod].k==="noon"?`🎯 정오가 지나면 약점 문제!`:`🎯 시간대가 바뀌면 약점 문제!`):`🎯 약점 문제까지 ${wl}초`; ctx.strokeText(tx2,cx,cy-R-14); ctx.fillStyle=wl<=5?"#ffb0b0":"#fff"; ctx.fillText(tx2,cx,cy-R-14) }   /* 다음 약점 문제 */ ctx.fillStyle="#ffd36a"; ctx.fillText("5차 궁극기",cx,cy+R+14); ctx.restore() } }
     /* 시간대 안개·노을은 바닥 바로 위에 깔아요 (보스·캐릭터·이펙트는 그 위라 색이 늘 원래대로 · 보스를 두 번 그리지 않아 렉도 줄어요) */
-    { const bs=g.en.filter(e=>e.type==="boss"&&e.hp>0); if(bs.length&&(!g._hudYT||g.t-g._hudYT>1)){ g._hudYT=g.t; try{ const cv=root.querySelector("canvas").getBoundingClientRect(); let mb=0; for(const el of root.querySelectorAll(".ghud > *:not(.gtoolbox)")){ const r=el.getBoundingClientRect(); if(r.height>0&&r.bottom-cv.top<H*.6) mb=Math.max(mb,r.bottom-cv.top) } g._hudY=mb }catch(e){ g._hudY=0 } }   /* 좁은 화면: 위 상태 칸이 두 줄이면 보스 체력바를 그 아래로 */
+    { const bs=g.en.filter(e=>e.type==="boss"&&e.hp>0); if(bs.length&&(!g._hudYT||g.t-g._hudYT>1)){ g._hudYT=g.t; try{ const cv=root.querySelector("canvas").getBoundingClientRect(); let mb=0; for(const el of root.querySelectorAll(".ghud > *:not(.gtoolbox)")){ const r=el.getBoundingClientRect(); if(r.height>0&&r.bottom-cv.top<H*GZ*.6) mb=Math.max(mb,(r.bottom-cv.top)/GZ) } g._hudY=mb }catch(e){ g._hudY=0 } }   /* 좁은 화면: 위 상태 칸이 두 줄이면 보스 체력바를 그 아래로 */
       let y=Math.max(148,(g._hudY||0)+14);
       bs.forEach(b=>{ const w=Math.min(560,W-32), x=(W-w)/2, pct=Math.max(0,b.hp/b.max), BT=(BOSSES[b.bid]||{}), fin=BT.tier===3, tn=(BT.tn||(STAGE_TIER[BT.tier]||{}).tn||"보스");   // 보스 이름·체력: 크고 또렷하게
         b._lag=b._lag===undefined?pct:Math.max(pct,b._lag-(b._lag-pct)*.04-.001);

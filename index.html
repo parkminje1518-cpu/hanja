@@ -306,6 +306,9 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .sinfo .cnt{font-family:var(--f-ui);font-size:18px;color:var(--muted)}
 .smsg{min-height:28px;font-family:var(--f-ui);font-size:21px;color:var(--jade);text-align:center}
 .sw .btns{width:100%}
+/* 휴대폰 고침 (2026-10-28): 쓰기 칸 + 버튼 4개가 한 줄씩 쌓여 '기억해서 쓰기'가 화면 밖으로 밀렸어요 → 버튼은 2×2, 쓰는 칸은 화면 높이에 맞춰 */
+.sw .btns{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.sw{gap:8px}.sw .btns .btn{min-height:50px;padding:8px 6px;font-size:18px}.stage{width:max(220px,min(100%,340px,calc(100svh - 420px)))}.sinfo .hun{font-size:24px}.swords{font-size:15px;gap:4px}.swords span{padding:3px 8px}.smsg{font-size:19px;min-height:24px}}
 
 /* 도감, 오답, 기록 */
 .dexHead{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
@@ -1068,7 +1071,8 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .mpP b{display:block;font-weight:400;font-size:17px;color:#fff}
 .mpP small{font-size:14px;color:#b8c4ff}
 .mpP.empty{justify-content:center;color:#8a90c0;border-style:dashed;font-size:15px}
-@media (max-width:620px){.mpList{grid-template-columns:repeat(2,minmax(0,1fr))}.mpRow input{flex:1 1 100%}}
+@media (max-width:620px){.mpList{grid-template-columns:repeat(2,minmax(0,1fr))}.mpRow input{flex:1 1 100%;width:100%;font-size:22px;letter-spacing:.12em;min-height:50px}}
+.mpRow input{min-width:0;box-sizing:border-box;max-width:100%}.mpRow input::placeholder{font-size:.75em;letter-spacing:.05em}   /* 휴대폰 고침 (2026-10-28): 코드 칸이 카드 밖으로 넘쳤어요 */
 
 .big{border-radius:12px;padding:12px 20px;min-height:58px;font-family:var(--f-ui);font-size:21px;border:3px solid transparent}
 .big.red{background:var(--red);color:#fff;border-color:#ff8597;box-shadow:0 5px 0 var(--red-d)}
@@ -1262,19 +1266,19 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=10281605"></script>
-<script src="jobs.js?v=10281605"></script>
-<script src="maps.js?v=10281605"></script>
-<script src="art.js?v=10281605"></script>
-<script src="art2.js?v=10281605"></script>
-<script src="monsters.js?v=10281605"></script>
-<script src="jobfx.js?v=10281605"></script>
-<script src="words.js?v=10281605"></script>
-<script src="sayings.js?v=10281605"></script>
-<script src="shop.js?v=10281605"></script>
-<script src="sfx.js?v=10281605"></script>
+<script src="sprites.js?v=10291551"></script>
+<script src="jobs.js?v=10291551"></script>
+<script src="maps.js?v=10291551"></script>
+<script src="art.js?v=10291551"></script>
+<script src="art2.js?v=10291551"></script>
+<script src="monsters.js?v=10291551"></script>
+<script src="jobfx.js?v=10291551"></script>
+<script src="words.js?v=10291551"></script>
+<script src="sayings.js?v=10291551"></script>
+<script src="shop.js?v=10291551"></script>
+<script src="sfx.js?v=10291551"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=10281605"></script>
+<script src="mp.js?v=10291551"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -2216,7 +2220,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10281605"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=10291551"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2961,4 +2965,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=10281605"></script>
+<script src="game.js?v=10291551"></script>
