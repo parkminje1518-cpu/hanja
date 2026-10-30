@@ -1654,9 +1654,9 @@ function B11Make(A){
   const host=()=>NM!=="client";
   const boss=()=>g.en.find(e=>e.b11&&e.hp>0)||g.en.find(e=>e.b11);
   const tod=()=>S.ph===2?B11_TOD[S.tod]:null;
-  const TTC={}; function todTint(im){ const T=tod(); if(!im||!T||!T.dc) return im; const id=T.k; if(TTC[id]&&TTC[id].src===im) return TTC[id].cv;   /* 레이저 띠도 시간대 색으로 */
+  const TTC={}; function todTint(im){ const T=tod(); if(!im||!T||!T.dc||window.__fbOff) return im; const id=T.k; if(TTC[id]&&TTC[id].src===im) return TTC[id].cv;   /* 레이저 띠도 시간대 색으로 */
     const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; const x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="color"; x.fillStyle=T.dc; x.fillRect(0,0,cv.width,cv.height); x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); TTC[id]={src:im,cv}; return cv }
-  const FBC={}, FBCOL={dawn:"#ff7a2a",noon:"#ffcf5a",dusk:"#ff4fb4"}; function fbTint(key){ const im=IMG(key), T=tod(); if(!im||!T||!FBCOL[T.k]) return im; const id=key+T.k; if(FBC[id]) return FBC[id];   /* 발사된 빛줄기도 시간대 색으로 (자정은 원래 보라) */
+  const FBC={}, FBCOL={dawn:"#ff7a2a",noon:"#ffcf5a",dusk:"#ff4fb4"}; function fbTint(key){ const im=IMG(key), T=tod(); if(!im||!T||!FBCOL[T.k]||window.__fbOff) return im; const id=key+T.k; if(FBC[id]) return FBC[id];   /* 발사된 빛줄기도 시간대 색으로 (자정은 원래 보라) */
     const cv=document.createElement("canvas"); cv.width=im.width; cv.height=im.height; const x=cv.getContext("2d"); x.drawImage(im,0,0); x.globalCompositeOperation="color"; x.fillStyle=FBCOL[T.k]; x.fillRect(0,0,cv.width,cv.height); x.globalCompositeOperation="destination-in"; x.drawImage(im,0,0); return FBC[id]=cv }
   /* 억까 방지: 서로 다른 패턴이 같은 순간에 터지지 않게 0.55초 이상 간격을 둬요 (무빙으로 다 피할 수 있게) */
   const STG={line:1,circ:1,cone:1,rays:1,grid:1,crown:1,pounce:1,proj:1};
@@ -2031,7 +2031,7 @@ function B11Make(A){
   /* 보스 크기: 치비는 키 약 200, 성인은 약 270 (세상 단위) */
   const scaleOf=k=>k[0]==="c"?.66:.47;   /* 2페이즈: 각성 치비 (1페이즈의 약 1.3배) */   /* 1페이즈도 조금 더 크게 (2026-10-25) */   /* 2페이즈는 각성해서 훨씬 커요 */
   /* 2페이즈 보스 색: 시간대마다 따로 칠해 둔 그림으로 바꿔요 (여명 붉은 불꽃 · 정오 금빛 · 황혼 노을 자줏빛 · 자정은 원래 그림) */
-  const PK=k=>{ if(S.ph!==2) return k; const T=B11_TOD[S.tod].k; if(T==="mid") return k;   /* 2026-10-27: 정오 그림을 원래 그림에서 보라 빛만 금빛으로 바꿔 다시 만들었어요 (바래지 않게) */ const k2=k+"_"+T; return IMG(k2)?k2:k };
+  const PK=k=>{ if(S.ph!==2||window.__pkOff) return k; const T=B11_TOD[S.tod].k; if(T==="mid") return k;   /* 2026-10-27: 정오 그림을 원래 그림에서 보라 빛만 금빛으로 바꿔 다시 만들었어요 (바래지 않게) */ const k2=k+"_"+T; return IMG(k2)?k2:k };
   function drawPose(c,e,k,alpha,ox,oy,extraSx,extraSy){ const im=IMG(PK(k)), M=B11_META[k]; if(!im||!M) return false; const s=scaleOf(k), w=M[2]*s, h=M[3]*s, f=(e.f||1)*(B11_FLIP[k]?-1:1);
     c.save(); c.globalAlpha*=alpha; c.translate(e.x+ox,e.y+e.r*.95+oy); c.scale(f*(extraSx||1),extraSy||1); c.drawImage(im,-M[0]*w,-M[1]*h,w,h);
     if(e.flash>0){ c.globalAlpha=Math.min(.1,e.flash*1.2)*alpha;   /* 맞을 때 하얀 번쩍임은 아주 살짝만 (계속 맞아도 보스가 하얗게 바래지 않게) */ c.drawImage(whiteOf(PK(k),im),-M[0]*w,-M[1]*h,w,h) }

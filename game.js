@@ -674,7 +674,8 @@ function startGame(opts){ opts=opts||{};
     if(DPRCAP>.85){ DPRCAP=.85; resize(); return }
     if(DPRCAP>.72){ DPRCAP=.72; resize(); return }
     if(BX&&window.__fxLow<2){ window.__fxLow=2; return }   /* 2026-10-27: 군단장 맵은 한 단계 더 — 하늘·안개 배경과 보스 그림자 테두리를 끄고 */
-    if(BX&&DPRCAP>.62){ DPRCAP=.62; resize(); return } }
+    if(BX&&DPRCAP>.62){ DPRCAP=.62; resize(); return }
+    if(BX&&DPRCAP>.5){ DPRCAP=.5; resize(); return } }   /* 2026-10-30: 선생님 컴퓨터 실험에서 해상도를 낮추는 것만 확실히 빨라졌어요 → 보스맵에서 계속 느리면 한 단계 더 */
   const $ = s=>root.querySelector(s);
   const modal = $(".gmodal"), mcard = $(".gcard"), banner = $(".gbanner");
   let W=0,H=0,dpr=1,GZ=1;   /* GZ: 휴대폰에서 게임 화면 확대 (2026-10-28) */
@@ -3010,10 +3011,10 @@ function startGame(opts){ opts=opts||{};
   if(PF){ for(const k of ["floor","ambience","drawGround","drawBoss","drawOver","drawHUD","drawMyGauge"]){ const f=BX[k]; if(typeof f!=="function") continue; BX[k]=function(){ if(PF.xs&&PF.xs[k]) return PF.xs[k](arguments); const t0=performance.now(); try{ return f.apply(this,arguments) } finally{ PF.part[k]=(PF.part[k]||0)+performance.now()-t0 } } } }
   /* 🔬 자동 렉 실험 (2026-10-29): 렉 기록에서 자바스크립트는 3ms인데 화면은 28ms → 브라우저가 실제로 칠하는 쪽이 무거워요. 무엇이 무거운지 그 기기에서 직접 하나씩 꺼 보며 재요 (선생님 · 2페이지 · 실험 중엔 다치지 않아요) */
   const PFX_OFF={ floor:a=>{ const c=a[0], cv=c.canvas; c.save(); c.setTransform(1,0,0,1,0,0); c.fillStyle="#2a2238"; c.fillRect(0,0,cv.width,cv.height); c.restore(); if(cv.style.backgroundImage!=="none"){ cv.style.backgroundImage="none"; cv._floor=""; cv._fpos="" } return true }, ambience:()=>{}, drawGround:()=>{}, drawOver:()=>{}, drawBoss:()=>{} };
-  const PF_EXP=[["기본",[]],["바닥 끔",["floor"]],["하늘·안개 끔",["ambience"]],["보스 공격 그림 끔",["drawGround","drawOver"]],["보스 그림 끔",["drawBoss"]],["해상도 절반",[],.5]];
+  const PF_EXP=[["기본",[]],["시간대 보스 그림 끔",[],0,"__pkOff"],["시간대 색 공격 그림 끔",[],0,"__fbOff"],["하늘·안개 끔",["ambience"]],["보스 그림 끔",["drawBoss"]],["해상도 절반",[],.5]];   /* 2차 실험 (2026-10-30): 1차에서 바닥·공격 그림은 차이 없음 → 시간대마다 바뀌는 그림(기억 공간)을 의심 */
   function pfExp(){ if(!PF||!PF.xon) return; const now=performance.now(), in2=BX.S.ph===2&&!g.over&&!g.paused; if(!in2) return; if(PF.xi==null||now-PF.xt>6000){ pfExpSet(PF.xi==null?0:(PF.xi+1)%PF_EXP.length); PF.xt=now } }
-  function pfExpSet(i){ const prev=PF.xi!=null&&PF_EXP[PF.xi]; if(prev&&prev[2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } PF.xi=i; const E=PF_EXP[i]; PF.xs={}; for(const k of E[1]) PF.xs[k]=PFX_OFF[k]; if(E[2]){ PF.xcap=DPRCAP; DPRCAP=E[2]; resize() } try{ showBanner("🔬 렉 실험: "+E[0]) }catch(e){} }
-  function pfExpStop(){ if(!PF) return; if(PF.xi!=null&&PF_EXP[PF.xi][2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } PF.xs=null; PF.xi=null; PF.xon=false; window.__noAdapt=PF.xna; g.god=PF.xgod }
+  function pfExpSet(i){ const prev=PF.xi!=null&&PF_EXP[PF.xi]; if(prev&&prev[2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } if(prev&&prev[3]) window[prev[3]]=0; PF.xi=i; const E=PF_EXP[i]; if(E[3]) window[E[3]]=1; PF.xs={}; for(const k of E[1]) PF.xs[k]=PFX_OFF[k]; if(E[2]){ PF.xcap=DPRCAP; DPRCAP=E[2]; resize() } try{ showBanner("🔬 렉 실험: "+E[0]) }catch(e){} }
+  function pfExpStop(){ if(!PF) return; if(PF.xi!=null&&PF_EXP[PF.xi][2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } if(PF.xi!=null&&PF_EXP[PF.xi][3]) window[PF_EXP[PF.xi][3]]=0; PF.xs=null; PF.xi=null; PF.xon=false; window.__noAdapt=PF.xna; g.god=PF.xgod }
   function pfExpStart(){ if(!PF||PF.xon) return; PF.xon=true; PF.xna=window.__noAdapt; window.__noAdapt=1; PF.xgod=g.god; g.god=true; PF.xr=PF.xr||{} }
   function pfKey(){ const S=BX.S; if(S.ph!==2) return "1페이지"; const T=(typeof B11_TOD!=="undefined"&&B11_TOD[S.tod])||{n:"?"}; return "2페이지 "+T.n }
   function pfFrame(fdt,tu,td){ if(!PF||g.over||g.paused) return; const k=pfKey(), s=PF.seg[k]||(PF.seg[k]={n:0,dt:0,slow:0,vslow:0,tu:0,td:0,p:{},pats:0,en:0,fx:0,low:0}); s.n++; s.dt+=fdt; if(fdt>33) s.slow++; if(fdt>66) s.vslow++; s.tu+=tu; s.td+=td;
