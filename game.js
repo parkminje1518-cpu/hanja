@@ -2265,10 +2265,10 @@ function startGame(opts){ opts=opts||{};
     g.paused=true;
     mcard.innerHTML = `<h3>${NM?"친구와 같이 하는 중":"잠깐 멈춤"}</h3><p>${NM?"같이 할 때는 게임이 멈추지 않아요! 빨리 돌아가요.":`${fmtT(g.t)} 버티는 중 · 몬스터 ${g.kills}마리`}</p>
       <div class="gskills">${Object.keys(g.sk).map(k=>{ const b0=g.b11Base&&g.b11Base[k]||0, pk=g.sk[k]-b0; return `<span>${skImg(k,22)}${skName(k)} · Lv ${g.sk[k]}${g.b11Base?(pk>0?` <b style="color:#e0567a">(+${pk} 내가 고름)</b>`:` <small style="opacity:.6">(기본)</small>`):""}</span>` }).join("")}</div>${g.b11Base?`<p style="font-size:13px;opacity:.7;margin:4px 0 0">군단장 맵은 기본 장비 4개를 들고 시작해요 · 시작 카드 3장은 그 위에 더해져요</p>`:""}
-      <div class="gbtns"><button class="big green" id="gc">계속하기</button>${canRefund()?`<button class="big gold" id="gr">↩ 용사·맵 다시 고르기<small style="display:block;font-size:12px">${window.__pend?"아직 1분이 안 돼서 판 수·코인이 그대로예요":`시작 30초 안이라 판 수·코인을 돌려받아요 (하루 ${5-(day().refund||0)}번 남음)`}</small></button>`:""}<button class="big alt" id="gq">그만하기</button></div>${PF?`<button class="btn ghost" id="gpf" style="width:100%;margin-top:8px">📊 렉 기록 보기 (선생님)</button>`:""}<button class="helpQ" data-help="게임 중" style="position:absolute;top:10px;right:10px" aria-label="게임 화면 도움말">?</button>`;
+      <div class="gbtns"><button class="big green" id="gc">계속하기</button>${canRefund()?`<button class="big gold" id="gr">↩ 용사·맵 다시 고르기<small style="display:block;font-size:12px">${window.__pend?"아직 1분이 안 돼서 판 수·코인이 그대로예요":`시작 30초 안이라 판 수·코인을 돌려받아요 (하루 ${5-(day().refund||0)}번 남음)`}</small></button>`:""}<button class="big alt" id="gq">그만하기</button></div>${PF?`<button class="btn ghost" id="gpf" style="width:100%;margin-top:8px">📊 렉 기록 보기 (선생님)</button><button class="btn ghost" id="gpx" style="width:100%;margin-top:6px">${PF.xon?"🔬 자동 렉 실험 끄기":"🔬 자동 렉 실험 켜기 <small>(2페이지에서 6초씩 하나씩 꺼 보며 재요 · 실험 중엔 안 다쳐요)</small>"}</button>`:""}<button class="helpQ" data-help="게임 중" style="position:absolute;top:10px;right:10px" aria-label="게임 화면 도움말">?</button>`;
     modal.hidden=false;
     $("#gc").onclick=()=>{modal.hidden=true;g.paused=false;last=performance.now()};
-    { const b=document.getElementById("gpf"); if(b) b.onclick=()=>pfShow() }
+    { const b=document.getElementById("gpf"); if(b) b.onclick=()=>pfShow(); const x=document.getElementById("gpx"); if(x) x.onclick=()=>{ if(PF.xon){ pfExpStop(); x.innerHTML="🔬 자동 렉 실험 켜기" } else { pfExpStart(); x.innerHTML="🔬 자동 렉 실험 끄기" } } }
     if($("#gr")) $("#gr").onclick=()=>{ if(!canRefund()) return; if(window.__pend){ window.__pend=0; cleanup(); gameLobby(); return } const d=day(); d.plays=Math.max(0,d.plays-1); d.refund=(d.refund||0)+1; P.coins+=GAME_COST; P.stats.games=Math.max(0,(P.stats.games||1)-1); window.__paid=0; saveP(); cleanup(); gameLobby() };
     $("#gq").onclick=()=>{ if(NM==="client"){ try{ NET.hostConn.send({t:"quit"}) }catch(e){} } if(NM==="host"){ endAll(false); return } finish(false) };
   }
@@ -3007,14 +3007,22 @@ function startGame(opts){ opts=opts||{};
   /* ===== 렉 기록기 (2026-10-28 · 선생님 모드 · 11단계): 실제 기기에서 어디가 무거운지 재요 ===== */
   g.softHalf=!NM&&typeof softHalf==="function"&&softHalf();   /* 부드럽게 모드 (2026-10-28) */
   const PF=(BX&&typeof isAdmin==="function"&&isAdmin())?{seg:{},cur:null,part:{}}:null;
-  if(PF){ for(const k of ["floor","ambience","drawGround","drawBoss","drawOver","drawHUD","drawMyGauge"]){ const f=BX[k]; if(typeof f!=="function") continue; BX[k]=function(){ const t0=performance.now(); try{ return f.apply(this,arguments) } finally{ PF.part[k]=(PF.part[k]||0)+performance.now()-t0 } } } }
+  if(PF){ for(const k of ["floor","ambience","drawGround","drawBoss","drawOver","drawHUD","drawMyGauge"]){ const f=BX[k]; if(typeof f!=="function") continue; BX[k]=function(){ if(PF.xs&&PF.xs[k]) return PF.xs[k](arguments); const t0=performance.now(); try{ return f.apply(this,arguments) } finally{ PF.part[k]=(PF.part[k]||0)+performance.now()-t0 } } } }
+  /* 🔬 자동 렉 실험 (2026-10-29): 렉 기록에서 자바스크립트는 3ms인데 화면은 28ms → 브라우저가 실제로 칠하는 쪽이 무거워요. 무엇이 무거운지 그 기기에서 직접 하나씩 꺼 보며 재요 (선생님 · 2페이지 · 실험 중엔 다치지 않아요) */
+  const PFX_OFF={ floor:a=>{ const c=a[0], cv=c.canvas; c.save(); c.setTransform(1,0,0,1,0,0); c.fillStyle="#2a2238"; c.fillRect(0,0,cv.width,cv.height); c.restore(); if(cv.style.backgroundImage!=="none"){ cv.style.backgroundImage="none"; cv._floor=""; cv._fpos="" } return true }, ambience:()=>{}, drawGround:()=>{}, drawOver:()=>{}, drawBoss:()=>{} };
+  const PF_EXP=[["기본",[]],["바닥 끔",["floor"]],["하늘·안개 끔",["ambience"]],["보스 공격 그림 끔",["drawGround","drawOver"]],["보스 그림 끔",["drawBoss"]],["해상도 절반",[],.5]];
+  function pfExp(){ if(!PF||!PF.xon) return; const now=performance.now(), in2=BX.S.ph===2&&!g.over&&!g.paused; if(!in2) return; if(PF.xi==null||now-PF.xt>6000){ pfExpSet(PF.xi==null?0:(PF.xi+1)%PF_EXP.length); PF.xt=now } }
+  function pfExpSet(i){ const prev=PF.xi!=null&&PF_EXP[PF.xi]; if(prev&&prev[2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } PF.xi=i; const E=PF_EXP[i]; PF.xs={}; for(const k of E[1]) PF.xs[k]=PFX_OFF[k]; if(E[2]){ PF.xcap=DPRCAP; DPRCAP=E[2]; resize() } try{ showBanner("🔬 렉 실험: "+E[0]) }catch(e){} }
+  function pfExpStop(){ if(!PF) return; if(PF.xi!=null&&PF_EXP[PF.xi][2]&&PF.xcap!=null){ DPRCAP=PF.xcap; PF.xcap=null; resize() } PF.xs=null; PF.xi=null; PF.xon=false; window.__noAdapt=PF.xna; g.god=PF.xgod }
+  function pfExpStart(){ if(!PF||PF.xon) return; PF.xon=true; PF.xna=window.__noAdapt; window.__noAdapt=1; PF.xgod=g.god; g.god=true; PF.xr=PF.xr||{} }
   function pfKey(){ const S=BX.S; if(S.ph!==2) return "1페이지"; const T=(typeof B11_TOD!=="undefined"&&B11_TOD[S.tod])||{n:"?"}; return "2페이지 "+T.n }
   function pfFrame(fdt,tu,td){ if(!PF||g.over||g.paused) return; const k=pfKey(), s=PF.seg[k]||(PF.seg[k]={n:0,dt:0,slow:0,vslow:0,tu:0,td:0,p:{},pats:0,en:0,fx:0,low:0}); s.n++; s.dt+=fdt; if(fdt>33) s.slow++; if(fdt>66) s.vslow++; s.tu+=tu; s.td+=td;
-    for(const q in PF.part){ s.p[q]=(s.p[q]||0)+PF.part[q]; PF.part[q]=0 } s.pats+=BX.S.pats.filter(p=>!p.done).length; s.en+=g.en.length; s.fx+=g.fx.length+(g.bfx?g.bfx.length:0); s.low+=window.__fxLow||0 }
+    for(const q in PF.part){ s.p[q]=(s.p[q]||0)+PF.part[q]; PF.part[q]=0 } s.pats+=BX.S.pats.filter(p=>!p.done).length; if(PF.xon&&PF.xi!=null&&performance.now()-PF.xt>1000&&BX.S.ph===2){ const xk=k+"|"+PF.xi, r=PF.xr[xk]||(PF.xr[xk]={n:0,dt:0,slow:0}); r.n++; r.dt+=fdt; if(fdt>33) r.slow++ } s.en+=g.en.length; s.fx+=g.fx.length+(g.bfx?g.bfx.length:0); s.low+=window.__fxLow||0 }
   function pfReport(){ if(!PF) return ""; const L=[]; const cv=root.querySelector("canvas"); L.push(`기기: ${navigator.userAgent.replace(/\(KHTML.*$/,"").slice(0,90)} · 화면 ${cv?cv.width+"x"+cv.height:"?"} · DPR ${window.devicePixelRatio} · 코어 ${navigator.hardwareConcurrency||"?"} · 메모리 ${navigator.deviceMemory||"?"}GB · 직업 ${HERO.id}`);
     for(const k in PF.seg){ const s=PF.seg[k]; if(s.n<30) continue; const a=v=>(v/s.n).toFixed(1); L.push(`[${k}] ${s.n}장 · 평균 ${a(s.dt)}ms(${(1000/(s.dt/s.n)).toFixed(0)}fps) · 33ms넘음 ${(s.slow/s.n*100).toFixed(0)}% · 66ms넘음 ${(s.vslow/s.n*100).toFixed(0)}% · 계산 ${a(s.tu)} · 그리기 ${a(s.td)} | `+Object.entries(s.p).map(([q,v])=>q.replace("draw","")+" "+a(v)).join(" · ")+` | 패턴 ${a(s.pats)} · 몬스터 ${a(s.en)} · 효과 ${a(s.fx)} · 가벼움 ${a(s.low)}`) }
+    if(PF.xr){ const T={}; for(const xk in PF.xr){ const [k,i]=xk.split("|"), r=PF.xr[xk]; if(r.n<20) continue; (T[k]=T[k]||[]).push([+i,r]) } for(const k in T){ L.push(`[🔬 실험 · ${k}] `+T[k].sort((a,b)=>a[0]-b[0]).map(([i,r])=>`${PF_EXP[i][0]} ${(r.dt/r.n).toFixed(1)}ms(느림 ${(r.slow/r.n*100).toFixed(0)}%)`).join(" · ")) } }
     return L.join("\n") }
-  window.__pfReport=pfReport;
+  window.__pfReport=pfReport; window.__pfxStart=()=>pfExpStart();
   function pfShow(){ const t=pfReport()||"아직 기록이 없어요 (조금 더 플레이해 주세요)"; const box=document.createElement("div"); box.className="pfBox"; box.innerHTML=`<b>📊 렉 기록 · 이 글을 그대로 복사해서 Claude에게 보내 주세요</b><textarea readonly>${esc(t)}</textarea><div class="btns"><button class="btn gold" id="pfCp">복사하기</button><button class="btn ghost" id="pfX">닫기</button></div>`; document.body.appendChild(box);
     const ta=box.querySelector("textarea"); box.querySelector("#pfCp").onclick=()=>{ ta.select(); try{ navigator.clipboard.writeText(t).then(()=>toast("복사했어요!"),()=>{ document.execCommand("copy"); toast("복사했어요!") }) }catch(e){ try{ document.execCommand("copy"); toast("복사했어요!") }catch(e2){} } }; box.querySelector("#pfX").onclick=()=>box.remove() }
   function loop(now){
@@ -3034,7 +3042,7 @@ function startGame(opts){ opts=opts||{};
     if(NM==="client"&&!g.over&&g._snapT&&now-g._snapT>2500&&(!g._stallW||now-g._stallW>6000)){ g._stallW=now; showBanner("⚠ 방장 화면이 멈췄어요! 방장 친구는 게임 화면을 켜 두고, 다른 탭이나 앱으로 가지 마세요") }   /* 같이하기: 방장 기기가 멈추면 보스도 안 나오고 몬스터도 안 죽어요 → 알려 줘요 (2026-10-27) */
     const _td0=PF?performance.now():0;
     draw();
-    if(PF) pfFrame(loop.raw,_td0-_tu0,performance.now()-_td0);
+    if(PF){ pfFrame(loop.raw,_td0-_tu0,performance.now()-_td0); pfExp() }
     }catch(err){ if(!loop.errN||loop.errN<3){ loop.errN=(loop.errN||0)+1; console.error(err) } try{ ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation="source-over"; ctx.filter="none" }catch(e){} }
   }
 
