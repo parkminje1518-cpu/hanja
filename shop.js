@@ -116,7 +116,7 @@ function shop(tab){ const C=cosState(); tab=tab||P.set.shopTab||"frame"; P.set.s
 /* ---------- 🏠 내 기지 ---------- */
 const BASE_SPOTS=[["wall",14,18],["wall",44,12],["wall",74,18],["floor",10,70],["floor",30,80],["floor",50,70],["floor",70,80],["floor",88,70]];   /* [벽/바닥, 왼쪽 %, 위 %] */
 function baseRoom(pick){ const C=cosState(), B=C.base, W=cosItem(B.wall)||BASE_ITEMS[0], F=cosItem(B.floor)||BASE_ITEMS.find(x=>x.kind==="floor");
-  const tShown=typeof titleShown==="function"?titleShown():null, cards=typeof cardCount==="function"?cardCount():0, mast=UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length, says=typeof SAJA!=="undefined"?SAJA.concat(SOK).filter(sayMastered).length:0;
+  const tShown=typeof titleShown==="function"?titleShown():null, cards=typeof cardCount==="function"?cardCount():0, mast=UNIQUE.filter(c=>hzM(c.h)).length, says=typeof SAJA!=="undefined"?SAJA.concat(SOK).filter(sayMastered).length:0;
   $app.innerHTML=topbar("내 기지")+`<section class="panel">
     <div class="baseRoom"><div class="brWall" style="background:${W.bg}"></div><div class="brFloor" style="background:${F.bg}"></div>
       <div class="brShelf"><span>📖 익힌 한자 <b>${mast}</b></span><span>📜 익힌 말 <b>${says}</b></span><span>🃏 보스 카드 <b>${cards}</b></span>${tShown?`<span>🏷 ${titlePill(tShown)}</span>`:""}</div>

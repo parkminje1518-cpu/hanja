@@ -84,7 +84,7 @@ const REP = { peer:null, busy:false };
 function boardId(g,c){ return "hje-"+String(location.hostname.split(".")[0]||"x").replace(/[^a-z0-9-]/gi,"")+"-board-"+g+"-"+c }
 function myReport(){ const p=prof(), d=(P.daily&&P.daily.date===todayKey())?P.daily:{sets:0,plays:0,trace:0};
   return {rvd:(()=>{ try{ return rvDueList().length }catch(e){ return 0 } })(),rvf:(()=>{ try{ return Object.keys(P.rv||{}).filter(rvFaded).length }catch(e){ return 0 } })(),rvs:(()=>{ try{ return rvStreak() }catch(e){ return 0 } })(),id:curId,g:p.g,c:p.c,n:p.n,name:p.name||"",coins:P.coins,earned:P.earned,hero:P.hero,lv:HS().lv,tier:HS().tier,heroes:P.heroes.length,
-    q:P.stats.q,ok:P.stats.c,games:P.stats.games,sets:P.stats.sets,mastered:UNIQUE.filter(c=>(P.mastery[c.h]||0)>=MASTER_N).length,
+    q:P.stats.q,ok:P.stats.c,games:P.stats.games,sets:P.stats.sets,mastered:UNIQUE.filter(c=>hzM(c.h)).length,
     wrong:P.wrong.length,stamps:P.done.length,sws:typeof sayDoneCount==="function"?sayDoneCount("S"):0,swp:typeof sayDoneCount==="function"?sayDoneCount("P"):0,wk:(P.wrong||[]).filter(h=>!/^[SP]:/.test(h)).sort((x,y)=>((P.wcnt||{})[y]||0)-((P.wcnt||{})[x]||0)).slice(0,3),wtop:Object.entries(P.wcnt||{}).filter(([h])=>!/^[SP]:/.test(h)&&(P.wrong||[]).includes(h)).sort((x,y)=>y[1]-x[1]).slice(0,20),ovc:(P.ovc||[]).length,best:P.best||null,today:{sets:d.sets,plays:d.plays,trace:d.trace},at:Date.now(),
     wtop2:Object.entries(P.wcnt||{}).filter(([h])=>!/^[SP]:/.test(h)).sort((x,y)=>y[1]-x[1]).slice(0,20),
     stop:[...Object.entries(P.wcnt||{}).filter(([h])=>/^S:/.test(h)).sort((x,y)=>y[1]-x[1]).slice(0,15),...Object.entries(P.wcnt||{}).filter(([h])=>/^P:/.test(h)).sort((x,y)=>y[1]-x[1]).slice(0,15)],   /* 2026-10-28: 사자성어·속담 따로 15개씩 */

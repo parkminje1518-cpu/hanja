@@ -266,7 +266,7 @@ const QRANGE = [
 /* ===== 지식의 힘(한자) · 지혜의 힘(사자성어·속담): 넓게 고르고 진짜로 외울수록 게임에서 세져요 =====
    실제 효과 = 범위 보너스 × (0.25 + 0.75 × 그 범위에서 익힌 비율) · 선생님 모드는 다 익힌 것으로 미리 보기 */
 const KNOW_DMG=[0,.08,.16,.24,.32], WIS_ARM=[0,.045,.09,.135,.16,.18], WIS_CD=[0,.03,.06,.09,.105,.12];
-function knowRatio(w,all){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(all||typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }   /* 흐려진 것(복습을 오래 안 함)은 빼요 */
+function knowRatio(w,all){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=qpoolOf(w); return L.length?L.filter(c=>hzM(c.h)&&(all||typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }   /* 흐려진 것(복습을 오래 안 함)은 빼요 */
 function wisRatio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=spoolOf(w); return L.length&&typeof sayMastered==="function"?L.filter(x=>sayMastered(x)&&(typeof rvFaded!=="function"||!rvFaded(x.h))).length/L.length:0 }
 function knowPower(qw,sw){ const qi=Math.max(0,QRANGE.findIndex(q=>q.w===qw)), si=Math.max(0,SRANGE.findIndex(q=>q.w===sw)), kr=knowRatio(qw), wr=wisRatio(sw), kf=kr, wf=wr;   /* 2026-10-27: 외운 만큼만 (예전엔 하나도 안 외워도 25%) */
   return {dmg:KNOW_DMG[qi]*kf, armor:WIS_ARM[si]*wf, cd:WIS_CD[si]*wf, kr, wr, qi, si} }
@@ -315,7 +315,7 @@ const Q2RANGE = [
 ];
 const KNOW2_BD=[0,.05,.10,.15,.20], KNOW2_IED=[0,.05,.10,.15,.20];   /* 임시 숫자 */
 const q2rangeOf = ()=>Q2RANGE.find(q=>q.w===(P.set.q2range||0))||Q2RANGE[0];
-function know2Power(w){ w=w===undefined?q2rangeOf().w:w; const i=Math.max(0,Q2RANGE.findIndex(q=>q.w===w)), L=q2poolOf(w), r=typeof isAdmin==="function"&&isAdmin()?1:L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N).length/L.length:0, f=r; return {bd:KNOW2_BD[i]*f, ied:KNOW2_IED[i]*f, r, i} }
+function know2Power(w){ w=w===undefined?q2rangeOf().w:w; const i=Math.max(0,Q2RANGE.findIndex(q=>q.w===w)), L=q2poolOf(w), r=typeof isAdmin==="function"&&isAdmin()?1:L.length?L.filter(c=>hzM(c.h)).length/L.length:0, f=r; return {bd:KNOW2_BD[i]*f, ied:KNOW2_IED[i]*f, r, i} }
 /* 사자성어·속담 퀴즈 범위: 넓을수록 보상이 커요 (한자 범위 보상과 곱해져요) */
 const SRANGE = [
   {w:0,  exp:1,    coin:0,  cm:1,    revive:0, label:"안 풀기",  merit:"한자 문제만 나와요 · 추가 보상 없음"},
@@ -327,11 +327,11 @@ const SRANGE = [
 ];   /* 2026-10-28: 사자성어·속담 25주차로 늘어서 범위를 나눴어요 (예전 '전체'에 있던 말은 모두 1~12주차 안에 있어요) */
 
 /* 퀴즈 범위 보상(경험치·코인·카드·부활)도 그 범위에서 외운 비율만큼만 (2026-10-27: 범위만 넓게 고르고 모르면 보상 없음) */
-function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&(typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }
+function know2Ratio(w){ if(typeof isAdmin==="function"&&isAdmin()) return 1; const L=q2poolOf(w); return L.length?L.filter(c=>hzM(c.h)&&(typeof rvFaded!=="function"||!rvFaded(c.h))).length/L.length:0 }
 function rangeByMastery(R,r){ r=Math.max(0,Math.min(1,r||0)); return Object.assign({},R,{exp:1+((R.exp||1)-1)*r, coin:Math.round((R.coin||0)*r), cm:1+((R.cm||1)-1)*r, cards:r>=.6?(R.cards||0):0, revive:r>=.6?(R.revive||0):0, heal:R.heal!==undefined?(R.heal*(.4+.6*r)):R.heal, mr:r}) }
 /* 다음 맵 열기 (유하게): 보스 열쇠 + 익힌 한자·사자성어·속담 수 · 맵 하나마다 5개 */
 const MAP_LEARN=id=>Math.max(0,(Math.min(id,11)-1)*5);
-function learnedN(){ const m=P.mastery||{}; let n=0; for(const c of UNIQUE) if((m[c.h]||0)>=MASTER_N) n++; if(typeof SAY_ALL!=="undefined"&&typeof sayMastered==="function") for(const k of ["S","P"]) for(const x of SAY_ALL[k]) if(sayMastered(x)) n++; return n }
+function learnedN(){ const m=P.mastery||{}; let n=0; for(const c of UNIQUE) if(hzM(c.h)) n++; if(typeof SAY_ALL!=="undefined"&&typeof sayMastered==="function") for(const k of ["S","P"]) for(const x of SAY_ALL[k]) if(sayMastered(x)) n++; return n }
 const studyOK=id=>(typeof isAdmin==="function"&&isAdmin())||learnedN()>=MAP_LEARN(id);
 const srangeOf = ()=>{ if(P&&P.set&&!P.set.srV){ P.set.srV=1; if(P.set.srange===99||P.set.srange===9||P.set.srange===11) P.set.srange=12 } return SRANGE.find(q=>q.w===(P.set.srange??3))||SRANGE[1] };   /* 예전에 고른 「전체」·「1~9주차」는 새 「1~12주차」로 (익힌 비율·힘이 갑자기 줄지 않게) */
 const spoolOf = w=>(!w||typeof SAY_ALL==="undefined")?[]:[...SAY_ALL.S.filter(x=>x.w<=w),...SAY_ALL.P.filter(x=>x.w<=w)];
@@ -397,13 +397,13 @@ function gameLobby(){
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
         <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mmedal">${medalsOf(m.id).map((x,i)=>`<i class="${x?"on":""}">${MEDALS[i][0]}</i>`).join("")}${((P.clearD||{})[m.id]||0)>=2?`<em style="background:${DIFS[((P.clearD||{})[m.id])-1].c}">${DIFS[((P.clearD||{})[m.id])-1].n} 클리어</em>`:""}</span>${(()=>{ const df=mapDif(m.id), rp=recShow(m.id,df), mp=heroPower(P.hero); return `<span class="mrec ${mp>=rp?"ok":"lo"}">⚔ 권장 ${fmtPow(rp)}${DIFS[df]&&df?` (${dN(df,m.id)})`:""} · 나 ${fmtPow(mp)}</span>` })()}<span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         ${chain||unl?`<span class="mchain ${unl?"unl":""}"><i class="c1"></i><i class="c2"></i><span class="plock"><i class="shk"></i><i class="bod"></i></span></span>`:""}
-        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
+        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번 맞히고 ✍ 기억해서 쓰기 1번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div>`).join("")}
     </div><div class="msea s2" ${(P.set.mseason||"1")==="2"?"":"hidden"}><div class="realmHead boss"><b>👑 군단장 토벌</b><span>보스만 나오는 결투장! 보스 공격력 · 방어율 무시가 중요해요</span></div><div class="mapgrid">${S2MAPS.map(m=>{ const cli=typeof NET!=="undefined"&&NET.role==="client"&&netInRoom(), chain=!cli&&!mapOpened(m.id), unl=!cli&&P.newOpen===m.id, slk=!cli&&!chain&&!studyOK(m.id), lock=!cli&&!isAdmin()&&(chain||slk||HS().lv<m.lv||(m.tier&&HS().tier<m.tier)), on=cli?(NET.map||1)===m.id:(P.set.map||1)===m.id;
       return `<button class="mapc ${(chain||lock)?"":"slim"} ${on?"on":""} ${lock?"mlock":""} ${chain?"chained":""} ${m.hud==="#f3effd"?"dk":""}" data-map="${m.id}" ${lock?"disabled":""} style="--m1:${m.sky[0]};--m2:${m.sky[1]};--mt:${m.tag}">
         <span class="mstep">${m.id}단계</span><span class="mdiff">${m.diff}</span>
         <strong>${m.name}</strong><span class="mstar">${starStr((P.stars||{})[m.id]||0)}${(P.cleared||{})[m.id]?" 클리어":""}</span><span class="mmedal">${medalsOf(m.id).map((x,i)=>`<i class="${x?"on":""}">${MEDALS[i][0]}</i>`).join("")}${((P.clearD||{})[m.id]||0)>=2?`<em style="background:${DIFS[((P.clearD||{})[m.id])-1].c}">${DIFS[((P.clearD||{})[m.id])-1].n} 클리어</em>`:""}</span>${(()=>{ const df=mapDif(m.id), rp=recShow(m.id,df), mp=heroPower(P.hero); return `<span class="mrec ${mp>=rp?"ok":"lo"}">⚔ 권장 ${fmtPow(rp)}${DIFS[df]&&df?` (${dN(df,m.id)})`:""} · 나 ${fmtPow(mp)}</span>` })()}<span class="mexp">경험치 ×${m.exp} · 코인 최대 ${maxGameCoins(m.id)}${(P.cleared||{})[m.id]?"":` · 첫 클리어 +${firstClearCoin(m.id)}`}</span>
         ${chain||unl?`<span class="mchain ${unl?"unl":""}"><i class="c1"></i><i class="c2"></i><span class="plock"><i class="shk"></i><i class="bod"></i></span></span>`:""}
-        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div><div class="s2soon"><b>🌌 12단계</b><span>다음 군단장이 곧 나타나요!</span></div></div></details>
+        <small>${chain?`🔒 ${esc(MAPS[m.id-2]?MAPS[m.id-2].name:"")} 최종 보스를 물리치면 열쇠가 나와요`:slk?`📚 익힌 한자·사자성어·속담 ${MAP_LEARN(m.id)}개가 있어야 열려요 (지금 ${learnedN()}개) · 한자는 6번 맞히고 ✍ 기억해서 쓰기 1번, 사자성어·속담은 4번(생활 문제 3번) 맞혀 익혀요!`:lock?(m.tier&&HS().lv>=m.lv?`4차 전직한 용사만 들어갈 수 있어요`:`용사 Lv ${m.lv}부터 열려요${m.tier?" · 4차 전직 필요":""}`):m.desc}</small></button>` }).join("")}</div><div class="s2soon"><b>🌌 12단계</b><span>다음 군단장이 곧 나타나요!</span></div></div></details>
     ${difPanelHtml()}
     <details class="mgBox"><summary>📖 이 맵 자세히 보기 (몬스터 · 보스 · 훈장) ▾</summary>
     ${mapGuideHtml(typeof NET!=="undefined"&&NET.role==="client"&&netInRoom()?(NET.map||1):(P.set.map||1))}
@@ -442,7 +442,7 @@ function gameLobby(){
         <small class="pkEf">👑 지금 효과: ${q2rangeOf().w?`<em>보스 공격력 +${Math.round(K2.bd*100)}% · 방어율 무시 +${Math.round(K2.ied*100)}%</em> (외운 만큼 · 최대 보공 +${Math.round(KNOW2_BD[K2.i]*100)}% 방무 +${Math.round(KNOW2_IED[K2.i]*100)}%) · 군단장 맵에서 아주 중요해요`:"없어요 · 고르면 보스 공격력과 방어율 무시가 생겨요"}</small>
         <b>사자성어·속담 범위</b><div>${SRANGE.map(q=>`<button class="pkr ${srangeOf().w===q.w?"on":""}" data-ms="${q.w}">${q.label}</button>`).join("")}</div>
         <small class="pkEf">📜 지금 효과: ${srangeOf().w?`<em>받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%</em>`:"없어요 · 고르면 받는 피해와 스킬 대기시간이 줄어요"}</small>
-        ${(()=>{ const kr=knowRatio(P.set.qrange||5), ka=knowRatio(P.set.qrange||5,1), wr=srangeOf().w?wisRatio(srangeOf().w):null, pc=x=>Math.round(x*100), fdn=qpoolOf(P.set.qrange||5).filter(c=>((P.mastery||{})[c.h]||0)>=MASTER_N&&typeof rvFaded==="function"&&rvFaded(c.h)).length; return `<p class="pkK" style="color:#ff9ab0">⚠ 범위를 골라도 <b>공부 안 한 것은 적용 안 돼요</b> · 익힌 것만큼만 세져요</p><p class="pkK" style="color:#ffd36a">📖 이 범위에서 익힌 한자 <b>${pc(kr)}%</b>${fdn?` <span style="color:#ff9ab0">(흐려진 것 ${fdn}개 · 🔁 복습하면 +${pc(ka-kr)}%)</span>`:""}${wr!=null?` · 익힌 사자성어·속담 <b>${pc(wr)}%</b>`:""} → 힘과 범위 보상(경험치·코인)도 익힌 만큼만 붙어요. 60% 넘게 익히면 기술 카드 +1 · 부활 +1!</p>` })()}
+        ${(()=>{ const kr=knowRatio(P.set.qrange||5), ka=knowRatio(P.set.qrange||5,1), wr=srangeOf().w?wisRatio(srangeOf().w):null, pc=x=>Math.round(x*100), fdn=qpoolOf(P.set.qrange||5).filter(c=>hzM(c.h)&&typeof rvFaded==="function"&&rvFaded(c.h)).length; return `<p class="pkK" style="color:#ff9ab0">⚠ 범위를 골라도 <b>공부 안 한 것은 적용 안 돼요</b> · 익힌 것만큼만 세져요</p><p class="pkK" style="color:#ffd36a">📖 이 범위에서 익힌 한자 <b>${pc(kr)}%</b>${fdn?` <span style="color:#ff9ab0">(흐려진 것 ${fdn}개 · 🔁 복습하면 +${pc(ka-kr)}%)</span>`:""}${wr!=null?` · 익힌 사자성어·속담 <b>${pc(wr)}%</b>`:""} → 힘과 범위 보상(경험치·코인)도 익힌 만큼만 붙어요. 60% 넘게 익히면 기술 카드 +1 · 부활 +1!</p>` })()}
         <p class="pkK">모두 합치면: 📚 공격력 +${Math.round(K.dmg*100)}% · 📜 받는 피해 -${Math.round(K.armor*100)}% · 스킬 대기시간 -${Math.round(K.cd*100)}%${q2rangeOf().w?` · 👑 보공 +${Math.round(K2.bd*100)}% · 방무 +${Math.round(K2.ied*100)}%`:""} <small>(넓게 고르고 많이 외울수록 세져요)</small></p></div>`) })()}
       ${(()=>{ const S=HS(), used=STAT_KEYS.reduce((a,k)=>a+(S[k]||0),0), NMS={hp:"체력",atk:"공격",dmg:"데미지",spd:"속도",bd:"보공",ied:"방무"}, line=STAT_KEYS.filter(k=>S[k]).map(k=>`${NMS[k]} ${S[k]}`).join(" · ")||"아직 찍은 포인트가 없어요";
         return sec("stat","📊",`능력치 · ${esc(H.name)}`,`${line}${S.pts?` · <b style="color:#ffd36a">남은 ${S.pts}</b>`:""}`,`<p class="pkK">${bossDefOf(M.id,mapDif(M.id))?`<b>${esc(M.name)} ${dN(mapDif(M.id),M.id)}</b>은 보스 방어율이 있어서 보공·방무가 중요해요. 이 보스에 맞춰 다시 찍을 수 있어요.`:`1~10단계는 어느 맵이든 추천이 같아요. 군단장 맵에서 바꿨다면 여기서 공통 추천으로 되돌려요.`} (찍은 포인트 ${used}개 · 남은 ${S.pts}개)</p>
@@ -609,20 +609,20 @@ const PLAY_MIN_T = 60;
 function wrongPool(){ const H=(P.wrong||[]).map(h=>UNIQUE.find(c=>c.h===h)).filter(Boolean), S=(P.swrong||[]).map(h=>typeof sayFind==="function"?sayFind(h):null).filter(Boolean); return [...H,...S] }
 /* 게임 전 오답 3문제: 다 맞히면 이번 판 공격력 +8% · 경험치 +10% (틀려도 입장은 그대로) */
 function wrongWarmup(go){ const W=wrongPool(); if(!W.length||(typeof NM!=="undefined"&&NM)) { window.__wBuff=0; return go() }
-  const MUST=typeof rvMode==="function"&&rvMode()==="must"&&!(typeof isAdmin==="function"&&isAdmin());   /* 필수 모드: 3문제를 모두 맞혀야 출발 (틀리면 다른 오답 문제가 나와요) */
-  const qs=shuffle(W).slice(0,Math.min(3,W.length)).map(c=>({c,q:makeQ(c,{short:true})})); let i=0, ok=0, fin=false, miss=0; const NQ=qs.length; window.__wBuff=0;
+  const MUST=typeof rvMode==="function"&&rvMode()==="must"&&!(typeof isAdmin==="function"&&isAdmin());   /* 필수 모드 (2026-10-30 완화): 3문제 중 2개 맞히면 출발 · 모자라면 한 문제씩 더 (최대 5문제) */
+  const qs=shuffle(W).slice(0,Math.min(3,W.length)).map(c=>({c,q:makeQ(c,{short:true})})); let i=0, ok=0, fin=false, miss=0; const NQ=qs.length, NEED=Math.min(2,NQ), MAXQ=5; window.__wBuff=0;
   const leave=()=>{ if(fin) return; fin=true; closeModal(); go() };   /* 고침 (2026-10-27): 한 문제 풀고 바로 '건너뛰기'를 누르면 남은 문제가 게임 안에서 계속 뜨던 문제 · 두 번 시작되지 않게 */
   const show=()=>{ if(fin) return; const {c,q}=qs[i];
-    openModal(`<h3>📝 출전 전 오답 복습 (${MUST?Math.min(ok+1,NQ):i+1} / ${NQ})</h3><p class="muted" style="margin:0 0 6px">전에 틀린 ${c.cat?"사자성어·속담":"한자"}예요. ${NQ}문제 다 맞히면 이번 판 <b>공격력 +8% · 경험치 +10%</b>!</p>
+    openModal(`<h3>📝 출전 전 오답 복습 (${i+1} / ${Math.max(NQ,qs.length)})</h3><p class="muted" style="margin:0 0 6px">전에 틀린 ${c.cat?"사자성어·속담":"한자"}예요. ${NQ}문제 다 맞히면 이번 판 <b>공격력 +8% · 경험치 +10%</b>!</p>
       ${q.desc?`<p style="font-family:var(--f-ui);font-size:17px;line-height:1.5;background:rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;margin:4px 0">${esc(q.desc)}</p>`:""}${q.big?`<div class="gq">${esc(q.big)}</div>`:""}<p style="font-family:var(--f-ui);font-size:20px;line-height:1.45;margin:4px 0">${esc(q.q)}</p>
       <div class="gopts two">${q.opts.map((o,j)=>`<button class="gans ${o.hz?"hz":""}" data-j="${j}">${esc(o.text)}</button>`).join("")}</div>
-      ${MUST?`<p class="muted" style="margin:6px 0 0">🔒 ${NQ}문제를 <b>모두 맞혀야</b> 출발해요 (지금 ${ok}/${NQ})${miss?` · 틀린 문제 대신 다른 오답이 나와요`:""}</p>`:`<div class="btns"><button class="btn ghost" id="wwSkip">건너뛰고 바로 출발</button></div>`}`);
+      ${MUST?`<p class="muted" style="margin:6px 0 0">🔒 <b>${NEED}개</b> 맞히면 출발해요 (지금 ${ok}/${NEED})${i>=NQ?` · 한 문제 더 (최대 ${MAXQ}문제)`:""}</p>`:`<div class="btns"><button class="btn ghost" id="wwSkip">건너뛰고 바로 출발</button></div>`}`);
     { const sk=document.getElementById("wwSkip"); if(sk) sk.onclick=leave }
     mcard.querySelectorAll(".gans").forEach(b=>b.onclick=()=>{ const r=!!q.opts[+b.dataset.j].ok; mcard.querySelectorAll(".gans").forEach(x=>{ x.disabled=true; if(q.opts[+x.dataset.j].ok) x.classList.add("ok") });
       trackAns(c,r); P.stats.q++; if(r){ ok++; P.stats.c++; sfx("ok"); P.mastery[c.h]=(P.mastery[c.h]||0)+1; if(q.ctx&&typeof sayCtx==="function") sayCtx(c) } else { b.classList.add("no"); sfx("no"); addWrong(c.h) } saveP();
-      if(!r&&MUST){ miss++; const pool=shuffle(W.filter(x=>x.h!==c.h)), nc=pool[0]||c; qs.push({c:nc,q:makeQ(nc,{short:true})}); ok-=0 }
-      setTimeout(()=>{ if(fin) return; i++; if(i<qs.length) return show(); const all=MUST?true:ok===qs.length; window.__wBuff=(MUST?miss===0:all)?1:0;
-        openModal(`<h3>${window.__wBuff?"🔥 오답 복습 완벽!":"📝 오답 복습 끝"}</h3><p>${MUST?`${NQ}문제를 모두 맞혔어요!${miss?` (틀린 ${miss}번은 다른 문제로 다시 풀었어요)`:""}`:`${ok} / ${qs.length} 맞혔어요.`}</p><p>${window.__wBuff?"이번 판 <b>공격력 +8% · 경험치 +10%</b>로 출발해요!":MUST?"한 번에 다 맞히면 보너스를 받아요. 출발해요!":"다 맞히면 보너스를 받아요. 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요!"}</p><div class="btns"><button class="btn gold big" id="wwGo">⚔ 출발!</button></div>`);
+      if(!r) miss++; if(MUST&&i+1>=qs.length&&ok<NEED&&qs.length<MAXQ){ const pool=shuffle(W.filter(x=>x.h!==c.h)), nc=pool[0]||c; qs.push({c:nc,q:makeQ(nc,{short:true})}) }
+      setTimeout(()=>{ if(fin) return; i++; if(i<qs.length) return show(); const all=ok===qs.length; window.__wBuff=(miss===0&&all)?1:0;
+        openModal(`<h3>${window.__wBuff?"🔥 오답 복습 완벽!":"📝 오답 복습 끝"}</h3><p>${ok} / ${qs.length} 맞혔어요.${MUST&&ok<NEED?" 오늘은 여기까지! 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요.":""}</p><p>${window.__wBuff?"이번 판 <b>공격력 +8% · 경험치 +10%</b>로 출발해요!":MUST?"전부 맞히면 보너스를 받아요. 출발해요!":"다 맞히면 보너스를 받아요. 틀린 건 게임 속 <b>복수전</b>에서 다시 만나요!"}</p><div class="btns"><button class="btn gold big" id="wwGo">⚔ 출발!</button></div>`);
         document.getElementById("wwGo").onclick=leave }, r?700:1500) }) };
   show() }   // 이 시간(초)을 넘게 해야 1판으로 셈
 const fmtT = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`};
