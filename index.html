@@ -139,6 +139,9 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 .qtag{align-self:flex-start;background:#3a2c18;color:var(--gold);font-family:var(--f-ui);font-size:15px;border-radius:6px;padding:2px 10px}
 .qbig{font-family:var(--f-hz);font-weight:900;font-size:clamp(90px,16vw,150px);line-height:1;text-align:center}
 .qq{font-family:var(--f-title);font-weight:400;font-size:clamp(26px,4.4vw,38px);line-height:1.25;text-wrap:balance}
+.qq.news{font-family:"Noto Serif KR",serif;font-weight:700;font-size:clamp(20px,3.2vw,28px);line-height:1.55;background:#fffaf0;border-left:5px solid #8a2a1c;padding:10px 14px;border-radius:6px;text-align:left}
+.advList{display:flex;flex-direction:column;gap:10px;text-align:left}.advList>div{background:rgba(255,255,255,.06);border-radius:10px;padding:10px 12px}.advList b{font-size:22px;color:#ffd36a}.advList .hz{font-family:"Noto Serif KR",serif;font-weight:900;font-size:20px;margin-left:6px}.advList p{margin:4px 0;font-size:17px}.advList i{font-style:normal;font-size:15px;opacity:.85}
+.qwhy{font-family:var(--f-ui);font-size:17px;line-height:1.5;background:rgba(138,42,28,.08);border-radius:8px;padding:8px 12px;color:#4a3420}
 .qhint{border-top:2px dashed var(--paper-line);padding-top:10px;font-size:15px;color:#6b5634}
 .qopts{display:flex;flex-direction:column;gap:12px;justify-content:center}
 .qo{display:flex;align-items:center;gap:14px;background:var(--bg2);border:3px solid var(--line);border-radius:12px;min-height:72px;padding:8px 14px;text-align:left;font-family:var(--f-ui);font-size:24px;transition:background .15s,opacity .2s}
@@ -445,6 +448,8 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 @media (max-width:720px){.bdSum{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* ===== 기록 옮기기 ===== */
+.updBar{position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px 14px;border-radius:14px;background:#1f6e45;border:3px solid #8af0c1;color:#fff;font-family:var(--f-ui);font-size:17px;box-shadow:0 4px 0 #0e3a24;max-width:94vw}
+.updBar button{font:inherit;font-weight:700;background:#ffd36a;color:#3a2600;border:0;border-radius:10px;padding:6px 12px;cursor:pointer}.updBar small{opacity:.85}
 .moveBar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:10px auto 0;padding:10px 14px;border-radius:14px;background:linear-gradient(90deg,#1f6e45,#2f8a5a);border:3px solid #8af0c1;color:#fff;font-family:var(--f-ui);font-size:18px;box-shadow:0 4px 0 #0e3a24}
 .moveBar b{font-family:var(--f-title);font-weight:400;font-size:22px;color:#fff4b0}
 .moveBar .mvGo{margin-left:auto;background:#f6c544;color:#2a1d00;border:3px solid #fff4b0;border-radius:12px;padding:8px 16px;font-family:var(--f-title);font-size:20px;text-decoration:none;box-shadow:0 4px 0 #b8871a}
@@ -1270,19 +1275,19 @@ select,input[type=text],input[type=password]{background:var(--bg2);border:2px so
 
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.2/dist/hanzi-writer.min.js"></script>
 <script src="strokes.js"></script>
-<script src="sprites.js?v=11040954"></script>
-<script src="jobs.js?v=11040954"></script>
-<script src="maps.js?v=11040954"></script>
-<script src="art.js?v=11040954"></script>
-<script src="art2.js?v=11040954"></script>
-<script src="monsters.js?v=11040954"></script>
-<script src="jobfx.js?v=11040954"></script>
-<script src="words.js?v=11040954"></script>
-<script src="sayings.js?v=11040954"></script>
-<script src="shop.js?v=11040954"></script>
-<script src="sfx.js?v=11040954"></script>
+<script src="sprites.js?v=11110959"></script>
+<script src="jobs.js?v=11110959"></script>
+<script src="maps.js?v=11110959"></script>
+<script src="art.js?v=11110959"></script>
+<script src="art2.js?v=11110959"></script>
+<script src="monsters.js?v=11110959"></script>
+<script src="jobfx.js?v=11110959"></script>
+<script src="words.js?v=11110959"></script>
+<script src="sayings.js?v=11110959"></script>
+<script src="shop.js?v=11110959"></script>
+<script src="sfx.js?v=11110959"></script>
 <script src="peerjs.min.js"></script>
-<script src="mp.js?v=11040954"></script>
+<script src="mp.js?v=11110959"></script>
 <script>
 /* ===== 자료 ===== */
 const RAW = [
@@ -1547,6 +1552,7 @@ function todayCard(){ const d=day(), rvAll=Object.keys(P.rv||{}).length, rvN=rvD
     <div class="tdSteps">${steps.map((x,i)=>`<button class="tdStep ${x.done?"done":""} ${x.lock?"tdLk":""} ${cur===x?"cur":""}" data-td="${x.k}"><span class="tdN">${x.done?"✔":i+1}</span><span class="tdI">${x.ic}</span><span class="tdT"><b>${x.t}</b><small>${x.sub}</small></span></button>`).join("")}</div>
     <details class="tdHow"><summary>💪 어떻게 하면 세질까? (눌러서 보기)</summary><ol>
       <li><b>외워요</b> — 한자는 <b>6번 맞히고 ✍ 기억해서 쓰기 1번</b>, 사자성어·속담은 <b>4번(생활 문제 3번)</b> 맞히면 「익힌 것」이 돼요.</li>
+      <li><b>📰 심화 낱말</b> — 한자를 3번 맞히면 신문·교과서에 나오는 어려운 낱말(내막·금융·목격…)과 <b>기사 읽기</b> 문제가 섞여 나와요. 학습하기 카드의 「📰 심화 낱말」에서 미리 볼 수 있어요. 낱말을 많이 알면 글을 잘 읽게 돼요!</li>
       <li><b>익힌 만큼 세져요</b> — 퀴즈 범위에서 익힌 비율만큼 <b>공격력·방어·보상</b>이 붙고, 다음 <b>맵</b>도 열려요.</li>
       <li><b>틀린 것은 다시 만나요</b> — 게임 속 <b>⚔ 복수전</b>으로 다시 나와요. 맞히면 공격력 UP!</li>
       <li><b>복습으로 지켜요</b> — 복습을 오래 안 하면 <b>흐려져서</b> 힘이 줄어요. 🔁 오늘의 복습을 해요.</li>
@@ -1691,6 +1697,19 @@ function packData(){ const o={}; try{ for(let i=0;i<localStorage.length;i++){ co
   const b=btoa(unescape(encodeURIComponent(JSON.stringify(o)))); return b.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"") }
 function unpackData(code){ code=String(code||"").trim().replace(/^.*#import=/,"").replace(/\s+/g,""); const b=code.replace(/-/g,"+").replace(/_/g,"/");
   return JSON.parse(decodeURIComponent(escape(atob(b+"===".slice((b.length+3)%4))))) }
+/* 🆕 자동 업데이트 (2026-11-11): 새 파일을 올리면 아이들 화면이 옛 버전에 머물지 않게 — 2분마다 version.txt 확인
+   · 첫 화면/메인에서 아무 창도 안 열려 있으면 바로 새로고침 (기록은 기기에 그대로) · 게임·퀴즈 중이면 위에 「지금 업데이트」 띠만 띄워요 */
+const APP_VER="11110959";
+function updCheck(){ if(APP_VER==="dev"||!/^https?:/.test(location.protocol)) return;
+  fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(v=>{ v=(v||"").trim(); if(!v||v===APP_VER) return;
+    const busy=!!document.querySelector(".game")||(typeof modal!=="undefined"&&!modal.hidden)||!!document.querySelector(".qwrap,.qcard");
+    const go=()=>{ try{ sessionStorage.setItem("updTried",v) }catch(e){} location.replace(location.pathname+"?u="+v+location.hash) };   /* 주소 끝을 바꿔서 새 파일을 받게 */
+    let tried=""; try{ tried=sessionStorage.getItem("updTried")||"" }catch(e){}
+    if(!busy&&tried!==v){ go(); return }
+    if(document.getElementById("updBar")) return; const d=document.createElement("div"); d.id="updBar"; d.className="updBar";
+    d.innerHTML=`🆕 새 버전이 나왔어요! <button id="updGo">지금 업데이트</button><small>(기록은 그대로예요)</small>`; document.body.appendChild(d);
+    document.getElementById("updGo").onclick=go }).catch(()=>{}) }
+setTimeout(updCheck,4000); setInterval(updCheck,120000); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) updCheck() });
 function moveBar(){ const el=document.getElementById("moveBar"); if(!el) return;
   if(ON_NEW || /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && !new URLSearchParams(location.search).get("move")){ el.innerHTML=""; return }
   const n=Object.keys(profiles).filter(id=>id!==ADMIN_ID).length;
@@ -2196,6 +2215,12 @@ function enterAdmin(){
 }
 document.addEventListener("toggle",e=>{ const d=e.target; if(!d||!d.dataset||!d.dataset.wk) return; const o=LS.get("bdWkOpen",{all:1,h:1,s:0,p:0}); o[d.dataset.wk]=d.open?1:0; LS.set("bdWkOpen",o) },true);
 document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-rvm]"); if(!b) return; LS.set("rvMode",b.dataset.rvm); sfx("tap"); toast({off:"복습·오답 필수 끔",soft:"부드럽게: 복습 안 하면 게임·학습 보상 절반",must:"필수: 복습·오답을 통과해야 게임"}[b.dataset.rvm]); settings() });
+/* 📰 심화 낱말 수준 (선생님 설정 · 이 기기) */
+document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-wlv]"); if(!b) return; LS.set("wordLv",b.dataset.wlv); sfx("tap"); toast({basic:"낱말: 기본 낱말만",mix:"낱말: 3번 맞힌 한자부터 심화 낱말 섞기",adv:"낱말: 심화 낱말 많이 (처음부터)"}[b.dataset.wlv]); settings() });
+function advModal(c){ const A=advOf(c.h); openModal(`<h3>📰 '${esc(label(c))}' 심화 낱말</h3><p style="margin:0 0 8px;opacity:.8;font-size:15px">신문·교과서에 나오는 낱말이에요. ${advLv()==="mix"?"이 한자를 3번 맞히면 퀴즈에도 나와요!":""}</p>
+  <div class="advList">${A.map(w=>`<div><b>${esc(w[1])}</b> <span class="hz">${esc(w[0])}</span><p>${esc(w[2])}</p><i>📰 ${esc(w[3])}</i></div>`).join("")}</div><div class="btns"><button class="btn gold" id="advOk">알았어요</button></div>`); document.getElementById("advOk").onclick=()=>closeModal() }
+function wordLvHtml(){ const m=advLv(); return `<section class="panel"><div class="eyebrow">VOCABULARY</div><h3 style="margin:2px 0 6px">📰 낱말 수준 <small style="font-size:13px;opacity:.75">(이 기기에 적용)</small></h3>
+  <div class="rvModes">${[["basic","기본만","교과서 기본 낱말만 (실내·내용)"],["mix","섞기 (추천)","한자를 3번 맞히면 신문·교과서 심화 낱말과 기사 읽기 문제가 섞여요 (내막·내실·내역)"],["adv","심화 많이","처음부터 심화 낱말·기사 읽기를 더 자주"]].map(([k,n,s])=>`<button class="rvMode ${m===k?"on":""}" data-wlv="${k}"><b>${n}</b><small>${s}</small></button>`).join("")}</div></section>` }
 function rvModeHtml(){ const m=rvMode(); return `<section class="panel"><div class="eyebrow">REVIEW RULE</div><h3 style="margin:2px 0 6px">🔁 복습·오답 필수 정도 <small style="font-size:13px;opacity:.75">(이 기기에 적용)</small></h3>
   <div class="rvModes">${[["off","끄기","복습·오답을 안 해도 게임 가능"],["soft","부드럽게","막지 않지만 오늘 복습을 통과 안 하면 게임·학습 코인·경험치 절반"],["must","필수 (추천)","복습 70% 통과 · 오답 15개 이상이면 오답 퀴즈 6/8 통과 · 출전 전 오답 3문제 중 2개"]].map(([k,n,s])=>`<button class="rvMode ${m===k?"on":""}" data-rvm="${k}"><b>${n}</b><small>${s}</small></button>`).join("")}</div></section>` }
 function adminPanel(){
@@ -2237,7 +2262,7 @@ function addExp(n){
 function heroBadge(id){ const s=HS(id); return `<span class="tierb" style="--tc:${TIER_COLOR[s.tier]}">Lv ${s.lv} · ${jobTitle(id)}</span>` }
 /* 스킬 미리보기 영상은 용사 성장 화면을 처음 열 때만 불러와요 (첫 화면을 빠르게) */
 let clipLoading=false;
-function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=11040954"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
+function loadClips(done){ if(typeof SKILL_CLIPS!=="undefined"||clipLoading) return; clipLoading=true; const sc=document.createElement("script"); sc.src="skillclips.js?v=11110959"; sc.onload=done; sc.onerror=()=>{ clipLoading=false }; document.head.appendChild(sc) }
 /* 용사 그림 가운데 맞추기: 그림마다 캐릭터가 한쪽으로 치우쳐 있어서, 보이는 부분의 가운데로 옮겨요 */
 const ART_CX={};
 function centerArt(img){ const go=()=>{ const k=img.src; let dx=ART_CX[k]; if(dx===undefined){ try{ const N=64, c=document.createElement("canvas"); c.width=N; c.height=N; const x=c.getContext("2d"); x.drawImage(img,0,0,N,N); const d=x.getImageData(0,0,N,N).data; let l=N, r=-1;
@@ -2402,13 +2427,22 @@ function makeQ(c,opt){ opt=opt||{}; if(c&&c.cat&&typeof makeSayQ==="function") r
   let others=[...inP,...shuffle(UNIQUE.filter(x=>x.h!==c.h&&!pH.has(x.h)))];   /* 고침 (2026-10-28): 틀린 보기도 고른 범위(배운 한자)에서 먼저 골라요 · 모자랄 때만 다른 주차 한자 */
   if(opt.hard){ const sim=o=>(o.eum===c.eum?3:0)+(o.eum&&c.eum&&o.eum[0]===c.eum[0]?1:0)+([...(o.hun||"")].some(ch=>(c.hun||"").includes(ch))?2:0); others=others.map(o=>[o,(pH.has(o.h)?10:0)+sim(o)+Math.random()]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]) }   /* 어려운 문제: 소리·뜻이 비슷한 보기부터 */
   const pick=key=>{const seen=new Set([key(c)]),out=[];for(const o of others){const k=key(o);if(!seen.has(k)){seen.add(k);out.push(o)}if(out.length===3)break}return shuffle([c,...out])};
-  const W=typeof wordsOf==="function"?wordsOf(c.h):[];
+  const W0=typeof wordsOf==="function"?wordsOf(c.h):[];
+  /* 📰 심화 낱말 (2026-11-11): 신문·교과서 수준 낱말 · 그 한자를 3번 이상 맞히면 섞여 나와요 (선생님 설정: 기본만/섞기/심화 많이) */
+  const A=(typeof advOn==="function"&&advOn(c.h))?advOf(c.h):[], AL=typeof advLv==="function"?advLv():"basic";
+  const W=A.length&&(!W0.length||Math.random()<(AL==="adv"?.75:.5))?A:W0, isA=W===A;
   const types=opt.hard?["toh","he","hun"]:["he","toh","eum","hun"]; if(W.length){ types.push("inword"); if(!opt.short) types.push("word"); if(opt.hard) types.push("word","inword") }
+  if(A.length){ types.push("news"); if(AL==="adv"||opt.hard) types.push("news","word") }
   const t=types[Math.random()*types.length|0];
-  if(t==="inword"){ const w=W[Math.random()*W.length|0], wrong=shuffle(others.flatMap(o=>wordsOf(o.h)).filter(x=>!x[0].includes(c.h))).slice(0,3);
+  const wPool=o=>isA?advOf(o.h).concat(wordsOf(o.h)):wordsOf(o.h);
+  if(t==="news"){ const w=A[Math.random()*A.length|0], blank=w[3].replace(w[1],"(　　　)");
+    let wr=shuffle(others.flatMap(o=>advOf(o.h)).filter(x=>x[1]!==w[1]&&!x[0].includes(c.h)));
+    wr=[...wr.filter(x=>x[1].length===w[1].length),...wr.filter(x=>x[1].length!==w[1].length)]; const seen=new Set([w[1]]), wrong=[]; for(const x of wr){ if(!seen.has(x[1])){ seen.add(x[1]); wrong.push(x) } if(wrong.length===3) break }
+    const Q={c,tag:"📰 기사 읽기",big:null,desc:blank,q:`빈칸에 알맞은 낱말은? ('${label(c)}' 한자가 들어가요)`,opts:shuffle([w,...wrong]).map(x=>({text:x[1],rd:x[0],ok:x===w})),word:w,why:`<b>${esc(w[1])}(${esc(w[0])})</b> — ${esc(w[2])}`}; if(opt.short){ Q.q=`${blank}  ▶ 빈칸 낱말은?`; Q.desc=null; Q.long=1 } return Q }
+  if(t==="inword"){ const w=W[Math.random()*W.length|0], wrong=shuffle(others.flatMap(wPool).filter(x=>!x[0].includes(c.h))).slice(0,3);
     return {c,tag:"낱말 찾기",big:null,q:`'${label(c)}'이 들어간 낱말은?`,opts:shuffle([w,...wrong]).map(x=>({text:x[0],hz:true,rd:x[1],ok:x===w})),word:w} }
-  if(t==="word"){ const w=W[Math.random()*W.length|0], wrong=shuffle(others.flatMap(o=>wordsOf(o.h)).filter(x=>x[2]!==w[2])).slice(0,3);
-    return {c,tag:"낱말 뜻",big:w[0],q:`'${w[1]}'(${w[0]})의 뜻은?`,opts:shuffle([w,...wrong]).map(x=>({text:x[2].replace(/ \(.+\)$/,""),ok:x===w})),word:w} }
+  if(t==="word"){ const w=W[Math.random()*W.length|0], wrong=shuffle(others.flatMap(wPool).filter(x=>x[2]!==w[2])).slice(0,3);
+    return {c,tag:isA?"📰 심화 낱말 뜻":"낱말 뜻",big:w[0],q:`'${w[1]}'(${w[0]})의 뜻은?`,opts:shuffle([w,...wrong]).map(x=>({text:x[2].replace(/ \(.+\)$/,""),ok:x===w})),word:w,why:isA&&w[3]?`📰 ${esc(w[3])}`:""} }
   if(t==="he")  return {c,tag:"뜻과 소리",big:c.h,q:"이 한자의 뜻과 소리는?",opts:pick(label).map(o=>({text:label(o),ok:o.h===c.h}))};
   if(t==="toh") return {c,tag:"한자 찾기",big:null,q:`'${label(c)}'에 알맞은 한자는?`,opts:pick(label).map(o=>({text:o.h,hz:true,ok:o.h===c.h}))};
   if(t==="eum") return {c,tag:"소리(음)",big:c.h,q:"이 한자는 어떻게 읽을까요?",opts:pick(o=>o.eum).map(o=>({text:o.eum,ok:o.eum===c.eum}))};
@@ -2429,7 +2463,7 @@ function quiz(list,{fromNotes=false}={}){
       <div class="reward" id="rw"><div class="eyebrow">REWARD</div><b>${ico("coin","ci")}+<span id="pend">${shown()}</span></b><small id="cmb">${combo>=2?`${combo}연속 정답!`:fromNotes?"연속 정답이면 더 많이":`${N-1}개 이상이면 받아요!`}</small></div>
     </div>
     <div class="qwrap">
-      <div class="qcard"><span class="qtag"># 문제 ${i+1} · ${q.tag}</span>${q.big?`<div class="qbig">${esc(q.big)}</div>`:""}<div class="qq">${esc(q.q)}</div><div class="qhint">4개 보기 중 알맞은 것을 골라요!</div></div>
+      <div class="qcard"><span class="qtag"># 문제 ${i+1} · ${q.tag}</span>${q.big?`<div class="qbig">${esc(q.big)}</div>`:""}${q.desc?`<div class="qq news">${esc(q.desc)}</div>`:""}<div class="qq" ${q.desc?'style="font-size:clamp(20px,3vw,26px)"':""}>${esc(q.q)}</div><div class="qhint">4개 보기 중 알맞은 것을 골라요!</div></div>
       <div class="qopts">
         ${q.opts.map((o,k)=>`<button class="qo ${o.hz?"hz":""}" data-k="${k}"><span class="L">${"ABCD"[k]}</span><span class="T">${esc(o.text)}</span><span class="gain"></span></button>`).join("")}
         <div class="qtools">
@@ -2465,8 +2499,8 @@ function quiz(list,{fromNotes=false}={}){
         combo=0; if(b) b.classList.add("no"); miss.push(q.c); addWrong(q.c.h); sfx("no");
         document.getElementById("cmb").textContent=b?"아쉬워요!":"건너뛰었어요";
       }
-      saveP();
-      setTimeout(()=>{ i++; busy=false; i<N?draw():finish() }, ok?1000:1700);
+      saveP(); if(q.why){ const qc=document.querySelector(".qcard"); if(qc) qc.insertAdjacentHTML("beforeend",`<div class="qwhy">${q.why}</div>`) }
+      setTimeout(()=>{ i++; busy=false; i<N?draw():finish() }, (ok?1000:1700)+(q.why?1300:0));
     }
   }
   function finish(){
@@ -2534,12 +2568,14 @@ function cards(list,{fromNotes=false}={}){
       <button class="btn ghost" id="prev" ${i?"":"disabled"}>◀ 이전</button>
       <button class="btn ghost" id="stk">획순 보기</button>
       ${canSpeak?`<button class="btn ghost" id="say">소리 듣기</button>`:""}
+      ${advOf(c.h).length&&advLv()!=="basic"?`<button class="btn ghost" id="advW">📰 심화 낱말</button>`:""}
       <button class="btn red" id="hard">헷갈려요</button>
       <button class="btn jade" id="know">알아요 ▶</button>
     </div>`;
     bindBack();
     const f=document.getElementById("flip");
     f.onclick=()=>{f.classList.toggle("on");seen.add(c.h);sfx("flip")};
+    { const a=document.getElementById("advW"); if(a) a.onclick=()=>{ sfx("tap"); advModal(c) } }
     document.getElementById("prev").onclick=()=>{i--;draw()};
     document.getElementById("stk").onclick=()=>openStroke(c);
     if(canSpeak) document.getElementById("say").onclick=()=>{const v=P.set.voice;P.set.voice=true;speak(label(c));P.set.voice=v};
@@ -2934,7 +2970,7 @@ const fmtTime = t=>{t=Math.floor(t);return `${Math.floor(t/60)}:${String(t%60).p
 function settings(){
   const p=prof();
   const sw=(id,on)=>`<button class="sw2" role="switch" id="${id}" aria-checked="${on}" aria-label="켜기/끄기"></button>`;
-  $app.innerHTML = topbar("설정") + (isAdmin()?rvModeHtml()+adminPanel():`
+  $app.innerHTML = topbar("설정") + (isAdmin()?rvModeHtml()+wordLvHtml()+adminPanel():`
   <section class="panel">
     <div class="eyebrow">MY EXPLORER</div>
     <div class="setrow"><div class="lab"><strong>${pname(p)}${p.name?` · ${esc(p.name)}`:""}</strong><small>이 기기에 저장된 내 정보</small></div><button class="btn ghost" id="edit">정보 고치기</button></div>
@@ -2983,4 +3019,4 @@ document.body.style.overflow="";
 picker(); moveBar();
 if(/#import=/.test(location.hash)){ try{ askImport(unpackData(location.hash)) }catch(e){ toast("기록을 읽지 못했어요. 코드로 다시 해 주세요") } }
 </script>
-<script src="game.js?v=11040954"></script>
+<script src="game.js?v=11110959"></script>
